@@ -1,7 +1,7 @@
 esphome:
   name: boiler
   includes:
-  - FrisquetBoilerFloatOutput.h
+  - custom_component.h
 
 substitutions:
   name: "Chaudière Frisquet"
@@ -13,11 +13,7 @@ esp32:
 
 # Enable logging
 logger:
-  baud_rate: 0
   level: DEBUG
-  logs:
-    sensor: INFO
-    text_sensor: INFO
 
 # Enable Home Assistant API
 api:
@@ -97,29 +93,6 @@ sensor:
     filters:
       - filter_out: nan
       - heartbeat: 5s
-        
-  - platform: homeassistant
-    id: outdoor_temperature
-    entity_id: sensor.aqara_exterieur_temperature
-    unit_of_measurement: "°C"
-    filters:
-      - filter_out: nan
-      - heartbeat: 60s
-
-  - platform: template
-    id: setpoint
-    name: "Consigne Thermostat"
-    unit_of_measurement: "°C"
-    lambda: |-
-      return id(pid_climate).target_temperature;
-
-  - platform: template
-    id: heating_curve
-    name: "Loi d'eau"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 0
-    lambda: |-
-      return (1.8 * (id(setpoint).state - id(outdoor_temperature).state) + 23);
 
   - platform: homeassistant
     entity_id: input_number.consigne_manuelle_chaudiere
@@ -161,7 +134,7 @@ sensor:
   - platform: dallas
     address: 0xAB03213190136128
     name: "Retour chaudière"
-
+   
 climate:
   - platform: pid
     id: pid_climate
@@ -183,10 +156,7 @@ output:
   - platform: custom
     type: float
     lambda: |-
-      auto boiler_float_output = new FrisquetBoilerFloatOutput();
-      boiler_float_output->set_max_power(1.0);
-      boiler_float_output->set_min_power(0.2);
-      boiler_float_output->set_zero_means_zero(true);
+      auto boiler_float_output = new FrisquetBoilerFloatOutput(20, 100);
       App.register_component(boiler_float_output);
       return {boiler_float_output};
     outputs:

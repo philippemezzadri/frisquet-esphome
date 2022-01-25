@@ -30,10 +30,10 @@
  */
 
 #include "esphome.h"
+
 using namespace esphome;
 using namespace output;
 
-#define TAG "output.boiler_control"
 #define MQTT_TOPIC_MODE "boiler/mode"
 #define MQTT_TOPIC_SETPOINT "boiler/setpoint"
 
@@ -51,6 +51,7 @@ static const int LONG_PULSE = 825; // micro seconds
 class FrisquetBoilerFloatOutput : public Component, public CustomAPIDevice, public FloatOutput
 {
 private:
+    char const *TAG = "boiler_control.output";
     int previousState = LOW;
     int bitstuffCounter = 0;
     int delayCycleCmd; //  This variable contains the delay for the next command to the boiler (if no order is received)
@@ -61,14 +62,6 @@ private:
 public:
     int operating_setpoint = 0;
     int operating_mode = 3;
-    float min_power = 0.0;
-    float max_power = 1.0;
-
-    FrisquetBoilerFloatOutput(int min, int max)
-    {
-        min_power = min / 100.0;
-        max_power = max / 100.0;
-    }
 
     void setup() override
     {
@@ -108,11 +101,6 @@ public:
             return;
 
         int new_demand;
-        state = clamp(state, 0.0f, 1.0f);
-
-        if (!(state == 0.0f)) // regardless of min_power, 0.0 means off
-            state = (state * (max_power - min_power)) + min_power;
-
         new_demand = state * 100;
         lastOrder = millis();
 
@@ -139,13 +127,6 @@ public:
         if ((now - lastCmd > delayCycleCmd) && ((now - lastOrder < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0) || (manual_override->value() >= 0)))
         {
             ESP_LOGI(TAG, "Sending messages");
-
-            if (manual_override->value() >= 0)
-            {
-                ESP_LOGW(TAG, "Manual override is on, using fixed output value: %i", manual_override->value());
-                operating_setpoint = clamp(manual_override->value(), 0, 100);
-            }
-
             send_message();
             lastCmd = now;
             delayCycleCmd = DELAY_CYCLE_CMD;
@@ -212,6 +193,7 @@ public:
         digitalWrite(ONBOARD_LED, LOW);
     }
 
+private:
     /**
      * Below are all member functions related to the Frisquet Boiler communication protocol.
      */
@@ -221,6 +203,12 @@ public:
         /**
          * @brief Emits a serie of 3 messages to the ERS input of the boiler
          */
+
+        if (manual_override->value() >= 0)
+        {
+            ESP_LOGW(TAG, "Manual override is on, using fixed output value: %i", manual_override->value());
+            operating_setpoint = clamp(manual_override->value(), 0, 100);
+        }
 
         ESP_LOGI(TAG, "sending setpoint to boiler : (%i, %i)", operating_mode, operating_setpoint);
         blink();
