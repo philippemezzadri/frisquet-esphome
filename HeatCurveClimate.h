@@ -33,10 +33,15 @@
 
 using namespace esphome;
 
-const uint8_t CLIMATE_TEMP_MIN = 7;  // Celsius
-const uint8_t CLIMATE_TEMP_MAX = 28; // Celsius
-const float SLOPE = 1.7;
-const float PIVOT_POINT = 23;
+// Climate standard visual configuration
+const uint8_t CLIMATE_TEMP_MIN = 7;         // Celsius
+const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
+const float CLIMATE_TEMPERATURE_STEP = 0.1; // Celsius
+
+// Standard heat curve of nothing is defined in yaml config file
+// Boiler Water Temp = SLOPE * (Setpoint - Outdoor Temp) + PIVOT_POINT
+const float SLOPE = 1.5;
+const float PIVOT_POINT = 23.0;
 
 class HeatCurveClimate : public Climate, public Component
 {
@@ -48,6 +53,7 @@ private:
     float pivot_ = PIVOT_POINT;
 
     ClimateMode active_mode_;
+    ClimateAction active_action_;
     sensor::Sensor *current_sensor_{nullptr};
     sensor::Sensor *outoor_sensor_{nullptr};
     sensor::Sensor *water_temp_sensor_{nullptr};
@@ -61,8 +67,11 @@ public:
         {
             this->current_sensor_->add_on_state_callback([this](float state)
                                                          {
-                                                             this->current_temperature = state;
-                                                             this->publish_state();
+                                                             if (state != this->current_temperature)
+                                                             {
+                                                                 this->current_temperature = state;
+                                                                 this->publish_state();
+                                                             }
                                                          });
             this->current_temperature = this->current_sensor_->state;
         }
@@ -73,9 +82,11 @@ public:
         {
             this->outoor_sensor_->add_on_state_callback([this](float state)
                                                         {
+                                                            float new_temp;
                                                             this->outdoor_temp = state;
-                                                            this->water_temp = floor(((this->target_temperature - this->outdoor_temp) * this->slope_ + this->pivot_) + 0.5);
-                                                            this->water_temp = clamp(this->water_temp, 0.0f, 100.0f);
+
+                                                            new_temp = floor(((this->target_temperature - this->outdoor_temp) * this->slope_ + this->pivot_) + 0.5);
+                                                            new_temp = clamp(new_temp, 0.0f, 100.0f);
 
                                                             if (this->mode == climate::CLIMATE_MODE_OFF)
                                                             {
@@ -83,20 +94,32 @@ public:
                                                                 this->action = climate::CLIMATE_ACTION_OFF;
                                                                 this->water_temp = 0;
                                                             }
-                                                            else if (this->outdoor_temp > this->target_temperature - 3 || this->water_temp < 25)
+                                                            else if (this->outdoor_temp > this->target_temperature - 3 || new_temp < 25)
                                                             {
                                                                 ESP_LOGD(TAG, "Climate action is IDLE");
                                                                 this->action = climate::CLIMATE_ACTION_IDLE;
                                                                 this->water_temp = 0;
                                                             }
                                                             else
+                                                            {
+                                                                ESP_LOGD(TAG, "Climate action is HEATING");
                                                                 this->action = climate::CLIMATE_ACTION_HEATING;
+                                                            }
 
-                                                            this->publish_state();
-                                                            ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp);
+                                                            if (this->active_action_ != this->action)
+                                                            {
+                                                                this->publish_state();
+                                                                this->active_action_ = this->action;
+                                                            }
 
-                                                            if (this->water_temp_sensor_)
+                                                            if (this->water_temp_sensor_ && new_temp != this->water_temp)
+                                                            {
+                                                                this->water_temp = new_temp;
                                                                 this->water_temp_sensor_->publish_state(this->water_temp);
+                                                                ESP_LOGI(TAG, "New water temperature setpoint: %.1f°C", this->water_temp);
+                                                            }
+
+                                                            ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp);
 
                                                             if (this->output_)
                                                                 this->output_->set_level(this->water_temp / 100.0);
@@ -146,6 +169,7 @@ public:
 
         this->publish_state();
         this->active_mode_ = this->mode;
+        this->active_action_ = this->action;
     }
 
     /// Return the traits of this controller
@@ -155,9 +179,10 @@ public:
         traits.set_supports_current_temperature(this->current_sensor_ != nullptr);
         traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
         traits.set_supports_two_point_target_temperature(false);
+        traits.set_supports_action(true);
         traits.set_visual_min_temperature(CLIMATE_TEMP_MIN);
         traits.set_visual_max_temperature(CLIMATE_TEMP_MAX);
-        traits.set_visual_temperature_step(0.1);
+        traits.set_visual_temperature_step(CLIMATE_TEMPERATURE_STEP);
         return traits;
     }
 };

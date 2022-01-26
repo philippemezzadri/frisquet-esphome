@@ -34,15 +34,11 @@
 using namespace esphome;
 using namespace output;
 
-#define MQTT_TOPIC_MODE "boiler/mode"
-#define MQTT_TOPIC_SETPOINT "boiler/setpoint"
-
 #define DELAY_CYCLE_CMD 240000        // delay between 2 commands (4min)
 #define DELAY_CYCLE_CMD_INIT 240000   // delay for the 1st command after startup (4min)
 #define DELAY_REPEAT_CMD 20000        // when a new command is issued, it is repeated after this delay (20s)
 #define DELAY_TIMEOUT_CMD_MQTT 900000 // 15min Max delay without Mqtt msg ---PROTECTION OVERHEATING ---- (Same as remote) - 0 to deactivate
-
-#define DELAY_BETWEEN_MESSAGES 33 // ms
+#define DELAY_BETWEEN_MESSAGES 33     // ms
 
 static const uint8_t ONBOARD_LED = 2;
 static const uint8_t ERS_PIN = 5;
@@ -51,7 +47,7 @@ static const int LONG_PULSE = 825; // micro seconds
 class FrisquetBoilerFloatOutput : public Component, public CustomAPIDevice, public FloatOutput
 {
 private:
-    char const *TAG = "boiler_control.output";
+    char const *TAG = "frisquet.output";
     int previousState = LOW;
     int bitstuffCounter = 0;
     int delayCycleCmd; //  This variable contains the delay for the next command to the boiler (if no order is received)
@@ -123,7 +119,7 @@ public:
         long now = millis();
         if ((now - lastCmd > delayCycleCmd) && ((now - lastOrder < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0)))
         {
-            ESP_LOGI(TAG, "Sending messages");
+            ESP_LOGD(TAG, "Sending messages");
             send_message();
             lastCmd = now;
             delayCycleCmd = DELAY_CYCLE_CMD;
@@ -198,7 +194,7 @@ private:
          * @brief Emits a serie of 3 messages to the ERS input of the boiler
          */
 
-        ESP_LOGI(TAG, "Sending setpoint to boiler : (%i, %i)", operating_mode, operating_setpoint);
+        ESP_LOGI(TAG, "Sending command to boiler : (%i, %i)", operating_mode, operating_setpoint);
         blink();
 
         for (uint8_t msg = 0; msg < 3; msg++)
