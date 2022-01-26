@@ -2,6 +2,7 @@ esphome:
   name: boiler
   includes:
   - FrisquetBoilerFloatOutput.h
+  - HeatCurveClimate.h
 
 substitutions:
   name: "Chaudière Frisquet"
@@ -42,11 +43,9 @@ web_server:
 dallas:
   - pin: GPIO26
     
-globals:
-  - id: manual_override
-    type: int
-    restore_value: no
-    initial_value: '-1'
+switch:
+  - platform: restart
+    name: "${name} reboot"
 
 binary_sensor:
   - platform: status
@@ -96,7 +95,7 @@ sensor:
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
-      - heartbeat: 5s
+      - heartbeat: 60s
         
   - platform: homeassistant
     id: outdoor_temperature
@@ -107,52 +106,10 @@ sensor:
       - heartbeat: 60s
 
   - platform: template
-    id: setpoint
-    name: "Consigne Thermostat"
-    unit_of_measurement: "°C"
-    lambda: |-
-      return id(pid_climate).target_temperature;
-
-  - platform: template
     id: heating_curve
-    name: "Loi d'eau"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 0
-    lambda: |-
-      return (1.8 * (id(setpoint).state - id(outdoor_temperature).state) + 23);
-
-  - platform: homeassistant
-    entity_id: input_number.consigne_manuelle_chaudiere
-    id: boiler_manual_setpoint
-    unit_of_measurement: "°C"
-    on_value:
-      then:
-        - globals.set:
-            id: manual_override
-            value: !lambda 'return int(x);'
-
-  - platform: pid
     name: "Consigne chaudière"
-    type: HEAT
     unit_of_measurement: "°C"
     accuracy_decimals: 0
-    filters:
-      - lambda: |-
-          if (id(manual_override) >= 0) {
-            return id(manual_override);
-          } else {
-             return (x > 0) ? (x * 80) / 100 + 20 : 0;
-          }
-
-  - platform: pid
-    name: "Demande en chaleur"
-    type: HEAT
-    unit_of_measurement: "%"
-    
-  - platform: pid
-    name: "Valeur PID"
-    type: RESULT
-    unit_of_measurement: "%"
 
   - platform: dallas
     address: 0xA2032131AB675C28
@@ -163,21 +120,21 @@ sensor:
     name: "Retour chaudière"
 
 climate:
-  - platform: pid
-    id: pid_climate
-    name: "${name}"
-    sensor: current_temperature
-    default_target_temperature: 20°C
-    heat_output: boiler_cmd
-    control_parameters:
-      min_integral: 0
-      kp: 0.5
-      ki: 0.00006944
-      kd: 0
-    visual:
-      min_temperature: 7 °C
-      max_temperature: 28 °C
-      temperature_step: 0.1 °C
+  - platform: custom
+    id: custom_climate
+    lambda: |-
+      auto custom_climate = new HeatCurveClimate();
+      custom_climate->set_sensor(id(current_temperature));
+      custom_climate->set_outdoor_sensor(id(outdoor_temperature));
+      custom_climate->set_output(id(boiler_cmd));
+      custom_climate->set_water_temp_sensor(id(heating_curve));
+      custom_climate->set_slope(1.8);
+      custom_climate->set_pivot(23.0);
+      App.register_component(custom_climate);
+      return {custom_climate};
+
+    climates:
+      - name: "${name}"
 
 output:
   - platform: custom
@@ -185,13 +142,9 @@ output:
     lambda: |-
       auto boiler_float_output = new FrisquetBoilerFloatOutput();
       boiler_float_output->set_max_power(1.0);
-      boiler_float_output->set_min_power(0.2);
+      boiler_float_output->set_min_power(0);
       boiler_float_output->set_zero_means_zero(true);
       App.register_component(boiler_float_output);
       return {boiler_float_output};
     outputs:
       id: boiler_cmd
-
-switch:
-  - platform: restart
-    name: "${name} reboot"

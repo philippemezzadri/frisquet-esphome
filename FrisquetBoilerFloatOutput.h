@@ -97,9 +97,6 @@ public:
          * @param state PI regulation heating demand in [0, 1] range       
          */
 
-        if (manual_override->value() >= 0)
-            return;
-
         int new_demand;
         new_demand = state * 100;
         lastOrder = millis();
@@ -107,7 +104,7 @@ public:
         if (new_demand != operating_setpoint)
         {
             blink();
-            ESP_LOGD(TAG, "New PI Heating demand: %.3f", state);
+            ESP_LOGD(TAG, "New Heating demand: %.3f", state);
 
             operating_setpoint = new_demand;
             ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", operating_mode, operating_setpoint);
@@ -124,7 +121,7 @@ public:
          *        Think of it as the loop() call in Arduino
          */
         long now = millis();
-        if ((now - lastCmd > delayCycleCmd) && ((now - lastOrder < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0) || (manual_override->value() >= 0)))
+        if ((now - lastCmd > delayCycleCmd) && ((now - lastOrder < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0)))
         {
             ESP_LOGI(TAG, "Sending messages");
             send_message();
@@ -145,10 +142,7 @@ public:
         {
             ESP_LOGD(TAG, "New mode: %i", mode);
             operating_mode = mode;
-            send_message();
-            lastCmd = millis();
-            lastOrder = lastCmd;
-            delayCycleCmd = DELAY_REPEAT_CMD;
+            lastOrder = millis();
         }
         else
         {
@@ -204,13 +198,7 @@ private:
          * @brief Emits a serie of 3 messages to the ERS input of the boiler
          */
 
-        if (manual_override->value() >= 0)
-        {
-            ESP_LOGW(TAG, "Manual override is on, using fixed output value: %i", manual_override->value());
-            operating_setpoint = clamp(manual_override->value(), 0, 100);
-        }
-
-        ESP_LOGI(TAG, "sending setpoint to boiler : (%i, %i)", operating_mode, operating_setpoint);
+        ESP_LOGI(TAG, "Sending setpoint to boiler : (%i, %i)", operating_mode, operating_setpoint);
         blink();
 
         for (uint8_t msg = 0; msg < 3; msg++)

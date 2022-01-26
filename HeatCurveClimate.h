@@ -1,5 +1,5 @@
 /**
- * @file HeatingCurveClimate.h
+ * @file HeatCurveClimate.h
  * @author Philippe Mezzadri (philippe@mezzadri.fr)
  * 
  * @version 0.2
@@ -38,23 +38,24 @@ const uint8_t CLIMATE_TEMP_MAX = 28; // Celsius
 const float SLOPE = 1.7;
 const float PIVOT_POINT = 23;
 
-class HeatingCurveClimate : public Climate, public Component
+class HeatCurveClimate : public Climate, public Component
 {
 private:
-    char const *TAG = "heating_curve.climate";
+    char const *TAG = "heat_curve.climate";
     float outdoor_temp;
+    float water_temp;
     float slope_ = SLOPE;
     float pivot_ = PIVOT_POINT;
 
     ClimateMode active_mode_;
     sensor::Sensor *current_sensor_{nullptr};
     sensor::Sensor *outoor_sensor_{nullptr};
+    sensor::Sensor *water_temp_sensor_{nullptr};
     output::FloatOutput *output_{nullptr};
 
 public:
-    uint8_t water_temp;
-
-    void setup() override
+    void
+    setup() override
     {
         if (this->current_sensor_)
         {
@@ -73,12 +74,32 @@ public:
             this->outoor_sensor_->add_on_state_callback([this](float state)
                                                         {
                                                             this->outdoor_temp = state;
-                                                            this->water_temp = (uint8_t)((this->target_temperature - this->outdoor_temp) * this->slope_ + this->pivot_);
-                                                            ESP_LOGD(TAG, "New water temperature: %i°C", this->water_temp);
-                                                            if (this->output_)
+                                                            this->water_temp = floor(((this->target_temperature - this->outdoor_temp) * this->slope_ + this->pivot_) + 0.5);
+                                                            this->water_temp = clamp(this->water_temp, 0.0f, 100.0f);
+
+                                                            if (this->mode == climate::CLIMATE_MODE_OFF)
                                                             {
-                                                                this->output_->set_level(this->water_temp / 100.0);
+                                                                ESP_LOGD(TAG, "Climate mode is OFF");
+                                                                this->action = climate::CLIMATE_ACTION_OFF;
+                                                                this->water_temp = 0;
                                                             }
+                                                            else if (this->outdoor_temp > this->target_temperature - 3 || this->water_temp < 25)
+                                                            {
+                                                                ESP_LOGD(TAG, "Climate action is IDLE");
+                                                                this->action = climate::CLIMATE_ACTION_IDLE;
+                                                                this->water_temp = 0;
+                                                            }
+                                                            else
+                                                                this->action = climate::CLIMATE_ACTION_HEATING;
+
+                                                            this->publish_state();
+                                                            ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp);
+
+                                                            if (this->water_temp_sensor_)
+                                                                this->water_temp_sensor_->publish_state(this->water_temp);
+
+                                                            if (this->output_)
+                                                                this->output_->set_level(this->water_temp / 100.0);
                                                         });
             this->outdoor_temp = this->outoor_sensor_->state;
         }
@@ -103,7 +124,8 @@ public:
 
     void set_sensor(sensor::Sensor *sensor) { this->current_sensor_ = sensor; }
     void set_outdoor_sensor(sensor::Sensor *sensor) { this->outoor_sensor_ = sensor; }
-    void set_output_sensor(output::FloatOutput *output) { this->output_ = output; }
+    void set_water_temp_sensor(sensor::Sensor *sensor) { this->water_temp_sensor_ = sensor; }
+    void set_output(output::FloatOutput *output) { this->output_ = output; }
     void set_slope(float slope) { this->slope_ = slope; }
     void set_pivot(float pivot) { this->pivot_ = pivot; }
 
@@ -114,6 +136,13 @@ public:
             this->mode = *call.get_mode();
         if (call.get_target_temperature().has_value())
             this->target_temperature = *call.get_target_temperature();
+
+        if (this->mode == climate::CLIMATE_MODE_OFF)
+        {
+            this->action = climate::CLIMATE_ACTION_OFF;
+            if (this->output_)
+                this->output_->set_level(0);
+        }
 
         this->publish_state();
         this->active_mode_ = this->mode;
