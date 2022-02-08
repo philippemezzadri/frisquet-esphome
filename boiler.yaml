@@ -99,7 +99,7 @@ sensor:
         
   - platform: homeassistant
     id: outdoor_temperature
-    entity_id: sensor.aqara_exterieur_temperature
+    entity_id: sensor.outdoor_temperature
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
@@ -128,8 +128,8 @@ climate:
       custom_climate->set_outdoor_sensor(id(outdoor_temperature));
       custom_climate->set_output(id(boiler_cmd));
       custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_slope(1.8);
-      custom_climate->set_pivot(23.0);
+      custom_climate->set_slope(2.02);
+      custom_climate->set_pivot(17.6);
       App.register_component(custom_climate);
       return {custom_climate};
 
