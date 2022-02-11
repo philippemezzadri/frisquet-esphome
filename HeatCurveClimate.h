@@ -1,14 +1,14 @@
 /**
  * @file HeatCurveClimate.h
  * @author Philippe Mezzadri (philippe@mezzadri.fr)
- * 
+ *
  * @version 0.2
  * @date 2022-01-19
  *
  * MIT License
- * 
+ *
  * @copyright (c) 2022 Philippe Mezzadri
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -26,7 +26,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  */
 
 #include "esphome.h"
@@ -39,9 +39,11 @@ const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
 const float CLIMATE_TEMPERATURE_STEP = 0.1; // Celsius
 
 // Standard heat curve of nothing is defined in yaml config file
-// Boiler Water Temp = SLOPE * (Setpoint - Outdoor Temp) + PIVOT_POINT
-const float SLOPE = 1.5;
-const float PIVOT_POINT = 23.0;
+// Boiler Water Temp = FACTOR * (Setpoint - Outdoor Temp) + OFFSET
+const float FACTOR = 1.5;
+const float OFFSET = 23.0;
+
+const uint8_t MINIMUM_OUTPUT = 20;
 
 class HeatCurveClimate : public Climate, public Component
 {
@@ -49,8 +51,10 @@ private:
     char const *TAG = "heat_curve.climate";
     float outdoor_temp;
     float water_temp;
-    float slope_ = SLOPE;
-    float pivot_ = PIVOT_POINT;
+    float heat_factor_ = FACTOR;
+    float offset_ = OFFSET;
+    float output_conversion_factor_ = 1;
+    float output_conversion_offset_ = 0;
 
     ClimateMode active_mode_;
     ClimateAction active_action_;
@@ -60,8 +64,16 @@ private:
     output::FloatOutput *output_{nullptr};
 
 public:
-    void
-    setup() override
+    void set_sensor(sensor::Sensor *sensor) { this->current_sensor_ = sensor; }
+    void set_outdoor_sensor(sensor::Sensor *sensor) { this->outoor_sensor_ = sensor; }
+    void set_water_temp_sensor(sensor::Sensor *sensor) { this->water_temp_sensor_ = sensor; }
+    void set_output(output::FloatOutput *output) { this->output_ = output; }
+    void set_heat_factor(float slope) { this->heat_factor_ = slope; }
+    void set_offset(float pivot) { this->offset_ = pivot; }
+    void set_output_conversion_factor(float factor) { this->output_conversion_factor_ = factor; }
+    void set_output_conversion_offset(float offset) { this->output_conversion_offset_ = offset; }
+
+    void setup() override
     {
         if (this->current_sensor_)
         {
@@ -71,8 +83,7 @@ public:
                                                              {
                                                                  this->current_temperature = state;
                                                                  this->publish_state();
-                                                             }
-                                                         });
+                                                             } });
             this->current_temperature = this->current_sensor_->state;
         }
         else
@@ -83,22 +94,32 @@ public:
             this->outoor_sensor_->add_on_state_callback([this](float state)
                                                         {
                                                             float new_temp;
+                                                            float output;
                                                             this->outdoor_temp = state;
 
-                                                            new_temp = floor(((this->target_temperature - this->outdoor_temp) * this->slope_ + this->pivot_) + 0.5);
-                                                            new_temp = clamp(new_temp, 0.0f, 100.0f);
+                                                            new_temp = (this->target_temperature - this->outdoor_temp) * this->heat_factor_ + this->offset_;
+                                                            ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
+
+                                                            output = floor(new_temp * this->output_conversion_factor_ + this->output_conversion_offset_);
+                                                            output = clamp(output, 0.0f, 100.0f);
+                                                            new_temp = (output - this->output_conversion_offset_) / this->output_conversion_factor_;
+
+                                                            ESP_LOGD(TAG, "Calculated output: %.0f", output);
+                                                            ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
 
                                                             if (this->mode == climate::CLIMATE_MODE_OFF)
                                                             {
                                                                 ESP_LOGD(TAG, "Climate mode is OFF");
                                                                 this->action = climate::CLIMATE_ACTION_OFF;
                                                                 this->water_temp = 0;
+                                                                output = 0;
                                                             }
-                                                            else if (this->outdoor_temp > this->target_temperature - 3 || new_temp < 25)
+                                                            else if (this->outdoor_temp > this->target_temperature - 2 || output < MINIMUM_OUTPUT)
                                                             {
                                                                 ESP_LOGD(TAG, "Climate action is IDLE");
                                                                 this->action = climate::CLIMATE_ACTION_IDLE;
                                                                 this->water_temp = 0;
+                                                                output = 0;
                                                             }
                                                             else
                                                             {
@@ -122,8 +143,7 @@ public:
                                                             ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp);
 
                                                             if (this->output_)
-                                                                this->output_->set_level(this->water_temp / 100.0);
-                                                        });
+                                                                this->output_->set_level(output / 100.0); });
             this->outdoor_temp = this->outoor_sensor_->state;
         }
         else
@@ -144,13 +164,6 @@ public:
         }
         this->active_mode_ = this->mode;
     }
-
-    void set_sensor(sensor::Sensor *sensor) { this->current_sensor_ = sensor; }
-    void set_outdoor_sensor(sensor::Sensor *sensor) { this->outoor_sensor_ = sensor; }
-    void set_water_temp_sensor(sensor::Sensor *sensor) { this->water_temp_sensor_ = sensor; }
-    void set_output(output::FloatOutput *output) { this->output_ = output; }
-    void set_slope(float slope) { this->slope_ = slope; }
-    void set_pivot(float pivot) { this->pivot_ = pivot; }
 
     /// Override control to change settings of the climate device
     void control(const climate::ClimateCall &call) override

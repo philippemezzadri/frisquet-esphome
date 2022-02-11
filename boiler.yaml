@@ -109,7 +109,7 @@ sensor:
     id: heating_curve
     name: "Consigne chaudière"
     unit_of_measurement: "°C"
-    accuracy_decimals: 0
+    accuracy_decimals: 1
 
   - platform: dallas
     address: 0xA2032131AB675C28
@@ -128,8 +128,10 @@ climate:
       custom_climate->set_outdoor_sensor(id(outdoor_temperature));
       custom_climate->set_output(id(boiler_cmd));
       custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_slope(2.02);
-      custom_climate->set_pivot(17.6);
+      custom_climate->set_heat_factor(1.11);
+      custom_climate->set_offset(29.9);
+      custom_climate->set_output_conversion_factor(1.90);
+      custom_climate->set_output_conversion_offset(-41);
       App.register_component(custom_climate);
       return {custom_climate};
 
