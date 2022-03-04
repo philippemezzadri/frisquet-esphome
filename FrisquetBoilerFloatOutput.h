@@ -1,14 +1,14 @@
 /**
  * @file custom_component.h
  * @author Philippe Mezzadri (philippe@mezzadri.fr)
- * 
+ *
  * @version 0.2
  * @date 2022-01-19
  *
  * MIT License
- * 
+ *
  * @copyright (c) 2022 Philippe Mezzadri
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -26,7 +26,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  */
 
 #include "esphome.h"
@@ -89,12 +89,16 @@ public:
          * @brief This will be called when the output state is updated
          *        The PI heating demand received from the controller is converted in water
          *        temperature setpoint.
-         * 
-         * @param state PI regulation heating demand in [0, 1] range       
+         *
+         * @param state PI regulation heating demand in [0, 1] range
          */
 
         int new_demand;
         new_demand = state * 100;
+
+        if (new_demand == 15)
+            new_demand = 14;
+
         lastOrder = millis();
 
         if (new_demand != operating_setpoint)
@@ -150,7 +154,7 @@ public:
     {
         /**
          * @brief Service callable form Home Assistant frontend
-         * @param setpoint new water temperature setpoint 
+         * @param setpoint new water temperature setpoint
          *   0 : boiler stopped
          *   10 : water pump started
          *   20 - 100 : water temperature setpoint

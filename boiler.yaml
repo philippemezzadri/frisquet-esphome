@@ -16,6 +16,7 @@ esp32:
 logger:
   baud_rate: 0
   level: DEBUG
+  # level: INFO
   logs:
     sensor: INFO
     text_sensor: INFO
@@ -128,8 +129,8 @@ climate:
       custom_climate->set_outdoor_sensor(id(outdoor_temperature));
       custom_climate->set_output(id(boiler_cmd));
       custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_heat_factor(1.11);
-      custom_climate->set_offset(29.9);
+      custom_climate->set_heat_factor(1.4);
+      custom_climate->set_offset(21);
       custom_climate->set_output_conversion_factor(1.90);
       custom_climate->set_output_conversion_offset(-41);
       App.register_component(custom_climate);
