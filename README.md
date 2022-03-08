@@ -1,15 +1,15 @@
 # Frisquet Boiler for ESPHome
 
 This custom component allows communication between an ESPHome device
-(ESP8266 or ESP32) and a Frisquet heating boiler (equipped with Eco Radio System thermostat).
+(ESP8266 or ESP32) and a Frisquet heating boiler (equipped with Eco Radio System remote thermostat).
 
-This ESPHome Custom Component is strongly integrated with **Home Assistant** where it appears as a standard climate device. However, if necessary, it can be used with any other home automation system through [MQTT](<https://esphome.io/components/mqtt.html?highlight=mqtt>). In that case MQTT functionnality should be enabled in the the yaml configuration file.
+This ESPHome Custom Component is strongly integrated with **Home Assistant** where it appears as a standard climate device. However, if necessary, it can be used with any other home automation system through [MQTT](<https://esphome.io/components/mqtt.html>). In that case MQTT functionnality should be enabled in the the `yaml` configuration file.
 
 ## References
 
 - <https://esphome.io/components/climate/index.html>
 - <https://esphome.io/components/climate/custom.html>
-- <https://esphome.io/components/climate/pid.html>
+- <https://esphome.io/components/output/custom.html>
 
 This work is strongly inspired from:
 
@@ -25,15 +25,20 @@ and from the discussions made in this thread:
 
 The ESPHome replaces the original Eco Radio System HF receiver and is conneted to the boiler main board through a micro-fit 4 socket.
 
-| ESP32                 | BOILER SIDE         | Micro-fit pin      |
-| --------------------- | ------------------- |:------------------:|
-| GND                   | black wire          | 1                  |
-| Pin 21 (configurable) | yellow wire         | 2                  |
-| 5V                    | red wire (optional) | 3                  |
+| ESP32                 | Boiler Side         | Pin number |
+| --------------------- | ------------------- |:----------:|
+| GND                   | black wire          | 1          |
+| Pin 21 (configurable) | yellow wire         | 2          |
+| 5V                    | red wire (optional) | 3          |
 
-**Micro-fit 4 pinout:**
+**Micro-fit 4 pin out:**
 
 <img src="doc/connector_4pin1.png" alt="Micro-fit 4 pinout drawing" width="80"/>
+
+Defined viewing direction for the connector pin out:
+
+- Receptable - _rear view_
+- Header - _front view_
 
 ## Installation
 
@@ -54,7 +59,6 @@ esphome:
   includes:
   - FrisquetBoilerFloatOutput.h
   - HeatCurveClimate.h
-
 
 # Initialisation of the custom output component
 output:
@@ -147,28 +151,28 @@ sensor:
 
 ## Tuning
 
-1. **Boiler setpoint conversion factor and offset**
-
-    The boiler setpoint (integer in the `[0 - 100]` range) and the water return temperature are linked by the following formula:
-
-    `WaterReturnTemperature =  Setpoint * ConversionFactor + Offset`
-
-    `ConversionFactor`and `Offset` are defined using the following lines in the yaml configuration file:
-
-    ```cpp
-    custom_climate->set_output_conversion_factor(1.90);
-    custom_climate->set_output_conversion_offset(-41);
-    ```
-
-2. **Heat curve definition**
+1. **Heat curve definition**
 
     The boiler water temperature is calculated from the outdoor temperature:
 
-    `BoilerTemperature =  (Setpoint - OutdoorTemp) * HeatFactor + Offset`
+    `WaterReturnTemperature = (TargetTemp - OutdoorTemp) * HeatFactor + Offset`
 
     `HeatFactor`and `Offset` are defined using the following lines in the yaml configuration file:
 
     ```cpp
     custom_climate->set_heat_factor(1.4);
     custom_climate->set_offset(21);
+    ```
+
+2. **Boiler setpoint conversion factor and offset**
+
+    The boiler setpoint (integer in the `[0 - 100]` range) and the water return temperature are linked by the following formula:
+
+    `Setpoint = WaterReturnTemperature * ConversionFactor + Offset`
+
+    `ConversionFactor`and `Offset` are defined using the following lines in the yaml configuration file:
+
+    ```cpp
+    custom_climate->set_output_conversion_factor(1.90);
+    custom_climate->set_output_conversion_offset(-41);
     ```
