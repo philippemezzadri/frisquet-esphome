@@ -34,11 +34,11 @@
 using namespace esphome;
 using namespace output;
 
-#define DELAY_CYCLE_CMD 240000        // delay between 2 commands (4min)
-#define DELAY_CYCLE_CMD_INIT 240000   // delay for the 1st command after startup (4min)
-#define DELAY_REPEAT_CMD 20000        // when a new command is issued, it is repeated after this delay (20s)
-#define DELAY_TIMEOUT_CMD_MQTT 900000 // 15min Max delay without Mqtt msg ---PROTECTION OVERHEATING ---- (Same as remote) - 0 to deactivate
-#define DELAY_BETWEEN_MESSAGES 33     // ms
+static const int DELAY_CYCLE_CMD = 240000;        // delay between 2 commands (4min)
+static const int DELAY_CYCLE_CMD_INIT = 240000;   // delay for the 1st command after startup (4min)
+static const int DELAY_REPEAT_CMD = 20000;        // when a new command is issued, it is repeated after this delay (20s)
+static const int DELAY_TIMEOUT_CMD_MQTT = 900000; // 15min Max delay without Mqtt msg ---PROTECTION OVERHEATING ---- (Same as remote) - 0 to deactivate
+static const int DELAY_BETWEEN_MESSAGES = 33;     // ms
 
 static const uint8_t ONBOARD_LED = 2;
 static const uint8_t ERS_PIN = 5;
@@ -46,19 +46,19 @@ static const int LONG_PULSE = 825; // micro seconds
 
 class FrisquetBoilerFloatOutput : public Component, public CustomAPIDevice, public FloatOutput
 {
-private:
+protected:
     char const *TAG = "frisquet.output";
-    int previousState = LOW;
-    int bitstuffCounter = 0;
-    int delayCycleCmd; //  This variable contains the delay for the next command to the boiler (if no order is received)
-    long lastCmd = 0;
-    long lastOrder = 0;
-    uint8_t message[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
+    int previous_state_ = LOW;
+    int bitstuff_counter_ = 0;
+    int delay_cycle_cmd_; //  This variable contains the delay for the next command to the boiler (if no order is received)
+    long last_cmd_ = 0;
+    long last_order_ = 0;
+    uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
+
+    int operating_setpoint_ = 0;
+    int operating_mode_ = 3;
 
 public:
-    int operating_setpoint = 0;
-    int operating_mode = 3;
-
     void setup() override
     {
         /**
@@ -72,11 +72,11 @@ public:
         pinMode(ONBOARD_LED, OUTPUT);
 
         // Init cycle delay for first message
-        delayCycleCmd = DELAY_CYCLE_CMD_INIT;
+        this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
 
         // Set boiler id
-        message[4] = 0x03;
-        message[5] = 0xB9;
+        this->message_[4] = 0x03;
+        this->message_[5] = 0xB9;
 
         // Register services
         register_service(&FrisquetBoilerFloatOutput::on_send_operating_mode, "send_operating_mode", {"mode"});
@@ -96,21 +96,23 @@ public:
         int new_demand;
         new_demand = state * 100;
 
+        // Cmd = 15 is known as not working
         if (new_demand == 15)
             new_demand = 14;
 
-        lastOrder = millis();
+        this->last_order_ = millis();
 
-        if (new_demand != operating_setpoint)
+        if (new_demand != this->operating_setpoint_)
         {
             blink();
             ESP_LOGD(TAG, "New Heating demand: %.3f", state);
 
-            operating_setpoint = new_demand;
-            ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", operating_mode, operating_setpoint);
+            this->operating_setpoint_ = new_demand;
+            ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
             send_message();
-            lastCmd = lastOrder;
-            delayCycleCmd = DELAY_REPEAT_CMD;
+
+            this->last_cmd_ = this->last_order_;
+            this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
         }
     }
 
@@ -121,12 +123,12 @@ public:
          *        Think of it as the loop() call in Arduino
          */
         long now = millis();
-        if ((now - lastCmd > delayCycleCmd) && ((now - lastOrder < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0)))
+        if ((now - this->last_cmd_ > this->delay_cycle_cmd_) && ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0)))
         {
             ESP_LOGD(TAG, "Sending messages");
             send_message();
-            lastCmd = now;
-            delayCycleCmd = DELAY_CYCLE_CMD;
+            this->last_cmd_ = now;
+            this->delay_cycle_cmd_ = DELAY_CYCLE_CMD;
         }
     }
 
@@ -141,8 +143,8 @@ public:
         if ((mode == 0) or (mode == 3) or (mode == 4))
         {
             ESP_LOGD(TAG, "New mode: %i", mode);
-            operating_mode = mode;
-            lastOrder = millis();
+            this->operating_mode_ = mode;
+            this->last_order_ = millis();
         }
         else
         {
@@ -164,11 +166,11 @@ public:
         if ((setpoint >= 0) and (setpoint <= 100))
         {
             ESP_LOGD(TAG, "New setpoint: %i", setpoint);
-            operating_setpoint = setpoint;
+            this->operating_setpoint_ = setpoint;
             send_message();
-            lastCmd = millis();
-            lastOrder = lastCmd;
-            delayCycleCmd = DELAY_REPEAT_CMD;
+            this->last_cmd_ = millis();
+            this->last_order_ = this->last_cmd_;
+            this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
         }
         else
         {
@@ -187,7 +189,7 @@ public:
         digitalWrite(ONBOARD_LED, LOW);
     }
 
-private:
+protected:
     /**
      * Below are all member functions related to the Frisquet Boiler communication protocol.
      */
@@ -198,26 +200,26 @@ private:
          * @brief Emits a serie of 3 messages to the ERS input of the boiler
          */
 
-        ESP_LOGI(TAG, "Sending command to boiler : (%i, %i)", operating_mode, operating_setpoint);
+        ESP_LOGI(TAG, "Sending command to boiler : (%i, %i)", this->operating_mode_, this->operating_setpoint_);
         blink();
 
         for (uint8_t msg = 0; msg < 3; msg++)
         {
-            // /!\ I had to put previousState at HIGH to get the message decoded properly.
-            previousState = HIGH;
-            message[9] = msg;
-            message[10] = (msg == 2) ? operating_mode : operating_mode + 0x80;
-            message[11] = operating_setpoint;
+            // /!\ I had to put previous_state_ at HIGH to get the message decoded properly.
+            this->previous_state_ = HIGH;
+            this->message_[9] = msg;
+            this->message_[10] = (msg == 2) ? this->operating_mode_ : this->operating_mode_ + 0x80;
+            this->message_[11] = this->operating_setpoint_;
 
             int checksum = 0;
             for (uint8_t i = 4; i <= 12; i++)
-                checksum -= message[i];
+                checksum -= this->message_[i];
 
-            message[13] = highByte(checksum);
-            message[14] = lowByte(checksum);
+            this->message_[13] = highByte(checksum);
+            this->message_[14] = lowByte(checksum);
 
             for (uint8_t i = 1; i < 17; i++)
-                serialize_byte(message[i], i);
+                serialize_byte(this->message_[i], i);
 
             digitalWrite(ERS_PIN, LOW);
             delay(DELAY_BETWEEN_MESSAGES);
@@ -246,17 +248,17 @@ private:
             // bit stuffing only applicable to the data part of the message (bytes 4 to 16)
             // increment bitstuffing counter if bitValue == 1
             if (byteIndex >= 4 && byteIndex <= 14 && bitValue == 1)
-                bitstuffCounter++;
+                this->bitstuff_counter_++;
 
             // reset bitstuffing counter
             if (bitValue == 0)
-                bitstuffCounter = 0;
+                this->bitstuff_counter_ = 0;
 
-            if (bitstuffCounter >= 5)
+            if (this->bitstuff_counter_ >= 5)
             {
                 // After 5 consecutive '1', insert a '0' bit (bitstuffing) and reset counter
                 write_bit(0);
-                bitstuffCounter = 0;
+                this->bitstuff_counter_ = 0;
             }
         }
     }
@@ -271,15 +273,15 @@ private:
          * @param bitValue bit to be sent on ERS_PIN
          */
 
-        previousState = !previousState;
-        digitalWrite(ERS_PIN, previousState);
+        this->previous_state_ = !this->previous_state_;
+        digitalWrite(ERS_PIN, this->previous_state_);
         delayMicroseconds(LONG_PULSE);
 
         // if bit == 1, put transition
         if (bitValue)
         {
-            previousState = !previousState;
-            digitalWrite(ERS_PIN, previousState);
+            this->previous_state_ = !this->previous_state_;
+            digitalWrite(ERS_PIN, this->previous_state_);
         }
 
         delayMicroseconds(LONG_PULSE);
@@ -298,7 +300,7 @@ private:
         int i;
         for (i = 0; i < valueCount; ++i)
         {
-            endofBuffer += sprintf(endofBuffer, formatString, message[i + 1]);
+            endofBuffer += sprintf(endofBuffer, formatString, this->message_[i + 1]);
             if (i < valueCount - 1)
                 endofBuffer += sprintf(endofBuffer, "%c", ' ');
         }

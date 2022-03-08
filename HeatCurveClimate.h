@@ -34,26 +34,25 @@
 using namespace esphome;
 
 // Climate standard visual configuration
-const uint8_t CLIMATE_TEMP_MIN = 7;         // Celsius
-const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
-const float CLIMATE_TEMPERATURE_STEP = 0.1; // K
+static const uint8_t CLIMATE_TEMP_MIN = 7;         // Celsius
+static const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
+static const float CLIMATE_TEMPERATURE_STEP = 0.1; // K
 
 // Standard heat curve of nothing is defined in yaml config file
 // Boiler Water Temp = FACTOR * (Setpoint - Outdoor Temp) + OFFSET
-const float FACTOR = 1.5;
-const float OFFSET = 23.0;
-
-const float PROPORTIONAL_FACTOR = 5.0; // K
+static const float FACTOR = 1.5;
+static const float OFFSET = 23.0;
+static const float PROPORTIONAL_FACTOR = 10.0; // K
 
 // If output < MINIMUM_OUTPUT, output = 0
-const uint8_t MINIMUM_OUTPUT = 10;
+static const uint8_t MINIMUM_OUTPUT = 10;
 
 class HeatCurveClimate : public Climate, public Component
 {
-private:
+protected:
     char const *TAG = "heat_curve.climate";
-    float outdoor_temp;
-    float water_temp;
+    float outdoor_temp_;
+    float water_temp_;
     float heat_factor_ = FACTOR;
     float offset_ = OFFSET;
     float output_conversion_factor_ = 1;
@@ -92,6 +91,7 @@ public:
 
     void setup() override
     {
+        // on state callback for current temperature
         if (this->current_sensor_)
         {
             this->current_sensor_->add_on_state_callback([this](float state)
@@ -107,16 +107,17 @@ public:
         else
             this->current_temperature = NAN;
 
+        // on state callback for outdorr temperature
         if (this->outoor_sensor_)
         {
             this->outoor_sensor_->add_on_state_callback([this](float state)
                                                         {
-                                                            this->outdoor_temp = state;
+                                                            this->outdoor_temp_ = state;
                                                             this->set_output(); });
-            this->outdoor_temp = this->outoor_sensor_->state;
+            this->outdoor_temp_ = this->outoor_sensor_->state;
         }
         else
-            this->outdoor_temp = 15.0; // Default outdoor temp if none is available
+            this->outdoor_temp_ = 15.0; // Default outdoor temp if none is available
 
         // restore set points
         auto restore = this->restore_state_();
@@ -159,32 +160,39 @@ public:
         float new_temp;
         float output;
 
-        new_temp = (this->target_temperature - this->outdoor_temp) * this->heat_factor_ + this->offset_;
+        // New return water temperature according to heat curve
+        new_temp = (this->target_temperature - this->outdoor_temp_) * this->heat_factor_ + this->offset_;
 
+        // Proportional correction to accelerate conversion to setpoint
         if (!isnan(this->current_temperature) && !isnan(this->target_temperature))
             new_temp -= PROPORTIONAL_FACTOR * (this->current_temperature - this->target_temperature);
 
         ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
+        // Boiler setpoint calculation according to water temperatur and conversion factors
         output = floor(new_temp * this->output_conversion_factor_ + this->output_conversion_offset_);
         output = clamp(output, 0.0f, 100.0f);
+
+        // Recalculate actual return water temperature (knowing that the output is an integer)
         new_temp = (output - this->output_conversion_offset_) / this->output_conversion_factor_;
 
         ESP_LOGD(TAG, "Calculated output: %.0f", output);
         ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
 
+        // if CLIMATE_MODE_OFF, shutdown everything, output = 0
         if (this->mode == climate::CLIMATE_MODE_OFF)
         {
             ESP_LOGD(TAG, "Climate mode is OFF");
             this->action = climate::CLIMATE_ACTION_OFF;
-            this->water_temp = 0;
+            this->water_temp_ = 0;
             output = 0;
         }
-        else if (this->outdoor_temp > this->target_temperature - 2 || output < MINIMUM_OUTPUT)
+        // shutdown boiler if outdoor temperature is too high or output below minimum value
+        else if (this->outdoor_temp_ > this->target_temperature - 2 || output < MINIMUM_OUTPUT)
         {
             ESP_LOGD(TAG, "Climate action is IDLE");
             this->action = climate::CLIMATE_ACTION_IDLE;
-            this->water_temp = 0;
+            this->water_temp_ = 0;
             output = 0;
         }
         else
@@ -193,20 +201,21 @@ public:
             this->action = climate::CLIMATE_ACTION_HEATING;
         }
 
+        // publich state inly if there is a change to minimize flash memory writes
         if (this->active_action_ != this->action)
         {
             this->publish_state();
             this->active_action_ = this->action;
         }
 
-        if (this->water_temp_sensor_ && new_temp != this->water_temp)
+        if (this->water_temp_sensor_ && new_temp != this->water_temp_)
         {
-            this->water_temp = new_temp;
-            this->water_temp_sensor_->publish_state(this->water_temp);
-            ESP_LOGI(TAG, "New water temperature setpoint: %.1f°C", this->water_temp);
+            this->water_temp_ = new_temp;
+            this->water_temp_sensor_->publish_state(this->water_temp_);
+            ESP_LOGI(TAG, "New water temperature setpoint: %.1f°C", this->water_temp_);
         }
 
-        ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp);
+        ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp_);
 
         if (this->output_)
             this->output_->set_level(output / 100.0);
