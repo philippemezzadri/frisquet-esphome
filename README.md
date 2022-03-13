@@ -19,7 +19,7 @@ This work is strongly inspired from:
 
 and from the discussions made in this thread:
 
-- <https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4>
+- <https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4> (French)
 
 ## Wiring
 
@@ -39,6 +39,8 @@ Defined viewing direction for the connector pin out:
 
 - Receptable - _rear view_
 - Header - _front view_
+
+<ins>Note</ins>: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
 
 ## Installation
 
@@ -157,12 +159,14 @@ sensor:
 
     `WaterReturnTemperature = (TargetTemp - OutdoorTemp) * HeatFactor + Offset`
 
-    `HeatFactor`and `Offset` are defined using the following lines in the yaml configuration file:
+    `HeatFactor` and `Offset` are defined using the following lines in the yaml configuration file:
 
     ```cpp
     custom_climate->set_heat_factor(1.4);
     custom_climate->set_offset(21);
     ```
+
+    Those two parameters strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 
 2. **Boiler setpoint conversion factor and offset**
 
@@ -170,7 +174,7 @@ sensor:
 
     `Setpoint = WaterReturnTemperature * ConversionFactor + Offset`
 
-    `ConversionFactor`and `Offset` are defined using the following lines in the yaml configuration file:
+    `ConversionFactor` and `Offset` are defined using the following lines in the yaml configuration file:
 
     ```cpp
     custom_climate->set_output_conversion_factor(1.90);

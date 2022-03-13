@@ -184,7 +184,7 @@ public:
         {
             ESP_LOGD(TAG, "Climate mode is OFF");
             this->action = climate::CLIMATE_ACTION_OFF;
-            this->water_temp_ = 0;
+            new_temp = 20;
             output = 0;
         }
         // shutdown boiler if outdoor temperature is too high or output below minimum value
@@ -192,7 +192,7 @@ public:
         {
             ESP_LOGD(TAG, "Climate action is IDLE");
             this->action = climate::CLIMATE_ACTION_IDLE;
-            this->water_temp_ = 0;
+            new_temp = 20;
             output = 0;
         }
         else

@@ -90,7 +90,7 @@ public:
          *        The PI heating demand received from the controller is converted in water
          *        temperature setpoint.
          *
-         * @param state PI regulation heating demand in [0, 1] range
+         * @param state boiler setpoint in [0, 1] range
          */
 
         int new_demand;
