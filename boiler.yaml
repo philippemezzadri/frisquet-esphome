@@ -21,8 +21,47 @@ logger:
     sensor: INFO
     text_sensor: INFO
 
+globals:
+  - id: global_heat_factor
+    type: float
+    restore_value: yes
+    initial_value: "1.7"
+  - id: global_offset
+    type: float
+    restore_value: yes
+    initial_value: "17.0"
+  - id: global_kp
+    type: float
+    restore_value: no
+    initial_value: "3.0"
+
 # Enable Home Assistant API
 api:
+  services:
+    - service: set_heating_curve
+      variables:
+        heat_factor: float
+        offset: float
+        kp: float
+      then:
+        - logger.log:
+            format: "Setting new heat factor: %.1f"
+            args: [heat_factor]
+        - globals.set:
+            id: global_heat_factor
+            value: !lambda 'return heat_factor;'
+        - logger.log:
+            format: "Setting new offset: %.1f"
+            args: [offset]
+        - globals.set:
+            id: global_offset
+            value: !lambda 'return offset;'
+        - logger.log:
+            format: "Setting new kp: %.1f"
+            args: [kp]
+        - globals.set:
+            id: global_kp
+            value: !lambda 'return kp;'    
 
 ota:
   password: "86d8d705bb585eaf7a68c592a025884c"
@@ -112,6 +151,24 @@ sensor:
     unit_of_measurement: "°C"
     accuracy_decimals: 1
 
+  - platform: template
+    id: heat_factor
+    name: "global_heat_factor"
+    accuracy_decimals: 1
+    lambda: 'return id(global_heat_factor);'
+
+  - platform: template
+    id: offset
+    name: "global_offset"
+    accuracy_decimals: 1
+    lambda: 'return id(global_offset);'
+
+  - platform: template
+    id: kp
+    name: "global_kp"
+    accuracy_decimals: 1
+    lambda: 'return id(global_kp);'
+
   - platform: dallas
     address: 0xA2032131AB675C28
     name: "Départ chaudière"
@@ -129,8 +186,6 @@ climate:
       custom_climate->set_outdoor_sensor(id(outdoor_temperature));
       custom_climate->set_output(id(boiler_cmd));
       custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_heat_factor(1.4);
-      custom_climate->set_offset(21);
       custom_climate->set_output_conversion_factor(1.90);
       custom_climate->set_output_conversion_offset(-41);
       App.register_component(custom_climate);

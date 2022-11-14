@@ -38,12 +38,6 @@ static const uint8_t CLIMATE_TEMP_MIN = 7;         // Celsius
 static const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
 static const float CLIMATE_TEMPERATURE_STEP = 0.1; // K
 
-// Standard heat curve of nothing is defined in yaml config file
-// Boiler Water Temp = FACTOR * (Setpoint - Outdoor Temp) + OFFSET
-static const float FACTOR = 1.5;
-static const float OFFSET = 23.0;
-static const float PROPORTIONAL_FACTOR = 10.0; // K
-
 // If output < MINIMUM_OUTPUT, output = 0
 static const uint8_t MINIMUM_OUTPUT = 10;
 
@@ -53,8 +47,6 @@ protected:
     char const *TAG = "heat_curve.climate";
     float outdoor_temp_;
     float water_temp_;
-    float heat_factor_ = FACTOR;
-    float offset_ = OFFSET;
     float output_conversion_factor_ = 1;
     float output_conversion_offset_ = 0;
 
@@ -70,8 +62,6 @@ public:
     void set_outdoor_sensor(sensor::Sensor *sensor) { this->outoor_sensor_ = sensor; }
     void set_water_temp_sensor(sensor::Sensor *sensor) { this->water_temp_sensor_ = sensor; }
     void set_output(output::FloatOutput *output) { this->output_ = output; }
-    void set_heat_factor(float slope) { this->heat_factor_ = slope; }
-    void set_offset(float pivot) { this->offset_ = pivot; }
     void set_output_conversion_factor(float factor) { this->output_conversion_factor_ = factor; }
     void set_output_conversion_offset(float offset) { this->output_conversion_offset_ = offset; }
 
@@ -161,11 +151,11 @@ public:
         float output;
 
         // New return water temperature according to heat curve
-        new_temp = (this->target_temperature - this->outdoor_temp_) * this->heat_factor_ + this->offset_;
+        new_temp = (this->target_temperature - this->outdoor_temp_) * global_heat_factor->value() + global_offset->value();
 
         // Proportional correction to accelerate conversion to setpoint
         if (!isnan(this->current_temperature) && !isnan(this->target_temperature))
-            new_temp -= PROPORTIONAL_FACTOR * (this->current_temperature - this->target_temperature);
+            new_temp -= global_kp->value() * (this->current_temperature - this->target_temperature);
 
         ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
