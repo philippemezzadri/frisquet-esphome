@@ -201,7 +201,7 @@ public:
             this->action = climate::CLIMATE_ACTION_HEATING;
         }
 
-        // publich state inly if there is a change to minimize flash memory writes
+        // publich state only if there is a change to minimize flash memory writes
         if (this->active_action_ != this->action)
         {
             this->publish_state();
