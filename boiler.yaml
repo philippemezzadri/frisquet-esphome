@@ -8,8 +8,8 @@ substitutions:
 esphome:
   name: ${device}
   includes:
-  - FrisquetBoilerFloatOutput.h
-  - HeatCurveClimate.h
+  - custom/FrisquetBoilerFloatOutput.h
+  - custom/HeatCurveClimate.h
 
 esp32:
   board: esp32dev

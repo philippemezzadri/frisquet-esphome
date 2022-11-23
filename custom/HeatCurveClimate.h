@@ -47,8 +47,8 @@ protected:
     char const *TAG = "heat_curve.climate";
     float outdoor_temp_;
     float water_temp_;
-    float output_conversion_factor_ = 1;
-    float output_conversion_offset_ = 0;
+    float output_calibration_factor_ = 1;
+    float output_calibration_offset_ = 0;
 
     ClimateMode active_mode_;
     ClimateAction active_action_;
@@ -62,8 +62,8 @@ public:
     void set_outdoor_sensor(sensor::Sensor *sensor) { this->outoor_sensor_ = sensor; }
     void set_water_temp_sensor(sensor::Sensor *sensor) { this->water_temp_sensor_ = sensor; }
     void set_output(output::FloatOutput *output) { this->output_ = output; }
-    void set_output_conversion_factor(float factor) { this->output_conversion_factor_ = factor; }
-    void set_output_conversion_offset(float offset) { this->output_conversion_offset_ = offset; }
+    void set_output_calibration_factor(float factor) { this->output_calibration_factor_ = factor; }
+    void set_output_calibration_offset(float offset) { this->output_calibration_offset_ = offset; }
 
     /// Return the traits of this controller
     climate::ClimateTraits traits() override
@@ -90,7 +90,7 @@ public:
                                                              {
                                                                  this->current_temperature = state;
                                                                  this->publish_state();
-                                                                 this->set_output();
+                                                                 this->write_output();
                                                              } });
             this->current_temperature = this->current_sensor_->state;
         }
@@ -103,7 +103,7 @@ public:
             this->outoor_sensor_->add_on_state_callback([this](float state)
                                                         {
                                                             this->outdoor_temp_ = state;
-                                                            this->set_output(); });
+                                                            this->write_output(); });
             this->outdoor_temp_ = this->outoor_sensor_->state;
         }
         else
@@ -145,7 +145,7 @@ public:
         this->active_action_ = this->action;
     }
 
-    void set_output()
+    void write_output()
     {
         float new_temp;
         float output;
@@ -153,18 +153,18 @@ public:
         // New return water temperature according to heat curve
         new_temp = (this->target_temperature - this->outdoor_temp_) * global_heat_factor->value() + global_offset->value();
 
-        // Proportional correction to accelerate conversion to setpoint
+        // Proportional correction to accelerate convergence to setpoint
         if (!isnan(this->current_temperature) && !isnan(this->target_temperature))
             new_temp -= global_kp->value() * (this->current_temperature - this->target_temperature);
 
         ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
-        // Boiler setpoint calculation according to water temperatur and conversion factors
-        output = floor(new_temp * this->output_conversion_factor_ + this->output_conversion_offset_ + 0.5);
+        // Boiler setpoint calculation according to water temperatur and calibration factors
+        output = floor(new_temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
         output = clamp(output, 0.0f, 100.0f);
 
         // Recalculate actual return water temperature (knowing that the output is an integer)
-        new_temp = (output - this->output_conversion_offset_) / this->output_conversion_factor_;
+        new_temp = (output - this->output_calibration_offset_) / this->output_calibration_factor_;
 
         ESP_LOGD(TAG, "Calculated output: %.0f", output);
         ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
