@@ -62,6 +62,20 @@ esphome:
   - FrisquetBoilerFloatOutput.h
   - HeatCurveClimate.h
 
+globals:
+  - id: global_heat_factor
+    type: float
+    restore_value: yes
+    initial_value: "1.7"
+  - id: global_offset
+    type: float
+    restore_value: yes
+    initial_value: "20.0"
+  - id: global_kp
+    type: float
+    restore_value: no
+    initial_value: "0.0"
+
 # Initialisation of the custom output component
 output:
   - platform: custom
@@ -97,12 +111,13 @@ climate:
       custom_climate->set_outdoor_sensor(id(outdoor_temperature));
       custom_climate->set_output(id(boiler_cmd));
       custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_heat_factor(1.4);
-      custom_climate->set_offset(21);
       custom_climate->set_output_conversion_factor(1.90);
       custom_climate->set_output_conversion_offset(-41);
       App.register_component(custom_climate);
       return {custom_climate};
+
+    climates:
+      - name: "${name}"
 ```
 
 ## Temperature sensors
@@ -159,14 +174,41 @@ sensor:
 
     `WaterReturnTemperature = (TargetTemp - OutdoorTemp) * HeatFactor + Offset`
 
-    `HeatFactor` and `Offset` are defined using the following lines in the yaml configuration file:
-
-    ```cpp
-    custom_climate->set_heat_factor(1.4);
-    custom_climate->set_offset(21);
-    ```
+    `HeatFactor` and `Offset` are defined as globals in the yaml configuration file.
 
     Those two parameters strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
+
+    In order to fine ease the fine tuning of those parameters, a service can be created to change the globals:
+
+    ```yaml
+    api:
+      services:
+        - service: set_heating_curve
+          variables:
+            heat_factor: float
+            offset: float
+            kp: float
+          then:
+            - logger.log:
+                format: "Setting new heat factor: %.1f"
+                args: [heat_factor]
+            - globals.set:
+                id: global_heat_factor
+                value: !lambda 'return heat_factor;'
+            - logger.log:
+                format: "Setting new offset: %.1f"
+                args: [offset]
+            - globals.set:
+                id: global_offset
+                value: !lambda 'return offset;'
+            - logger.log:
+                format: "Setting new kp: %.1f"
+                args: [kp]
+            - globals.set:
+                id: global_kp
+                value: !lambda 'return kp;'
+    ```
+
 
 2. **Boiler setpoint conversion factor and offset**
 

@@ -160,7 +160,7 @@ public:
         ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
         // Boiler setpoint calculation according to water temperatur and conversion factors
-        output = floor(new_temp * this->output_conversion_factor_ + this->output_conversion_offset_);
+        output = floor(new_temp * this->output_conversion_factor_ + this->output_conversion_offset_ + 0.5);
         output = clamp(output, 0.0f, 100.0f);
 
         // Recalculate actual return water temperature (knowing that the output is an integer)

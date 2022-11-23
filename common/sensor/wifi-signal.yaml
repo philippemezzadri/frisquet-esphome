@@ -1,0 +1,8 @@
+---
+platform: wifi_signal
+name: ${name} WiFi Signal
+update_interval: ${update_interval}
+unit_of_measurement: dB
+accuracy_decimals: 0
+force_update: false
+icon: mdi:wifi

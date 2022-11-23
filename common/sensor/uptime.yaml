@@ -1,0 +1,8 @@
+---
+platform: uptime
+name: ${name} Uptime
+update_interval: ${update_interval}
+unit_of_measurement: s
+accuracy_decimals: 0
+force_update: false
+icon: mdi:timer

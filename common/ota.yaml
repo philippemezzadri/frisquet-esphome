@@ -1,0 +1,3 @@
+---
+ota:
+  password: ${ota_password}

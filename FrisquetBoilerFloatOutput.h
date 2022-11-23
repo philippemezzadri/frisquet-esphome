@@ -98,7 +98,7 @@ public:
 
         // Cmd = 15 is known as not working
         if (new_demand == 15)
-            new_demand = 14;
+            new_demand = 16;
 
         this->last_order_ = millis();
 

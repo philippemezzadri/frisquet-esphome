@@ -1,0 +1,3 @@
+platform: safe_mode
+name: ${name} Safe Mode Boot
+entity_category: config

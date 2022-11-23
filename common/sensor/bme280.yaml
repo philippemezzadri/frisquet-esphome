@@ -1,0 +1,10 @@
+---
+platform: bme280
+temperature:
+  name: ${location} Temperature
+pressure:
+  name: ${location} Pression
+humidity:
+  name: ${location} Humidité
+address: 0x76
+update_interval: ${update_interval}
