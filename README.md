@@ -7,6 +7,7 @@ This ESPHome Custom Component is strongly integrated with **Home Assistant** whe
 
 ## References
 
+- <https://esphome.io/components/external_components.html>
 - <https://esphome.io/components/climate/index.html>
 - <https://esphome.io/components/climate/custom.html>
 - <https://esphome.io/components/output/custom.html>
@@ -40,7 +41,7 @@ Defined viewing direction for the connector pin out:
 - Receptable - _rear view_
 - Header - _front view_
 
-<ins>Note</ins>: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
+_Note_: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
 
 ## Installation
 
@@ -51,16 +52,7 @@ The Frisquet ESPHome component concists in two components:
 - `heat_curve_climate` a `climate` component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint. 
 - `friquet_boiler` a `output` component that will actually communicate with the Frisquet boiler.
 
-The complete folder `components` must be copied in your `esphome` configuration folder. 
-
-Then the file `components/frisquet_boiler/frisquet_boiler.cpp` must be edited to set the ID of your boiler:
-
-  ```cpp
-  // Set boiler id
-  this->message_[4] = 0x03;
-  this->message_[5] = 0xB9;
-  ```
-
+The complete folder `components` must be copied in your `esphome` configuration folder.
 
 Your `yaml` configuration file must show at minimum the following code:
 
@@ -74,6 +66,7 @@ external_components:
 output:
   - platform: frisquet_boiler
     id: boiler_cmd
+    boiler_id: 03B9
     max_power: 1.0
     min_power: 0
     zero_means_zero: true
@@ -113,6 +106,9 @@ climate:
       offset: 20
       kp: 0
 ```
+
+**Important:** the boiler id that must be indicated in the yaml configuration file is required to allow
+your boiler to receive the messages from the ESP. It can be retrieved by connecting the radio receiver cale to an Arduino. See [here](https://github.com/etimou/frisquet-arduino).
 
 ## Tuning
 

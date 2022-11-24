@@ -31,6 +31,7 @@ namespace esphome
             void set_operating_setpoint(int setpoint) { this->operating_setpoint_ = setpoint; }
             void on_send_operating_mode(int mode);
             void on_send_operating_setpoint(int setpoint);
+            void set_boiler_id(const char *str);
 
         protected:
             int operating_mode_ = 3;
@@ -41,6 +42,7 @@ namespace esphome
             long last_cmd_ = 0;
             long last_order_ = 0;
             uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
+            uint8_t boiler_id[2];
 
             void send_message();
             void serialize_byte(uint8_t byteValue, uint8_t byteIndex);

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
 #include "frisquet_boiler.h"
 
 namespace esphome
@@ -24,13 +25,16 @@ namespace esphome
             // Init cycle delay for first message
             this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
 
-            // Set boiler id
-            this->message_[4] = 0x03;
-            this->message_[5] = 0xB9;
-
             // Register services
             register_service(&FrisquetBoiler::on_send_operating_mode, "send_operating_mode", {"mode"});
             register_service(&FrisquetBoiler::on_send_operating_setpoint, "send_operating_setpoint", {"setpoint"});
+        }
+
+        void FrisquetBoiler::set_boiler_id(const char *str)
+        {
+            esphome::parse_hex(str, this->boiler_id, 2);
+            this->message_[4] = this->boiler_id[0];
+            this->message_[5] = this->boiler_id[1];
         }
 
         void FrisquetBoiler::write_state(float state)
@@ -85,7 +89,8 @@ namespace esphome
         void FrisquetBoiler::dump_config()
         {
             LOG_FLOAT_OUTPUT(this);
-            ESP_LOGCONFIG(TAG, "  mode: %i", this->operating_mode_);
+            ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x 0x%.2x", this->boiler_id[0], this->boiler_id[1]);
+            ESP_LOGCONFIG(TAG, "  Mode: %i", this->operating_mode_);
         }
 
         void FrisquetBoiler::on_send_operating_mode(int mode)

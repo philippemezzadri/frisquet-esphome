@@ -69,13 +69,14 @@ climate:
     outdoor_sensor: outdoor_temperature
     output: boiler_cmd
     control_parameters:
-      heat_factor: 1.7
+      heat_factor: 1.8
       offset: 20
       kp: 0
 
 output:
   - platform: frisquet_boiler
     id: boiler_cmd
+    boiler_id: 03B9
     max_power: 1.0
     min_power: 0
     zero_means_zero: true
