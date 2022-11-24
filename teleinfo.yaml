@@ -1,0 +1,94 @@
+substitutions:
+  device: teleinfo
+  name: "Teleinfo"
+  reboot_timeout: 14d
+  update_interval: 60s
+  ota_password: "7ededbaabf73e790adab39d39445faa8"
+
+esphome:
+  name: ${device}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+<<: !include common/common.yaml
+<<: !include common/logger.yaml
+<<: !include common/binary_sensors.yaml
+<<: !include common/switches.yaml
+
+uart:
+  id: uart_bus
+  rx_pin: GPIO23
+  tx_pin: GPIO1
+  baud_rate: 1200
+  parity: EVEN
+  data_bits: 7
+
+teleinfo:
+  id: myteleinfo
+  update_interval: 0ms
+  historical_mode: true
+
+sensor:
+  - !include common/sensor/wifi-signal.yaml
+  - !include common/sensor/uptime.yaml
+
+  - platform: teleinfo
+    tag_name: "BASE"
+    name: "Index option Base"
+    unit_of_measurement: "Wh"
+    device_class: energy
+    icon: mdi:flash
+    teleinfo_id: myteleinfo
+
+  - platform: teleinfo
+    tag_name: "HCHC"
+    name: "Index heures creuses"
+    unit_of_measurement: "Wh"
+    device_class: energy
+    icon: mdi:flash
+    teleinfo_id: myteleinfo
+    filters:
+      - throttle: 15s
+
+  - platform: teleinfo
+    tag_name: "HCHP"
+    name: "Index heures pleines"
+    unit_of_measurement: "Wh"
+    device_class: energy
+    icon: mdi:flash
+    teleinfo_id: myteleinfo
+    filters:
+      - throttle: 15s
+
+  - platform: teleinfo
+    tag_name: "PAPP"
+    name: "Puissance apparente"
+    device_class: apparent_power
+    unit_of_measurement: "VA"
+    icon: mdi:flash
+    teleinfo_id: myteleinfo
+
+  - platform: teleinfo
+    tag_name: "IINST"
+    name: "Intensité instantanée"
+    unit_of_measurement: "A"
+    device_class: current
+    icon: mdi:flash
+    teleinfo_id: myteleinfo
+
+text_sensor:
+  - !include common/text_sensor/version.yaml
+  - !include common/text_sensor/wifi-info.yaml
+
+  - platform: teleinfo
+    tag_name: "OPTARIF"
+    name: "optarif"
+    teleinfo_id: myteleinfo
+
+  - platform: teleinfo
+    tag_name: "ADCO"
+    name: "Adresse compteur"
+    teleinfo_id: myteleinfo
