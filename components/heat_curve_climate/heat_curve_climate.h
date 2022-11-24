@@ -47,7 +47,7 @@ namespace esphome
             climate::ClimateTraits traits() override;
             void write_output();
 
-            float outdoor_temp_;
+            float outdoor_temp_ = NAN;
             float water_temp_;
             float output_value_;
             float heat_factor_ = 1.7;

@@ -111,6 +111,12 @@ namespace esphome
             float new_temp;
             float output;
 
+            if (std::isnan(this->outdoor_temp_))
+            {
+                ESP_LOGD(TAG, "Outdoor temperature not available, skipping calculation.");
+                return;
+            }
+
             // New return water temperature according to heat curve
             new_temp = (this->target_temperature - this->outdoor_temp_) * this->heat_factor_ + this->offset_;
 
