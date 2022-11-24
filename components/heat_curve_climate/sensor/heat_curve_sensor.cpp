@@ -21,7 +21,10 @@ namespace esphome
             switch (this->type_)
             {
             case PID_SENSOR_TYPE_SETPOINT:
-                value = this->parent_->get_setpoint();
+                value = this->parent_->get_output_value();
+                break;
+            case PID_SENSOR_TYPE_WATERTEMP:
+                value = this->parent_->get_water_setpoint();
                 break;
             default:
                 value = NAN;

@@ -14,6 +14,7 @@ HeatCurveClimateSensorType = heat_curve_ns.enum("HeatCurveClimateSensorType")
 
 HEATCURVE_CLIMATE_SENSOR_TYPES = {
     "SETPOINT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SETPOINT,
+    "WATERTEMP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_WATERTEMP,
 }
 
 CONF_CLIMATE_ID = "climate_id"

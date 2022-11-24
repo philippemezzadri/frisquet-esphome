@@ -44,12 +44,14 @@ Defined viewing direction for the connector pin out:
 
 ## Installation
 
-The Frisquet ESPHome component concists in two custom components:
+**Note:** for the previous installation method (deprecated) based on custom components, see [here](doc/custom_components.md).
 
-- `HeatCurveClimate.h` a custom `Climate` component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint. 
-- `FrisquetBoilerFloatOutput.h` a custom `Output` component that will actually communicate with the Frisquet boiler.
+The Frisquet ESPHome component concists in two components:
 
-Both files `HeatCurveClimate.h` and `FrisquetBoilerFloatOutput.h` must be copied in your `esphome` configuration folder.
+- `heat_curve_climate` a `climate` component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint. 
+- `friquet_boiler` a `output` component that will actually communicate with the Frisquet boiler.
+
+The complete folder `components`must be copied in your `esphome` configuration folder.
 
 Your `yaml` configuration file must show at minimum the following code:
 
@@ -57,76 +59,16 @@ Your `yaml` configuration file must show at minimum the following code:
 esphome:
   name: myFrisquetBoiler
 
-  # Installation of the two custom components
-  includes:
-  - FrisquetBoilerFloatOutput.h
-  - HeatCurveClimate.h
+external_components:
+  - source: components
 
-globals:
-  - id: global_heat_factor
-    type: float
-    restore_value: yes
-    initial_value: "1.7"
-  - id: global_offset
-    type: float
-    restore_value: yes
-    initial_value: "20.0"
-  - id: global_kp
-    type: float
-    restore_value: no
-    initial_value: "0.0"
-
-# Initialisation of the custom output component
 output:
-  - platform: custom
-    type: float
-    lambda: |-
-      auto boiler_float_output = new FrisquetBoilerFloatOutput();
-      boiler_float_output->set_max_power(1.0);
-      boiler_float_output->set_min_power(0);
-      boiler_float_output->set_zero_means_zero(true);
-      App.register_component(boiler_float_output);
-      return {boiler_float_output};
-    outputs:
-      id: boiler_cmd
+  - platform: frisquet_boiler
+    id: boiler_cmd
+    max_power: 1.0
+    min_power: 0
+    zero_means_zero: true
 
-# Template sensor to send back the boiler water setpoint to homeassistant
-sensor:
-  - platform: template
-    id: heating_curve
-    name: "Consigne chaudière"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-
-# Initialisation of the custom climate component
-# - current_temperature : id of the ambiant temperature sensor
-# - outdoor_temperature : id of the external temperature sensor
-
-climate:
-  - platform: custom
-    id: custom_climate
-    lambda: |-
-      auto custom_climate = new HeatCurveClimate();
-      custom_climate->set_sensor(id(current_temperature));
-      custom_climate->set_outdoor_sensor(id(outdoor_temperature));
-      custom_climate->set_output(id(boiler_cmd));
-      custom_climate->set_water_temp_sensor(id(heating_curve));
-      custom_climate->set_output_conversion_factor(1.90);
-      custom_climate->set_output_conversion_offset(-41);
-      App.register_component(custom_climate);
-      return {custom_climate};
-
-    climates:
-      - name: "${name}"
-```
-
-## Temperature sensors
-
-At minimum, two temperature sensors must be defined : ambiant temperature and external (outdoor) temperature.
-
-This can be done using the **Home Assistant** API :
-
-```yaml
 sensor:
   - platform: homeassistant
     id: current_temperature
@@ -143,27 +85,24 @@ sensor:
     filters:
       - filter_out: nan
       - heartbeat: 60s
-```
 
-Alternatively, the **mqtt_subscribe** platform can be used if Home Assistant is not used:
+  - platform: heat_curve_climate
+    name: "Consigne chaudière"
+    type: WATERTEMP
 
-```yaml
-sensor:
-  - platform: mqtt_subscribe
-    id: current_temperature
-    topic: the/current_temperature/topic
-    unit_of_measurement: "°C"
-    filters:
-      - filter_out: nan
-      - heartbeat: 60s
-        
-  - platform: mqtt_subscribe
-    id: outdoor_temperature
-    topic: the/outdoor_temperature/topic
-    unit_of_measurement: "°C"
-    filters:
-      - filter_out: nan
-      - heartbeat: 60s
+climate:
+  - platform: heat_curve_climate
+    id: boiler_climate
+    name: "Chaudière Frisquet"
+    sensor: current_temperature
+    outdoor_sensor: outdoor_temperature
+    output: boiler_cmd
+    control_parameters:
+      output_factor: 1.9
+      output_offset: -41
+      heat_factor: 1.7
+      offset: 20
+      kp: 0
 ```
 
 ## Tuning
@@ -178,36 +117,7 @@ sensor:
 
     Those two parameters strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 
-    In order to fine ease the fine tuning of those parameters, a service can be created to change the globals:
-
-    ```yaml
-    api:
-      services:
-        - service: set_heating_curve
-          variables:
-            heat_factor: float
-            offset: float
-            kp: float
-          then:
-            - logger.log:
-                format: "Setting new heat factor: %.1f"
-                args: [heat_factor]
-            - globals.set:
-                id: global_heat_factor
-                value: !lambda 'return heat_factor;'
-            - logger.log:
-                format: "Setting new offset: %.1f"
-                args: [offset]
-            - globals.set:
-                id: global_offset
-                value: !lambda 'return offset;'
-            - logger.log:
-                format: "Setting new kp: %.1f"
-                args: [kp]
-            - globals.set:
-                id: global_kp
-                value: !lambda 'return kp;'
-    ```
+    In order to fine ease the fine tuning of those parameters, a service is available in HA to change the parameters without restarting ESPHome.
 
 
 2. **Boiler setpoint conversion factor and offset**
@@ -218,7 +128,8 @@ sensor:
 
     `ConversionFactor` and `Offset` are defined using the following lines in the yaml configuration file:
 
-    ```cpp
-    custom_climate->set_output_conversion_factor(1.90);
-    custom_climate->set_output_conversion_offset(-41);
+    ```yaml
+    control_parameters:
+      output_factor: 1.9
+      output_offset: -41
     ```

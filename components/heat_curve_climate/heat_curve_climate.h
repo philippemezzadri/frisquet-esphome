@@ -35,7 +35,8 @@ namespace esphome
             void set_kp(float kp) { kp_ = kp; }
             void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
             void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
-            float get_setpoint() { return water_temp_; }
+            float get_water_setpoint() { return water_temp_; }
+            float get_output_value() { return output_value_; }
             void add_temperature_computed_callback(std::function<void()> &&callback)
             {
                 water_temp_computed_callback_.add(std::move(callback));
@@ -48,11 +49,12 @@ namespace esphome
 
             float outdoor_temp_;
             float water_temp_;
+            float output_value_;
             float heat_factor_ = 1.7;
             float offset_ = 20;
             float kp_ = 0;
-            float output_calibration_factor_ = 1;
-            float output_calibration_offset_ = 0;
+            float output_calibration_factor_ = 1.9;
+            float output_calibration_offset_ = -41;
             CallbackManager<void()> water_temp_computed_callback_;
 
             climate::ClimateMode active_mode_;

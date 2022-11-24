@@ -94,7 +94,8 @@ namespace esphome
         {
             LOG_CLIMATE("", "Heat Factor Climate", this);
             ESP_LOGCONFIG(TAG, "  Control Parameters:");
-            ESP_LOGCONFIG(TAG, "    heat factor: %.5f, offset: %.5f, kp: %.5f", this->heat_factor_, this->offset_, this->kp_);
+            ESP_LOGCONFIG(TAG, "    heat_factor: %.2f, offset: %.2f, kp: %.2f", this->heat_factor_, this->offset_, this->kp_);
+            ESP_LOGCONFIG(TAG, "    output_factor:%.2f, output_offset:%.2f", this->output_calibration_factor_, this->output_calibration_offset_);
         }
 
         void HeatCurveClimate::on_send_new_heat_curve(float heat_factor, float offset, float kp)
@@ -160,6 +161,7 @@ namespace esphome
 
             if (new_temp != this->water_temp_)
             {
+                this->output_value_ = output;
                 this->water_temp_ = new_temp;
                 ESP_LOGI(TAG, "New water temperature setpoint: %.1f°C", this->water_temp_);
                 this->water_temp_computed_callback_.call();
@@ -168,7 +170,9 @@ namespace esphome
             ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp_);
 
             if (this->output_)
+            {
                 this->output_->set_level(output / 100.0);
+            }
         }
     }
 }

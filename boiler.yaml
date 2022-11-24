@@ -55,6 +55,10 @@ sensor:
 
   - platform: heat_curve_climate
     name: "Consigne chaudière"
+    type: WATERTEMP
+
+  - platform: heat_curve_climate
+    name: "Setpoint chaudière"
     type: SETPOINT
 
 climate:
