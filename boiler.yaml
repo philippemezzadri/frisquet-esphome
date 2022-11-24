@@ -59,6 +59,7 @@ sensor:
 
 climate:
   - platform: heat_curve_climate
+    id: boiler_climate
     name: ${name}
     sensor: current_temperature
     outdoor_sensor: outdoor_temperature

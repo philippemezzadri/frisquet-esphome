@@ -1,15 +1,10 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome import automation
 from esphome.components import climate, sensor, output
 from esphome.const import CONF_ID, CONF_SENSOR
 
 heat_curve_ns = cg.esphome_ns.namespace("heat_curve")
 HeatCurveClimate = heat_curve_ns.class_("HeatCurveClimate", climate.Climate, cg.Component)
-
-HeatCurveSetControlParametersAction = heat_curve_ns.class_(
-    "HeatCurveSetControlParametersAction", automation.Action
-)
 
 CONF_CONTROL_PARAMETERS = "control_parameters"
 CONF_KP = "kp"
@@ -61,31 +56,3 @@ async def to_code(config):
     cg.add(var.set_kp(params[CONF_KP]))
     cg.add(var.set_output_calibration_factor(params[CONF_OUTPUT_FACTOR]))
     cg.add(var.set_output_calibration_offset(params[CONF_OUTPUT_OFFSET]))
-
-
-@automation.register_action(
-    "climate.heat_curve.set_control_parameters",
-    HeatCurveSetControlParametersAction,
-    automation.maybe_simple_id(
-        {
-            cv.Required(CONF_ID): cv.use_id(HeatCurveClimate),
-            cv.Required(CONF_HEATFACTOR): cv.templatable(cv.float_),
-            cv.Required(CONF_OFFSET): cv.templatable(cv.float_),
-            cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
-        }
-    ),
-)
-async def set_control_parameters(config, action_id, template_arg, args):
-    paren = await cg.get_variable(config[CONF_ID])
-    var = cg.new_Pvariable(action_id, template_arg, paren)
-   
-    heatfactor_template_ = await cg.templatable(config[CONF_HEATFACTOR], args, float)
-    cg.add(var.set_heat_factor(heatfactor_template_))
-
-    offset_template_ = await cg.templatable(config[CONF_OFFSET], args, float)
-    cg.add(var.set_offset(offset_template_))
-
-    kp_template_ = await cg.templatable(config[CONF_KP], args, float)
-    cg.add(var.set_kp(kp_template_))
-
-    return var

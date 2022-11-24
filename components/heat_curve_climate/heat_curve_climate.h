@@ -6,6 +6,7 @@
 #include "esphome/components/climate/climate.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/output/float_output.h"
+#include "esphome/components/api/custom_api_device.h"
 
 namespace esphome
 {
@@ -19,11 +20,12 @@ namespace esphome
         // If output < MINIMUM_OUTPUT, output = 0
         static const uint8_t MINIMUM_OUTPUT = 10;
 
-        class HeatCurveClimate : public climate::Climate, public Component
+        class HeatCurveClimate : public climate::Climate, public Component, public api::CustomAPIDevice
         {
         public:
             void setup() override;
             void dump_config() override;
+            void on_send_new_heat_curve(float heat_factor, float offset, float kp);
 
             void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
             void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
@@ -59,31 +61,5 @@ namespace esphome
             sensor::Sensor *outoor_sensor_{nullptr};
             output::FloatOutput *output_{nullptr};
         };
-
-        template <typename... Ts>
-        class HeatCurveSetControlParametersAction : public Action<Ts...>
-        {
-        public:
-            HeatCurveSetControlParametersAction(HeatCurveClimate *parent) : parent_(parent) {}
-
-            void play(Ts... x)
-            {
-                auto heatfactor = this->ki_.value(x...);
-                auto offset = this->kd_.value(x...);
-                auto kp = this->kp_.value(x...);
-
-                this->parent_->set_heat_factor(heatfactor);
-                this->parent_->set_offset(offset);
-                this->parent_->set_kp(kp);
-            }
-
-        protected:
-            TEMPLATABLE_VALUE(float, heatfactor)
-            TEMPLATABLE_VALUE(float, offset)
-            TEMPLATABLE_VALUE(float, kp)
-
-            HeatCurveClimate *parent_;
-        };
-
     } // namespace heat_curve
 } // namespace esphome

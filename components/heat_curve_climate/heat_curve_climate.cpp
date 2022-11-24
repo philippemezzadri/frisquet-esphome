@@ -51,6 +51,9 @@ namespace esphome
                 this->target_temperature = roundf(this->current_temperature);
             }
             this->active_mode_ = this->mode;
+
+            // Register services
+            register_service(&HeatCurveClimate::on_send_new_heat_curve, "send_new_heat_curve", {"heat_factor", "offset", "kp"});
         }
 
         /// Override control to change settings of the climate device
@@ -92,6 +95,14 @@ namespace esphome
             LOG_CLIMATE("", "Heat Factor Climate", this);
             ESP_LOGCONFIG(TAG, "  Control Parameters:");
             ESP_LOGCONFIG(TAG, "    heat factor: %.5f, offset: %.5f, kp: %.5f", this->heat_factor_, this->offset_, this->kp_);
+        }
+
+        void HeatCurveClimate::on_send_new_heat_curve(float heat_factor, float offset, float kp)
+        {
+            this->set_heat_factor(heat_factor);
+            this->set_offset(offset);
+            this->set_kp(kp);
+            this->dump_config();
         }
 
         void HeatCurveClimate::write_output()

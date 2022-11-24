@@ -29,8 +29,8 @@ namespace esphome
             this->message_[5] = 0xB9;
 
             // Register services
-            // register_service(&FrisquetBoiler::on_send_operating_mode, "send_operating_mode", {"mode"});
-            // register_service(&FrisquetBoiler::on_send_operating_setpoint, "send_operating_setpoint", {"setpoint"});
+            register_service(&FrisquetBoiler::on_send_operating_mode, "send_operating_mode", {"mode"});
+            register_service(&FrisquetBoiler::on_send_operating_setpoint, "send_operating_setpoint", {"setpoint"});
         }
 
         void FrisquetBoiler::write_state(float state)
@@ -85,6 +85,7 @@ namespace esphome
         void FrisquetBoiler::dump_config()
         {
             LOG_FLOAT_OUTPUT(this);
+            ESP_LOGCONFIG(TAG, "  mode: %i", this->operating_mode_);
         }
 
         void FrisquetBoiler::on_send_operating_mode(int mode)
@@ -105,6 +106,7 @@ namespace esphome
             {
                 ESP_LOGW(TAG, "New mode not valid: %i", mode);
             }
+            this->dump_config();
         }
 
         void FrisquetBoiler::on_send_operating_setpoint(int setpoint)

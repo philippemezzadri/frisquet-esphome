@@ -2,6 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/output/float_output.h"
+#include "esphome/components/api/custom_api_device.h"
 
 namespace esphome
 {
@@ -17,7 +18,7 @@ namespace esphome
         static const uint8_t ERS_PIN = 5;
         static const int LONG_PULSE = 825; // micro seconds
 
-        class FrisquetBoiler : public output::FloatOutput, public Component
+        class FrisquetBoiler : public output::FloatOutput, public Component, public api::CustomAPIDevice
         {
         public:
             void setup() override;
