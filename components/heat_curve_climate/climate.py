@@ -27,8 +27,8 @@ CONFIG_SCHEMA = cv.All(
                     cv.Required(CONF_HEATFACTOR): cv.float_,
                     cv.Required(CONF_OFFSET): cv.float_,
                     cv.Optional(CONF_KP,  default=0): cv.float_,
-                    cv.Optional(CONF_OUTPUT_FACTOR, default=1.9): cv.float_,
-                    cv.Optional(CONF_OUTPUT_OFFSET, default=-41): cv.float_,
+                    cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
+                    cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
                 }
             ),
         }

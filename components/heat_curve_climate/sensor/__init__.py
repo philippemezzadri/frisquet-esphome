@@ -13,8 +13,12 @@ HeatCurveClimateSensor = heat_curve_ns.class_("HeatCurveClimateSensor", sensor.S
 HeatCurveClimateSensorType = heat_curve_ns.enum("HeatCurveClimateSensorType")
 
 HEATCURVE_CLIMATE_SENSOR_TYPES = {
+    "RESULT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_RESULT,
     "SETPOINT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SETPOINT,
+    "ERROR": HeatCurveClimateSensorType.PID_SENSOR_TYPE_ERROR,
+    "DELTA": HeatCurveClimateSensorType.PID_SENSOR_TYPE_DELTA,
     "WATERTEMP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_WATERTEMP,
+    "PROPORTIONAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_PROPORTIONAL,
 }
 
 CONF_CLIMATE_ID = "climate_id"

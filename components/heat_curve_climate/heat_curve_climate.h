@@ -27,6 +27,11 @@ namespace esphome
             void dump_config() override;
             void on_send_new_heat_curve(float heat_factor, float offset, float kp);
 
+            void add_temperature_computed_callback(std::function<void()> &&callback)
+            {
+                water_temp_computed_callback_.add(std::move(callback));
+            }
+
             void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
             void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
             void set_output(output::FloatOutput *output) { output_ = output; }
@@ -35,26 +40,34 @@ namespace esphome
             void set_kp(float kp) { kp_ = kp; }
             void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
             void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
-            float get_water_setpoint() { return water_temp_; }
-            float get_output_value() { return output_value_; }
-            void add_temperature_computed_callback(std::function<void()> &&callback)
-            {
-                water_temp_computed_callback_.add(std::move(callback));
-            }
+
+            float get_water_temp() { return water_temp_; }
+            float get_result() { return result_; }
+            float get_proportional_term() { return proportional_term_; }
+            float get_error() { return error_; }
+            float get_delta() { return delta_; }
 
         protected:
             void control(const climate::ClimateCall &call) override;
             climate::ClimateTraits traits() override;
             void write_output();
 
-            float outdoor_temp_ = NAN;
-            float water_temp_;
-            float output_value_;
+            // Parameters & inputs
             float heat_factor_ = 1.7;
             float offset_ = 20;
             float kp_ = 0;
-            float output_calibration_factor_ = 1.9;
-            float output_calibration_offset_ = -41;
+            float output_calibration_factor_ = 1;
+            float output_calibration_offset_ = 0;
+            float outdoor_temp_ = NAN;
+
+            // Results
+            float water_temp_;
+            float output_value_;
+            float result_;
+            float error_ = NAN;
+            float proportional_term_ = 0;
+            float delta_ = NAN;
+
             CallbackManager<void()> water_temp_computed_callback_;
 
             climate::ClimateMode active_mode_;

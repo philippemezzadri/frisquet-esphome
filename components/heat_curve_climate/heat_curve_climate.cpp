@@ -35,7 +35,7 @@ namespace esphome
                 this->outdoor_temp_ = this->outoor_sensor_->state;
             }
             else
-                this->outdoor_temp_ = 15.0; // Default outdoor temp if none is available
+                this->outdoor_temp_ = 15.0; // Default outdoor temp if there is no sensor
 
             // restore set points
             auto restore = this->restore_state_();
@@ -52,7 +52,7 @@ namespace esphome
             }
             this->active_mode_ = this->mode;
 
-            // Register services
+            // Register service
             register_service(&HeatCurveClimate::on_send_new_heat_curve, "send_new_heat_curve", {"heat_factor", "offset", "kp"});
         }
 
@@ -104,6 +104,7 @@ namespace esphome
             this->set_offset(offset);
             this->set_kp(kp);
             this->dump_config();
+            this->write_output();
         }
 
         void HeatCurveClimate::write_output()
@@ -118,11 +119,19 @@ namespace esphome
             }
 
             // New return water temperature according to heat curve
-            new_temp = (this->target_temperature - this->outdoor_temp_) * this->heat_factor_ + this->offset_;
+            this->delta_ = this->target_temperature - this->outdoor_temp_;
+            new_temp = this->delta_ * this->heat_factor_ + this->offset_;
 
-            // Proportional correction to accelerate convergence to setpoint
+            // Proportional correction to accelerate convergence to target
             if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature))
-                new_temp -= this->kp_ * (this->current_temperature - this->target_temperature);
+            {
+                this->error_ = this->target_temperature - this->current_temperature;
+                ESP_LOGD(TAG, "Error: %.1f", this->error_);
+
+                this->proportional_term_ = this->kp_ * this->error_;
+                new_temp += this->proportional_term_;
+                ESP_LOGD(TAG, "Proportionnal term: %.1f", this->proportional_term_);
+            }
 
             ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
@@ -130,9 +139,8 @@ namespace esphome
             output = floor(new_temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
             output = clamp(output, 0.0f, 100.0f);
 
-            // Recalculate actual return water temperature (knowing that the output is an integer)
+            // Recalculate actual water temperature (knowing that the output is an integer)
             new_temp = (output - this->output_calibration_offset_) / this->output_calibration_factor_;
-
             ESP_LOGD(TAG, "Calculated output: %.0f", output);
             ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
 
@@ -164,20 +172,15 @@ namespace esphome
                 this->publish_state();
                 this->active_action_ = this->action;
             }
-
-            if (new_temp != this->water_temp_)
-            {
-                this->output_value_ = output;
-                this->water_temp_ = new_temp;
-                ESP_LOGI(TAG, "New water temperature setpoint: %.1f°C", this->water_temp_);
-                this->water_temp_computed_callback_.call();
-            }
-
+            this->result_ = output / 100;
+            this->water_temp_ = new_temp;
             ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp_);
+
+            this->water_temp_computed_callback_.call();
 
             if (this->output_)
             {
-                this->output_->set_level(output / 100.0);
+                this->output_->set_level(this->result_);
             }
         }
     }

@@ -21,10 +21,22 @@ namespace esphome
             switch (this->type_)
             {
             case PID_SENSOR_TYPE_SETPOINT:
-                value = this->parent_->get_output_value();
+                value = this->parent_->get_result() * 100;
+                break;
+            case PID_SENSOR_TYPE_RESULT:
+                value = this->parent_->get_result();
+                break;
+            case PID_SENSOR_TYPE_ERROR:
+                value = this->parent_->get_error();
+                break;
+            case PID_SENSOR_TYPE_DELTA:
+                value = this->parent_->get_delta();
                 break;
             case PID_SENSOR_TYPE_WATERTEMP:
-                value = this->parent_->get_water_setpoint();
+                value = this->parent_->get_water_temp();
+                break;
+            case PID_SENSOR_TYPE_PROPORTIONAL:
+                value = this->parent_->get_proportional_term();
                 break;
             default:
                 value = NAN;

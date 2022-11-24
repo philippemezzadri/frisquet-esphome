@@ -20,7 +20,13 @@ esp32:
 <<: !include common/text_sensors.yaml
 <<: !include common/binary_sensors.yaml
 <<: !include common/switches.yaml  
-<<: !include common/logger-debug.yaml  
+
+logger:
+  baud_rate: 0
+  level: DEBUG
+  logs:
+    sensor: INFO
+    text_sensor: INFO
 
 dallas:
   - pin: GPIO26
@@ -59,7 +65,17 @@ sensor:
 
   - platform: heat_curve_climate
     name: "Setpoint chaudière"
+    unit_of_measurement: "%"
     type: SETPOINT
+
+  - platform: heat_curve_climate
+    name: "Erreur régulation"
+    type: ERROR
+
+  - platform: heat_curve_climate
+    name: "Delta température extérieure"
+    type: DELTA
+
 
 climate:
   - platform: heat_curve_climate

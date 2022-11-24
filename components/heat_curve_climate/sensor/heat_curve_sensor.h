@@ -10,8 +10,12 @@ namespace esphome
 
         enum HeatCurveClimateSensorType
         {
+            PID_SENSOR_TYPE_RESULT,
             PID_SENSOR_TYPE_SETPOINT,
             PID_SENSOR_TYPE_WATERTEMP,
+            PID_SENSOR_TYPE_ERROR,
+            PID_SENSOR_TYPE_DELTA,
+            PID_SENSOR_TYPE_PROPORTIONAL,
         };
 
         class HeatCurveClimateSensor : public sensor::Sensor, public Component
