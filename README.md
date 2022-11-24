@@ -51,7 +51,16 @@ The Frisquet ESPHome component concists in two components:
 - `heat_curve_climate` a `climate` component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint. 
 - `friquet_boiler` a `output` component that will actually communicate with the Frisquet boiler.
 
-The complete folder `components`must be copied in your `esphome` configuration folder.
+The complete folder `components` must be copied in your `esphome` configuration folder. 
+
+Then the file `components/frisquet_boiler/frisquet_boiler.cpp` must be edited to set the ID of your boiler:
+
+  ```cpp
+  // Set boiler id
+  this->message_[4] = 0x03;
+  this->message_[5] = 0xB9;
+  ```
+
 
 Your `yaml` configuration file must show at minimum the following code:
 
