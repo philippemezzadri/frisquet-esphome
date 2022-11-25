@@ -84,10 +84,19 @@ climate:
     sensor: current_temperature
     outdoor_sensor: outdoor_temperature
     output: boiler_cmd
+    visual:
+      min_temperature: 7
+      max_temperature: 28
+      temperature_step: 0.1
     control_parameters:
       heat_factor: 1.8
       offset: 20
       kp: 0
+    output_parameters:
+      minimum_output: 0.1
+      output_factor: 1.9
+      output_offset: -41
+      
 
 output:
   - platform: frisquet_boiler

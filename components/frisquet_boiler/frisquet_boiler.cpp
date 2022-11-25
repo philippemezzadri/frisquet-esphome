@@ -88,9 +88,10 @@ namespace esphome
 
         void FrisquetBoiler::dump_config()
         {
-            LOG_FLOAT_OUTPUT(this);
+            ESP_LOGCONFIG(TAG, "Frisquet Boiler Output");
             ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x 0x%.2x", this->boiler_id[0], this->boiler_id[1]);
-            ESP_LOGCONFIG(TAG, "  Mode: %i", this->operating_mode_);
+            ESP_LOGCONFIG(TAG, "  Current Mode: %i", this->operating_mode_);
+            LOG_FLOAT_OUTPUT(this);
         }
 
         void FrisquetBoiler::on_send_operating_mode(int mode)

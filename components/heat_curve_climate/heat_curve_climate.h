@@ -12,14 +12,6 @@ namespace esphome
 {
     namespace heat_curve
     {
-        // Climate standard visual configuration
-        static const uint8_t CLIMATE_TEMP_MIN = 7;         // Celsius
-        static const uint8_t CLIMATE_TEMP_MAX = 28;        // Celsius
-        static const float CLIMATE_TEMPERATURE_STEP = 0.1; // K
-
-        // If output < MINIMUM_OUTPUT, output = 0
-        static const uint8_t MINIMUM_OUTPUT = 10;
-
         class HeatCurveClimate : public climate::Climate, public Component, public api::CustomAPIDevice
         {
         public:
@@ -38,6 +30,7 @@ namespace esphome
             void set_heat_factor(float heatfactor) { heat_factor_ = heatfactor; }
             void set_offset(float offset) { offset_ = offset; }
             void set_kp(float kp) { kp_ = kp; }
+            void set_minimum_output(float min) { minimum_output_ = 100 * min; }
             void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
             void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
 
@@ -54,19 +47,20 @@ namespace esphome
 
             // Parameters & inputs
             float heat_factor_ = 1.7;
-            float offset_ = 20;
             float kp_ = 0;
+            float offset_ = 20;
+            float outdoor_temp_ = NAN;
             float output_calibration_factor_ = 1;
             float output_calibration_offset_ = 0;
-            float outdoor_temp_ = NAN;
+            float minimum_output_ = 10;
 
             // Results
-            float water_temp_;
-            float output_value_;
-            float result_;
-            float error_ = NAN;
-            float proportional_term_ = 0;
             float delta_ = NAN;
+            float error_ = NAN;
+            float output_value_;
+            float proportional_term_ = 0;
+            float result_;
+            float water_temp_;
 
             CallbackManager<void()> water_temp_computed_callback_;
 

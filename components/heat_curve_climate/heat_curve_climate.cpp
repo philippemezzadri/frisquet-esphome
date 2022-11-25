@@ -84,9 +84,6 @@ namespace esphome
             traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
             traits.set_supports_two_point_target_temperature(false);
             traits.set_supports_action(true);
-            traits.set_visual_min_temperature(CLIMATE_TEMP_MIN);
-            traits.set_visual_max_temperature(CLIMATE_TEMP_MAX);
-            traits.set_visual_temperature_step(CLIMATE_TEMPERATURE_STEP);
             return traits;
         }
 
@@ -94,8 +91,14 @@ namespace esphome
         {
             LOG_CLIMATE("", "Heat Factor Climate", this);
             ESP_LOGCONFIG(TAG, "  Control Parameters:");
-            ESP_LOGCONFIG(TAG, "    heat_factor: %.2f, offset: %.2f, kp: %.2f", this->heat_factor_, this->offset_, this->kp_);
-            ESP_LOGCONFIG(TAG, "    output_factor:%.2f, output_offset:%.2f", this->output_calibration_factor_, this->output_calibration_offset_);
+            ESP_LOGCONFIG(TAG, "    heat_factor: %.2f", this->heat_factor_);
+            ESP_LOGCONFIG(TAG, "    offset: %.2f", this->offset_);
+            ESP_LOGCONFIG(TAG, "    kp: %.2f", this->kp_);
+            ESP_LOGCONFIG(TAG, "  Output Parameters:");
+            ESP_LOGCONFIG(TAG, "    minimum_output_: %.2f", this->minimum_output_ / 100.0);
+            ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
+            ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
+            this->dump_traits_(TAG);
         }
 
         void HeatCurveClimate::on_send_new_heat_curve(float heat_factor, float offset, float kp)
@@ -153,7 +156,7 @@ namespace esphome
                 output = 0;
             }
             // shutdown boiler if outdoor temperature is too high or output below minimum value
-            else if (this->outdoor_temp_ > this->target_temperature - 2 || output < MINIMUM_OUTPUT)
+            else if (this->outdoor_temp_ > this->target_temperature - 2 || output < this->minimum_output_)
             {
                 ESP_LOGD(TAG, "Climate action is IDLE");
                 this->action = climate::CLIMATE_ACTION_IDLE;

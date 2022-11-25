@@ -56,13 +56,19 @@ The complete folder `components` must be copied in your `esphome` configuration 
 
 Your `yaml` configuration file must show at minimum the following code:
 
+### External components
+
 ```yaml
 esphome:
   name: myFrisquetBoiler
 
 external_components:
   - source: components
+```
 
+### Output
+
+```yaml
 output:
   - platform: frisquet_boiler
     id: boiler_cmd
@@ -70,7 +76,28 @@ output:
     max_power: 1.0
     min_power: 0
     zero_means_zero: true
+```
 
+Configuration variables:
+
+- id (Required, ID): The id to use for this output component.
+- boiler_id (Require, string): The identifier of your boiler (see below).
+- All other options from [Float Output](<https://esphome.io/components/output/>)
+- `power_supply` and `inverted` from [Output](<https://esphome.io/components/output/>) are _not_ considered.
+
+The output value received by the component is any rational value between 0 and 1 like the [Float Outputs](<https://esphome.io/components/output/>). Internaly, the output value is multiplied by 100 and cast as an integer because the Frisquet Boiler accepts orders as integers between 0 and 100 :
+
+- 0 : boiler is stopped
+- 10 : water pump starts, no heating
+- 11 - 100 : water heating
+- 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
+
+**Important:** the boiler ID that must be indicated in the yaml configuration file is required to allow
+your boiler to receive the messages from the ESP. It can be retrieved by connecting the radio receiver wire to an Arduino. See [here](https://github.com/etimou/frisquet-arduino) for more details.
+
+### Sensors
+
+```yaml
 sensor:
   - platform: homeassistant
     id: current_temperature
@@ -91,7 +118,26 @@ sensor:
   - platform: heat_curve_climate
     name: "Consigne chaudière"
     type: WATERTEMP
+```
 
+The `heat_curve_climate` platform allows you to create optional sensors giving you feedback from the component.
+
+Configuration variables:
+
+- name (Required, string): The name of the sensor
+- type (Required, string): The value to monitor. One of
+  - RESULT - The resulting value sent to the output component (float between 0 and 1).
+  - SETPOINT - The setpoint sent to the boiler (%, actually 100 * RESULT).
+  - WATERTEMP - The resulting water temperature resulting from SETPOINT.
+  - DELTA - The temperature difference between the target and the outdoor.
+  - ERROR - The calculated error (target - process_variable)
+  - PROPORTIONAL - The proportional term of the controller (if kp is not 0).
+
+Those sensors may be useful to set up your heat curve parameters.
+
+### Climate
+
+```yaml
 climate:
   - platform: heat_curve_climate
     id: boiler_climate
@@ -99,16 +145,33 @@ climate:
     sensor: current_temperature
     outdoor_sensor: outdoor_temperature
     output: boiler_cmd
+    visual:
+      min_temperature: 7
+      max_temperature: 28
+      temperature_step: 0.1
     control_parameters:
-      output_factor: 1.9
-      output_offset: -41
-      heat_factor: 1.7
+      heat_factor: 1.8
       offset: 20
       kp: 0
+    output_parameters:
+      minimum_output: 0.1
+      output_factor: 1.9
+      output_offset: -41
 ```
 
-**Important:** the boiler id that must be indicated in the yaml configuration file is required to allow
-your boiler to receive the messages from the ESP. It can be retrieved by connecting the radio receiver cale to an Arduino. See [here](https://github.com/etimou/frisquet-arduino).
+Configuration variables:
+
+- sensor (Required, ID): The sensor that is used to measure the current temperature.
+- output (Required, ID): The ID of a float output that increases the current temperature.
+- control_parameters (Required): Control parameters of the controller.
+  - heat_factor (Required, float): The proportional term (slope) of the heat curve.
+  - offset (Required, float): The offset term of the heat curve.
+  - kp (Optional, float): The factor for the proportional term of the controller. Defaults to 0.
+- output_parameters (Optional): Output parameters of the controller.
+  - minimum_output (Optional, float): Output value below which output value is set to zero. Defaults to 0.1.
+  - output_factor (Optional, float): Calibration factor of the output. Defaults to 1.
+  - output_offset (Optional, float): Calibration offset of the output. Defaults to 0.
+- All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
 
 ## Tuning
 
@@ -124,7 +187,6 @@ your boiler to receive the messages from the ESP. It can be retrieved by connect
 
     In order to fine ease the fine tuning of those parameters, a service is available in HA to change the parameters without restarting ESPHome.
 
-
 2. **Boiler setpoint conversion factor and offset**
 
     The boiler setpoint (integer in the `[0 - 100]` range) and the water return temperature are linked by the following formula:
@@ -134,7 +196,7 @@ your boiler to receive the messages from the ESP. It can be retrieved by connect
     `ConversionFactor` and `Offset` are defined using the following lines in the yaml configuration file:
 
     ```yaml
-    control_parameters:
+    output_parameters:
       output_factor: 1.9
       output_offset: -41
     ```

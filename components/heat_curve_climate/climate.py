@@ -7,13 +7,16 @@ heat_curve_ns = cg.esphome_ns.namespace("heat_curve")
 HeatCurveClimate = heat_curve_ns.class_("HeatCurveClimate", climate.Climate, cg.Component)
 
 CONF_CONTROL_PARAMETERS = "control_parameters"
+CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_KP = "kp"
 CONF_HEATFACTOR = "heat_factor"
 CONF_OFFSET = "offset"
 CONF_OUTPUT = "output"
 CONF_OUTDOOR_SENSOR = "outdoor_sensor"
+CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_OUTPUT_FACTOR = "output_factor"
 CONF_OUTPUT_OFFSET = "output_offset"
+CONF_MINIMUM_OUTPUT = "minimum_output"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
@@ -27,8 +30,13 @@ CONFIG_SCHEMA = cv.All(
                     cv.Required(CONF_HEATFACTOR): cv.float_,
                     cv.Required(CONF_OFFSET): cv.float_,
                     cv.Optional(CONF_KP,  default=0): cv.float_,
+                }
+            ),
+            cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
+                {
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
+                    cv.Optional(CONF_MINIMUM_OUTPUT, default=0.1): cv.float_,
                 }
             ),
         }
@@ -54,5 +62,8 @@ async def to_code(config):
     cg.add(var.set_heat_factor(params[CONF_HEATFACTOR]))
     cg.add(var.set_offset(params[CONF_OFFSET]))
     cg.add(var.set_kp(params[CONF_KP]))
-    cg.add(var.set_output_calibration_factor(params[CONF_OUTPUT_FACTOR]))
-    cg.add(var.set_output_calibration_offset(params[CONF_OUTPUT_OFFSET]))
+
+    output_params = config[CONF_OUTPUT_PARAMETERS]
+    cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
+    cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
+    cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
