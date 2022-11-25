@@ -58,12 +58,12 @@ namespace esphome
 
             if (new_demand != this->operating_setpoint_)
             {
-                blink();
+                this->blink();
                 ESP_LOGD(TAG, "New Heating demand: %.3f", state);
 
                 this->operating_setpoint_ = new_demand;
                 ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
-                send_message();
+                this->send_message();
 
                 this->last_cmd_ = this->last_order_;
                 this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
@@ -80,7 +80,7 @@ namespace esphome
             if ((now - this->last_cmd_ > this->delay_cycle_cmd_) && ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0)))
             {
                 ESP_LOGD(TAG, "Sending messages");
-                send_message();
+                this->send_message();
                 this->last_cmd_ = now;
                 this->delay_cycle_cmd_ = DELAY_CYCLE_CMD;
             }
@@ -101,7 +101,7 @@ namespace esphome
              * @param mode new operating mode : 0 = eco / 3 = confort / 4 = hors gel
              */
 
-            blink();
+            this->blink();
             if ((mode == 0) or (mode == 3) or (mode == 4))
             {
                 ESP_LOGD(TAG, "New mode: %i", mode);
@@ -125,12 +125,12 @@ namespace esphome
              *   20 - 100 : water temperature setpoint
              */
 
-            blink();
+            this->blink();
             if ((setpoint >= 0) and (setpoint <= 100))
             {
                 ESP_LOGD(TAG, "New setpoint: %i", setpoint);
                 this->operating_setpoint_ = setpoint;
-                send_message();
+                this->send_message();
                 this->last_cmd_ = millis();
                 this->last_order_ = this->last_cmd_;
                 this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
@@ -158,8 +158,8 @@ namespace esphome
              * @brief Emits a serie of 3 messages to the ERS input of the boiler
              */
 
-            ESP_LOGI(TAG, "Sending command to boiler : (%i, %i)", this->operating_mode_, this->operating_setpoint_);
-            blink();
+            ESP_LOGI(TAG, "Sending frames to boiler : (%i, %i)", this->operating_mode_, this->operating_setpoint_);
+            this->blink();
 
             for (uint8_t msg = 0; msg < 3; msg++)
             {
@@ -177,7 +177,7 @@ namespace esphome
                 this->message_[14] = lowByte(checksum);
 
                 for (uint8_t i = 1; i < 17; i++)
-                    serialize_byte(this->message_[i], i);
+                    this->serialize_byte(this->message_[i], i);
 
                 digitalWrite(ERS_PIN, LOW);
                 delay(DELAY_BETWEEN_MESSAGES);
@@ -187,7 +187,7 @@ namespace esphome
             digitalWrite(ERS_PIN, HIGH);
             delayMicroseconds(2 * LONG_PULSE);
             digitalWrite(ERS_PIN, LOW);
-            log_last_message();
+            this->log_last_message();
         }
 
         void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex)
@@ -201,7 +201,7 @@ namespace esphome
             for (uint8_t n = 0; n < 8; n++)
             {
                 int bitValue = bitRead(byteValue, n);
-                write_bit(bitValue);
+                this->write_bit(bitValue);
 
                 // bit stuffing only applicable to the data part of the message (bytes 4 to 16)
                 // increment bitstuffing counter if bitValue == 1
@@ -215,7 +215,7 @@ namespace esphome
                 if (this->bitstuff_counter_ >= 5)
                 {
                     // After 5 consecutive '1', insert a '0' bit (bitstuffing) and reset counter
-                    write_bit(0);
+                    this->write_bit(0);
                     this->bitstuff_counter_ = 0;
                 }
             }
@@ -263,7 +263,7 @@ namespace esphome
                     endofBuffer += sprintf(endofBuffer, "%c", ' ');
             }
 
-            ESP_LOGD(TAG, "last message: %s", buffer);
+            ESP_LOGD(TAG, "last message frames: %s", buffer);
         }
 
     } // namespace frisquet_boiler

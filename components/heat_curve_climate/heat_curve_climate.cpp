@@ -144,7 +144,7 @@ namespace esphome
 
             // Recalculate actual water temperature (knowing that the output is an integer)
             new_temp = (output - this->output_calibration_offset_) / this->output_calibration_factor_;
-            ESP_LOGD(TAG, "Calculated output: %.0f", output);
+            ESP_LOGD(TAG, "Calculated output: %.0f%", output);
             ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
 
             // if CLIMATE_MODE_OFF, shutdown everything, output = 0
