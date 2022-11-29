@@ -20,7 +20,6 @@ namespace esphome
             // Init ESP32 pins modes
             pinMode(ERS_PIN, OUTPUT);
             digitalWrite(ERS_PIN, LOW);
-            pinMode(ONBOARD_LED, OUTPUT);
 
             // Init cycle delay for first message
             this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
@@ -58,7 +57,6 @@ namespace esphome
 
             if (new_demand != this->operating_setpoint_)
             {
-                this->blink();
                 ESP_LOGD(TAG, "New Heating demand: %.3f", state);
 
                 this->operating_setpoint_ = new_demand;
@@ -101,7 +99,6 @@ namespace esphome
              * @param mode new operating mode : 0 = eco / 3 = confort / 4 = hors gel
              */
 
-            this->blink();
             if ((mode == 0) or (mode == 3) or (mode == 4))
             {
                 ESP_LOGD(TAG, "New mode: %i", mode);
@@ -125,7 +122,6 @@ namespace esphome
              *   20 - 100 : water temperature setpoint
              */
 
-            this->blink();
             if ((setpoint >= 0) and (setpoint <= 100))
             {
                 ESP_LOGD(TAG, "New setpoint: %i", setpoint);
@@ -141,17 +137,6 @@ namespace esphome
             }
         }
 
-        void FrisquetBoiler::blink()
-        {
-            /**
-             * @brief makes the onboard LED blink once
-             */
-
-            digitalWrite(ONBOARD_LED, HIGH);
-            delay(200);
-            digitalWrite(ONBOARD_LED, LOW);
-        }
-
         void FrisquetBoiler::send_message()
         {
             /**
@@ -159,7 +144,6 @@ namespace esphome
              */
 
             ESP_LOGI(TAG, "Sending frames to boiler : (%i, %i)", this->operating_mode_, this->operating_setpoint_);
-            this->blink();
 
             for (uint8_t msg = 0; msg < 3; msg++)
             {

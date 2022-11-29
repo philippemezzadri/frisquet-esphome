@@ -14,7 +14,6 @@ namespace esphome
         static const int DELAY_TIMEOUT_CMD_MQTT = 900000; // 15min Max delay without Mqtt msg ---PROTECTION OVERHEATING ---- (Same as remote) - 0 to deactivate
         static const int DELAY_BETWEEN_MESSAGES = 33;     // ms
 
-        static const uint8_t ONBOARD_LED = 2;
         static const uint8_t ERS_PIN = 5;
         static const int LONG_PULSE = 825; // micro seconds
 
@@ -26,7 +25,6 @@ namespace esphome
             void loop() override;
             void dump_config() override;
 
-            void blink();
             void set_operating_mode(int mode) { this->operating_mode_ = mode; }
             void set_operating_setpoint(int setpoint) { this->operating_setpoint_ = setpoint; }
             void on_send_operating_mode(int mode);
