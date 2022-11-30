@@ -89,7 +89,7 @@ namespace esphome
 
         void HeatCurveClimate::dump_config()
         {
-            LOG_CLIMATE("", "Heat Factor Climate", this);
+            LOG_CLIMATE("", "Heat Curve Climate", this);
             ESP_LOGCONFIG(TAG, "  Control Parameters:");
             ESP_LOGCONFIG(TAG, "    heat_factor: %.2f", this->heat_factor_);
             ESP_LOGCONFIG(TAG, "    offset: %.2f", this->offset_);

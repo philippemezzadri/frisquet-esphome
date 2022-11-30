@@ -103,6 +103,7 @@ Output
     output:
       - platform: frisquet_boiler
         id: boiler_cmd
+        pin: 5
         boiler_id: 03B9
         max_power: 1.0
         min_power: 0
@@ -111,7 +112,8 @@ Output
 Configuration variables:
 
 - id (Required, ID): The id to use for this output component.
-- boiler_id (Require, string): The identifier of your boiler (see
+- pin (Required, Pin): The pin number connnected to the boiler
+- boiler_id (Required, string): The identifier of your boiler (see
   below).
 - All other options from `Float
   Output <https://esphome.io/components/output/>`__

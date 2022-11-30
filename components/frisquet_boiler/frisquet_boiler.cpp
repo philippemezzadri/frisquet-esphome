@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
 #include "frisquet_boiler.h"
@@ -7,7 +6,6 @@ namespace esphome
 {
     namespace frisquet_boiler
     {
-
         static const char *TAG = "frisquet.output";
 
         void FrisquetBoiler::setup()
@@ -17,9 +15,9 @@ namespace esphome
              *        Think of it as the setup() call in Arduino
              */
 
-            // Init ESP32 pins modes
-            pinMode(ERS_PIN, OUTPUT);
-            digitalWrite(ERS_PIN, LOW);
+            // Setup GPIO pin
+            this->pin_->setup();
+            this->digital_write(LOW);
 
             // Init cycle delay for first message
             this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
@@ -31,9 +29,9 @@ namespace esphome
 
         void FrisquetBoiler::set_boiler_id(const char *str)
         {
-            esphome::parse_hex(str, this->boiler_id, 2);
-            this->message_[4] = this->boiler_id[0];
-            this->message_[5] = this->boiler_id[1];
+            esphome::parse_hex(str, this->boiler_id_, 2);
+            this->message_[4] = this->boiler_id_[0];
+            this->message_[5] = this->boiler_id_[1];
         }
 
         void FrisquetBoiler::write_state(float state)
@@ -87,8 +85,8 @@ namespace esphome
         void FrisquetBoiler::dump_config()
         {
             ESP_LOGCONFIG(TAG, "Frisquet Boiler Output");
-            ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x 0x%.2x", this->boiler_id[0], this->boiler_id[1]);
-            ESP_LOGCONFIG(TAG, "  Current Mode: %i", this->operating_mode_);
+            ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x 0x%.2x", this->boiler_id_[0], this->boiler_id_[1]);
+            LOG_PIN("  Pin: ", this->pin_);
             LOG_FLOAT_OUTPUT(this);
         }
 
@@ -157,20 +155,20 @@ namespace esphome
                 for (uint8_t i = 4; i <= 12; i++)
                     checksum -= this->message_[i];
 
-                this->message_[13] = highByte(checksum);
-                this->message_[14] = lowByte(checksum);
+                this->message_[13] = (uint8_t)((checksum) >> 8); // highbyte
+                this->message_[14] = (uint8_t)((checksum)&0xff); // lowbyte
 
                 for (uint8_t i = 1; i < 17; i++)
                     this->serialize_byte(this->message_[i], i);
 
-                digitalWrite(ERS_PIN, LOW);
+                this->digital_write(LOW);
                 delay(DELAY_BETWEEN_MESSAGES);
             }
 
             // /!\ Final transition necessary to get the last message decoded properly;
-            digitalWrite(ERS_PIN, HIGH);
+            this->digital_write(HIGH);
             delayMicroseconds(2 * LONG_PULSE);
-            digitalWrite(ERS_PIN, LOW);
+            this->digital_write(LOW);
             this->log_last_message();
         }
 
@@ -184,7 +182,8 @@ namespace esphome
 
             for (uint8_t n = 0; n < 8; n++)
             {
-                int bitValue = bitRead(byteValue, n);
+
+                int bitValue = ((byteValue >> n) & 0x1); // bitread
                 this->write_bit(bitValue);
 
                 // bit stuffing only applicable to the data part of the message (bytes 4 to 16)
@@ -212,18 +211,18 @@ namespace esphome
              *        Signal level alternates after each bit
              *        0 : LOW LOW or HIGH HIGH(long pulse)
              *        1 : LOW HIGH or HIGH LOW(short pulse)
-             * @param bitValue bit to be sent on ERS_PIN
+             * @param bitValue bit to be sent on pin
              */
 
             this->previous_state_ = !this->previous_state_;
-            digitalWrite(ERS_PIN, this->previous_state_);
+            this->digital_write(this->previous_state_);
             delayMicroseconds(LONG_PULSE);
 
             // if bit == 1, put transition
             if (bitValue)
             {
                 this->previous_state_ = !this->previous_state_;
-                digitalWrite(ERS_PIN, this->previous_state_);
+                this->digital_write(this->previous_state_);
             }
 
             delayMicroseconds(LONG_PULSE);

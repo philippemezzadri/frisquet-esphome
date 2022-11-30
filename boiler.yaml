@@ -53,18 +53,18 @@ sensor:
 
   - platform: dallas
     address: 0xA2032131AB675C28
-    name: "boiler_inlet_water_temperature"
+    name: "Départ chaudière"
 
   - platform: dallas
     address: 0xAB03213190136128
-    name: "boiler_return_water_temperature"
+    name: "Retour chaudière"
 
   - platform: heat_curve_climate
     name: "Consigne chaudière"
     type: WATERTEMP
 
   - platform: heat_curve_climate
-    name: "Setpoint chaudière"
+    name: "Réglage chaudière"
     unit_of_measurement: "%"
     type: SETPOINT
 
@@ -76,7 +76,6 @@ sensor:
     name: "Delta température extérieure"
     type: DELTA
 
-
 climate:
   - platform: heat_curve_climate
     id: boiler_climate
@@ -86,8 +85,8 @@ climate:
     output: boiler_cmd
     visual:
       min_temperature: 7
-      max_temperature: 28
-      temperature_step: 0.1
+      max_temperature: 25
+      temperature_step: 0.5
     control_parameters:
       heat_factor: 1.8
       offset: 20
@@ -97,9 +96,9 @@ climate:
       output_factor: 1.9
       output_offset: -41
       
-
 output:
   - platform: frisquet_boiler
+    pin: 5
     id: boiler_cmd
     boiler_id: 03B9
     max_power: 1.0

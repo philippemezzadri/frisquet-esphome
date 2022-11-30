@@ -15,15 +15,6 @@ namespace esphome
         class HeatCurveClimate : public climate::Climate, public Component, public api::CustomAPIDevice
         {
         public:
-            void setup() override;
-            void dump_config() override;
-            void on_send_new_heat_curve(float heat_factor, float offset, float kp);
-
-            void add_temperature_computed_callback(std::function<void()> &&callback)
-            {
-                water_temp_computed_callback_.add(std::move(callback));
-            }
-
             void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
             void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
             void set_output(output::FloatOutput *output) { output_ = output; }
@@ -33,6 +24,16 @@ namespace esphome
             void set_minimum_output(float min) { minimum_output_ = 100 * min; }
             void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
             void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
+
+            void setup() override;
+            void dump_config() override;
+            float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
+
+            void on_send_new_heat_curve(float heat_factor, float offset, float kp);
+            void add_temperature_computed_callback(std::function<void()> &&callback)
+            {
+                water_temp_computed_callback_.add(std::move(callback));
+            }
 
             float get_water_temp() { return water_temp_; }
             float get_result() { return result_; }
