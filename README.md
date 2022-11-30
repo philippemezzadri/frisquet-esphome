@@ -81,8 +81,8 @@ output:
 
 Configuration variables:
 
-- id (Required, ID): The id to use for this output component.
-- pin (Required, Pin): The pin number connnected to the boiler
+- id (Required, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The id to use for this output component.
+- pin (Required, [Pin Schema](<https://esphome.io/guides/configuration-types.html#config-pin-schema>)): The pin number connnected to the boiler
 - boiler_id (Required, string): The identifier of your boiler (see below).
 - All other options from [Float Output](<https://esphome.io/components/output/>)
 - `power_supply` and `inverted` from [Output](<https://esphome.io/components/output/>) are _not_ considered.
@@ -163,8 +163,8 @@ climate:
 
 Configuration variables:
 
-- sensor (Required, ID): The sensor that is used to measure the current temperature.
-- output (Required, ID): The ID of a float output that increases the current temperature.
+- sensor (Required, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the current temperature.
+- output (Required, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - control_parameters (Required): Control parameters of the controller.
   - heat_factor (Required, float): The proportional term (slope) of the heat curve.
   - offset (Required, float): The offset term of the heat curve.
