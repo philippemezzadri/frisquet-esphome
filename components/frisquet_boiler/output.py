@@ -4,6 +4,9 @@ from esphome import pins
 from esphome.components import output
 from esphome.const import CONF_ID, CONF_PIN
 
+DEPENDENCIES = ["api"]
+CODEOWNERS = ["@philippemezzadri"]
+
 CONF_BOILER_ID = "boiler_id"
 
 frisquet_boiler = cg.esphome_ns.namespace('frisquet_boiler')

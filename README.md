@@ -1,16 +1,13 @@
 # Frisquet Boiler for ESPHome
 
-This custom component allows communication between an ESPHome device
+This ESPHome component allows communication between an ESPHome device
 (ESP8266 or ESP32) and a Frisquet heating boiler (equipped with Eco Radio System remote thermostat).
 
-This ESPHome Custom Component is strongly integrated with **Home Assistant** where it appears as a standard climate device. However, if necessary, it can be used with any other home automation system through [MQTT](<https://esphome.io/components/mqtt.html>). In that case MQTT functionnality should be enabled in the the `yaml` configuration file.
+It is strongly integrated with **Home Assistant** where it appears as a [Float Output](<https://esphome.io/components/output/>) device. However, if necessary, it can be used with any other home automation system through [MQTT](<https://esphome.io/components/mqtt.html>). In that case MQTT functionnality should be enabled in the the `yaml` configuration file.
+
+It is recommended to combine the [Output](<https://esphome.io/components/output/>) component with the [Climate](<https://esphome.io/components/climate/index.html>) component also provided in this project. This Climate component will offer temperature control using an outdoor temperature sensor. If prefered, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid).
 
 ## References
-
-- <https://esphome.io/components/external_components.html>
-- <https://esphome.io/components/climate/index.html>
-- <https://esphome.io/components/climate/custom.html>
-- <https://esphome.io/components/output/custom.html>
 
 This work is strongly inspired from:
 
@@ -202,3 +199,75 @@ Configuration variables:
       output_factor: 1.9
       output_offset: -41
     ```
+
+## Actions
+
+The `frisquet_boiler` [Output](<https://esphome.io/components/output/>) component inherits actions from Float Output and in particular:
+
+### `output.set_level` Action
+
+This action sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
+
+```yaml
+on_...:
+  then:
+    - output.set_level:
+        id: boiler_cmd
+        level: 50%
+```
+
+_Note_:
+This action can also be expressed in [lambdas](<https://esphome.io/guides/automations.html#config-lambda>):
+
+```cpp
+// range is 0.0 (off) to 1.0 (on)
+id(boiler_cmd).set_level(0.5);
+```
+
+## Integration with Home Assistant
+
+### Heat Curve Climate Component
+
+The `heat_curve_climate` [Climate](<https://esphome.io/components/climate/index.html>) component exposes one [service](https://www.home-assistant.io/docs/scripts/service-calls/) to Home Assistant allowing to change the `control_parameters` without restarting the ESPHome device.
+
+```yaml
+service: esphome.boiler_send_new_heat_curve
+data:
+  heat_factor: 1.6
+  offset: 22
+  kp: 0
+```
+
+This sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
+
+### Frisquet Boiler Output Component
+
+The `frisquet_boiler` [Output](<https://esphome.io/components/output/>) component exposes one [service](https://www.home-assistant.io/docs/scripts/service-calls/) to Home Assistant:
+
+```yaml
+service: esphome.boiler_send_operating_mode
+data:
+  mode: 3
+```
+
+This sets the boiler operating mode ( 0 = eco / 3 = confort / 4 = away).
+This parameter is actually included in the frames sent to the boiler but I haven't seen any significant effect of the setting.
+
+### Native API Component
+
+When using the native [API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with user-defined services. When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
+
+This way it is possible to call the Actions provided by the Boiler Output component:
+
+```yaml
+# Example configuration entry
+api:
+  services:
+    - service: set_boiler_setpoint
+      variables:
+        setpoint: int
+      then:
+        - output.set_level:
+            id: boiler_cmd
+            level: !lambda 'return setpoint / 100.0;'
+```

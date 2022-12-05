@@ -3,6 +3,9 @@ import esphome.config_validation as cv
 from esphome.components import climate, sensor, output
 from esphome.const import CONF_ID, CONF_SENSOR
 
+DEPENDENCIES = ["api"]
+CODEOWNERS = ["@philippemezzadri"]
+
 heat_curve_ns = cg.esphome_ns.namespace("heat_curve")
 HeatCurveClimate = heat_curve_ns.class_("HeatCurveClimate", climate.Climate, cg.Component)
 

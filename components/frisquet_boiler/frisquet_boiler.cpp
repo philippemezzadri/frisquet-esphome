@@ -24,7 +24,6 @@ namespace esphome
 
             // Register services
             register_service(&FrisquetBoiler::on_send_operating_mode, "send_operating_mode", {"mode"});
-            register_service(&FrisquetBoiler::on_send_operating_setpoint, "send_operating_setpoint", {"setpoint"});
         }
 
         void FrisquetBoiler::set_boiler_id(const char *str)
@@ -108,31 +107,6 @@ namespace esphome
                 ESP_LOGW(TAG, "New mode not valid: %i", mode);
             }
             this->dump_config();
-        }
-
-        void FrisquetBoiler::on_send_operating_setpoint(int setpoint)
-        {
-            /**
-             * @brief Service callable form Home Assistant frontend
-             * @param setpoint new water temperature setpoint
-             *   0 : boiler stopped
-             *   10 : water pump started
-             *   20 - 100 : water temperature setpoint
-             */
-
-            if ((setpoint >= 0) and (setpoint <= 100))
-            {
-                ESP_LOGD(TAG, "New setpoint: %i", setpoint);
-                this->operating_setpoint_ = setpoint;
-                this->send_message();
-                this->last_cmd_ = millis();
-                this->last_order_ = this->last_cmd_;
-                this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
-            }
-            else
-            {
-                ESP_LOGW(TAG, "New setpoint not valid: %i", setpoint);
-            }
         }
 
         void FrisquetBoiler::send_message()
