@@ -1,11 +1,13 @@
 # Frisquet Boiler for ESPHome
 
 This ESPHome component allows communication between an ESPHome device
-(ESP8266 or ESP32) and a Frisquet heating boiler (equipped with Eco Radio System remote thermostat).
+(ESP8266 or ESP32) and a [Frisquet](<https://www.frisquet.com/en>) heating boiler (equipped with Eco Radio System remote thermostat).
 
 The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the Eco Radio System module. More recent boilers equipped with the Visio module are not compatible because Frisquet has since implemented encryption in its communication protocol.
 
-The Frisquet Boiler component appears as a [Float Output](<https://esphome.io/components/output/>) device. It is recommended to combine it with the Heat Curve Climate component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid).
+The **Frisquet Boiler** component appears as a [Float Output](<https://esphome.io/components/output/>) device.
+
+It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid).
 
 ## References
 
@@ -90,15 +92,15 @@ The output value received by the component is any rational value between 0 and 1
 - 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
 
 **Important:** the boiler ID that must be indicated in the YAML configuration file is required to allow
-your boiler to receive the messages from the ESP. It can be retrieved by connecting the radio receiver wire to an Arduino.
+your boiler to receive the messages from the ESP. This ID can be retrieved by connecting the radio receiver signal wire to an Arduino.
 See [here](https://github.com/etimou/frisquet-arduino) for more details.
 
-## Heat Curve Climate
+## Heating Curve Climate
 
 In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could do the trick but it does not provide
-smooth control and does not anticipate weather evolutions.
+smooth control and does not anticipate weather evolution.
 
-It is otherwise recommended to use the Heat Curve Climate which adjusts the heating power according to the outside temperature.
+It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outside temperature.
 
 ```yaml
 climate:
@@ -122,16 +124,16 @@ climate:
       output_offset: -41
 ```
 
-### Configuration variables
+Configuration variables:
 
 - **sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the current temperature.
 - **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
-- **control_parameters** (**Required**): Control parameters of the controller.
-  - **heat_factor** (**Required**, float): The proportional term (slope) of the heat curve.
-  - **offset** (**Required**, float): The offset term of the heat curve.
-  - **kp** (_Optional_, float): The factor for the proportional term of the controller. Defaults to 0.
-- **output_parameters** (_Optional_): Output parameters of the controller.
+- **control_parameters** (**Required**): Control parameters of the controller (see [below](<#heat-curve-definition>)).
+  - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
+  - **offset** (**Required**, float): The offset term of the heating curve.
+  - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
+- **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
   - **minimum_output** (_Optional_, float): Output value below which output value is set to zero. Defaults to 0.1.
   - **output_factor** (_Optional_, float): Calibration factor of the output. Defaults to 1.
   - **output_offset** (_Optional_, float): Calibration offset of the output. Defaults to 0.
@@ -145,13 +147,13 @@ The boiler water temperature is calculated from the outside temperature:
 
 where :
 
+- `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `ERROR` is the calculated error (target - current)
-- `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
 - `heat_factor`, `offset` and `kp` are defined in the Climate `control_parameters`.
 
-`heat_factor`and `offset`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings.Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
-In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome (see below).
+`heat_factor`and `offset`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
+In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
 
 If you don't know how to start, you can use the following values:
 
@@ -200,9 +202,11 @@ sensor:
       - heartbeat: 60s
 ```
 
+If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
+
 ## `heat_curve_climate` Sensor
 
-Additionally, Heat Curve Climate platform provides an optional sensor platform to monitor and give feedback from the Climate component.
+Additionally, the Heating Curve Climate platform provides an optional sensor platform to monitor and give feedback from the Climate component.
 
 ```yaml
 sensor:
@@ -213,7 +217,7 @@ sensor:
 
 Configuration variables:
 
-- **name** (**Required**, string): The name of the sensor
+- **name** (**Required**, string): The name of the sensor.
 - **type** (**Required**, string): The value to monitor. One of
   - `RESULT` - The resulting value sent to the output component (float between 0 and 1).
   - `SETPOINT` - The setpoint sent to the boiler (%, actually 100 * `RESULT`).
@@ -222,7 +226,7 @@ Configuration variables:
   - `ERROR` - The calculated error (target - process_variable)
   - `PROPORTIONAL` - The proportional term of the controller (if `kp` is not 0).
 
-Those sensors may be useful to set up your heat curve `control_parameters`.
+Those sensors may be useful to set up your heating curve `control_parameters`.
 
 ## `climate.heat_curve.set_control_parameters` Action
 
@@ -240,9 +244,9 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, ID): ID of the Heat Curve Climate.
-- **heat_factor** (**Required**, float): The proportional term (slope) of the heat curve.
-- **offset** (**Required**, float): The offset term of the heat curve.
+- **id** (**Required**, ID): ID of the Heating Curve Climate.
+- **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
+- **offset** (**Required**, float): The offset term of the heating curve.
 - **kp** (_Optional_, float): The factor for the proportional term of the controller. Defaults to 0.
 
 ## `boiler.set_mode` Action
@@ -284,9 +288,11 @@ Configuration variables:
 
 ## Integration with Home Assistant
 
-When using the native [API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with user-defined services. When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
+The Heating Curve Climate component automatically appears in Home Assistant as a [Climate](<https://www.home-assistant.io/integrations/climate/>) integration.
 
-This way it is possible to call the [Actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) provided by the Boiler Output and Heat Curve Climate components:
+Also, when using the [native API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with [user-defined services](<https://esphome.io/components/api.html#api-services>). When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
+
+This way it is possible to call the [Actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
 
 ```yaml
 # Example configuration entry
@@ -321,12 +327,12 @@ api:
             kp: !lambda 'return kp;'
 ```
 
-Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines:
+Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines (provided that the ESP name is `myFrisquetBoiler`):
 
 ### Set climate control parameters
 
 ```yaml
-service: esphome.boiler_set_control_parameters
+service: esphome.myFrisquetBoiler_set_control_parameters
 data:
   heat_factor: 1.65
   offset: 21.5
@@ -336,7 +342,7 @@ data:
 ### Set boiler setpoint Service
 
 ```yaml
-service: esphome.set_boiler_setpoint
+service: esphome.myFrisquetBoiler_set_boiler_setpoint
 data:
   level: 50
 ```
@@ -344,7 +350,7 @@ data:
 ### Set boiler mode Service
 
 ```yaml
-service: esphome.boiler_set_boiler_mode
+service: esphome.myFrisquetBoiler_set_boiler_mode
 data:
   mode: 3
 ```
