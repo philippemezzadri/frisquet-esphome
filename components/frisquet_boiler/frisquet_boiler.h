@@ -1,9 +1,9 @@
 #pragma once
 
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/components/output/float_output.h"
-#include "esphome/components/api/custom_api_device.h"
 
 #ifndef HIGH
 #define HIGH 0x1
@@ -24,7 +24,7 @@ namespace esphome
         static const int DELAY_BETWEEN_MESSAGES = 33;     // ms
         static const int LONG_PULSE = 825;                // micro seconds
 
-        class FrisquetBoiler : public output::FloatOutput, public Component, public api::CustomAPIDevice
+        class FrisquetBoiler : public output::FloatOutput, public Component
         {
         public:
             void set_pin(GPIOPin *pin) { pin_ = pin; }
@@ -37,8 +37,7 @@ namespace esphome
 
             void set_operating_mode(int mode) { this->operating_mode_ = mode; }
             void set_operating_setpoint(int setpoint) { this->operating_setpoint_ = setpoint; }
-            void on_send_operating_mode(int mode);
-            void on_send_operating_setpoint(int setpoint);
+            void set_mode(int mode);
             void set_boiler_id(const char *str);
 
         protected:
@@ -58,6 +57,20 @@ namespace esphome
             long last_order_ = 0;
             uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
             uint8_t boiler_id_[2];
+        };
+
+        template <typename... Ts>
+        class SetModeAction : public Action<Ts...>
+        {
+        public:
+            SetModeAction(FrisquetBoiler *output) : output_(output) {}
+
+            TEMPLATABLE_VALUE(int, mode)
+
+            void play(Ts... x) override { this->output_->set_mode(this->mode_.value(x...)); }
+
+        protected:
+            FrisquetBoiler *output_;
         };
 
     } // namespace frisquet_boiler

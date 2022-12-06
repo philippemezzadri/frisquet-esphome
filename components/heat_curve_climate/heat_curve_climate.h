@@ -6,13 +6,12 @@
 #include "esphome/components/climate/climate.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/output/float_output.h"
-#include "esphome/components/api/custom_api_device.h"
 
 namespace esphome
 {
     namespace heat_curve
     {
-        class HeatCurveClimate : public climate::Climate, public Component, public api::CustomAPIDevice
+        class HeatCurveClimate : public climate::Climate, public Component
         {
         public:
             void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
@@ -29,11 +28,11 @@ namespace esphome
             void dump_config() override;
             float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
 
-            void on_send_new_heat_curve(float heat_factor, float offset, float kp);
             void add_temperature_computed_callback(std::function<void()> &&callback)
             {
                 water_temp_computed_callback_.add(std::move(callback));
             }
+            void write_output();
 
             float get_water_temp() { return water_temp_; }
             float get_result() { return result_; }
@@ -44,7 +43,6 @@ namespace esphome
         protected:
             void control(const climate::ClimateCall &call) override;
             climate::ClimateTraits traits() override;
-            void write_output();
 
             // Parameters & inputs
             float heat_factor_ = 1.7;
@@ -71,5 +69,33 @@ namespace esphome
             sensor::Sensor *outoor_sensor_{nullptr};
             output::FloatOutput *output_{nullptr};
         };
+
+        template <typename... Ts>
+        class SetControlParametersAction : public Action<Ts...>
+        {
+        public:
+            SetControlParametersAction(HeatCurveClimate *parent) : parent_(parent) {}
+
+            void play(Ts... x)
+            {
+                auto heat_factor = this->heat_factor_.value(x...);
+                auto offset = this->offset_.value(x...);
+                auto kp = this->kp_.value(x...);
+
+                this->parent_->set_heat_factor(heat_factor);
+                this->parent_->set_offset(offset);
+                this->parent_->set_kp(kp);
+                this->parent_->dump_config();
+                this->parent_->write_output();
+            }
+
+        protected:
+            TEMPLATABLE_VALUE(float, heat_factor)
+            TEMPLATABLE_VALUE(float, offset)
+            TEMPLATABLE_VALUE(float, kp)
+
+            HeatCurveClimate *parent_;
+        };
+
     } // namespace heat_curve
 } // namespace esphome

@@ -21,9 +21,6 @@ namespace esphome
 
             // Init cycle delay for first message
             this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
-
-            // Register services
-            register_service(&FrisquetBoiler::on_send_operating_mode, "send_operating_mode", {"mode"});
         }
 
         void FrisquetBoiler::set_boiler_id(const char *str)
@@ -89,7 +86,7 @@ namespace esphome
             LOG_FLOAT_OUTPUT(this);
         }
 
-        void FrisquetBoiler::on_send_operating_mode(int mode)
+        void FrisquetBoiler::set_mode(int mode)
         {
             /**
              * @brief Service callable form Home Assistant frontend
@@ -106,7 +103,6 @@ namespace esphome
             {
                 ESP_LOGW(TAG, "New mode not valid: %i", mode);
             }
-            this->dump_config();
         }
 
         void FrisquetBoiler::send_message()

@@ -87,8 +87,8 @@ climate:
       max_temperature: 25
       temperature_step: 0.5
     control_parameters:
-      heat_factor: 1.6
-      offset: 22
+      heat_factor: 1.65
+      offset: 21.5
       kp: 0
     output_parameters:
       minimum_output: 0.1
@@ -106,6 +106,7 @@ output:
 
 api:
   services:
+
     - service: set_boiler_setpoint
       variables:
         setpoint: int
@@ -113,3 +114,23 @@ api:
         - output.set_level:
             id: boiler_cmd
             level: !lambda 'return setpoint / 100.0;'
+
+    - service: set_boiler_mode
+      variables:
+        mode: int
+      then:
+        - boiler.set_mode:
+            id: boiler_cmd
+            mode: !lambda 'return mode;'
+            
+    - service: set_control_parameters
+      variables:
+        heat_factor: float
+        offset: float
+        kp: float
+      then:
+        - climate.heat_curve.set_control_parameters:
+            id: boiler_climate
+            heat_factor: !lambda 'return heat_factor;'
+            offset: !lambda 'return offset;'
+            kp: !lambda 'return kp;'

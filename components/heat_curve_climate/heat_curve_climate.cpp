@@ -51,9 +51,6 @@ namespace esphome
                 this->target_temperature = roundf(this->current_temperature);
             }
             this->active_mode_ = this->mode;
-
-            // Register service
-            register_service(&HeatCurveClimate::on_send_new_heat_curve, "send_new_heat_curve", {"heat_factor", "offset", "kp"});
         }
 
         /// Override control to change settings of the climate device
@@ -101,15 +98,6 @@ namespace esphome
             this->dump_traits_(TAG);
         }
 
-        void HeatCurveClimate::on_send_new_heat_curve(float heat_factor, float offset, float kp)
-        {
-            this->set_heat_factor(heat_factor);
-            this->set_offset(offset);
-            this->set_kp(kp);
-            this->dump_config();
-            this->write_output();
-        }
-
         void HeatCurveClimate::write_output()
         {
             float new_temp;
@@ -144,7 +132,7 @@ namespace esphome
 
             // Recalculate actual water temperature (knowing that the output is an integer)
             new_temp = (output - this->output_calibration_offset_) / this->output_calibration_factor_;
-            ESP_LOGD(TAG, "Calculated output: %.0f%", output);
+            ESP_LOGD(TAG, "Calculated output: %.0f%%", output);
             ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
 
             // if CLIMATE_MODE_OFF, shutdown everything, output = 0
