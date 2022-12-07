@@ -170,6 +170,8 @@ The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water return te
 
 `SETPOINT` = `WATERTEMP` * `output_factor` + `output_offset`
 
+The actual value sent to the Output component is: `RESULT`= `SETPOINT` / 100
+
 `output_factor` and `output_offset` are defined in the Climate `output_parameters`.
 The following values seem to work well on Frisquet Hydromotix and Hydroconfort boilers:
 
@@ -181,7 +183,7 @@ output_parameters:
 
 ## Temperature Sensors
 
-To get the Climate component working, two temperature sensors are required. They can be retrieved from Home Assistant:
+To get the Climate component working, two temperature sensors are required. They can be retrieved using [`homeassistant`](<https://esphome.io/components/sensor/homeassistant.html>) sensors:
 
 ```yaml
 sensor:
@@ -264,8 +266,8 @@ on_...:
 
 Configuration variables:
 
-- id (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Frisquet Boiler Output.
-- mode (**Required**, int): operating mode (0 = eco / 3 = confort / 4 = away)
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Frisquet Boiler Output.
+- **mode** (**Required**, int): operating mode (0 = eco / 3 = confort / 4 = away)
 
 ## `output.set_level` Action
 

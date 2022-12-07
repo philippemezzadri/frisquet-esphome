@@ -100,13 +100,9 @@ output:
     pin: 5
     id: boiler_cmd
     boiler_id: 03B9
-    max_power: 1.0
-    min_power: 0
-    zero_means_zero: true
 
 api:
   services:
-
     - service: set_boiler_setpoint
       variables:
         setpoint: int
