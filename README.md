@@ -259,7 +259,7 @@ This parameter is actually included in the frames sent to the boiler but I haven
 ```yaml
 on_...:
   then:
-    - output.set_level:
+    - output.set_mode:
         id: boiler_cmd
         mode: 3
 ```
@@ -278,7 +278,7 @@ This action sets the float output to the given level when executed. This can be 
 ```yaml
 on_...:
   then:
-    - boiler.set_mode:
+    - boiler.set_level:
         id: boiler_cmd
         level: 50%
 ```
