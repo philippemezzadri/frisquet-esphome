@@ -24,6 +24,7 @@ class HeatCurveClimate : public climate::Climate, public Component {
   void set_ki(float ki) { ki_ = ki; }
   void set_minimum_output(float min) { minimum_output_ = 100 * min; }
   void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
+  void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
   void reset_integral_term() { integral_term_ = 0; }
 
   void setup() override;
