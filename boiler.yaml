@@ -8,6 +8,9 @@ substitutions:
 esphome:
   name: ${device}
 
+preferences:
+  flash_write_interval: 72h
+
 external_components:
   - source: components
   
@@ -60,20 +63,34 @@ sensor:
 
   - platform: heat_curve_climate
     name: "Consigne chaudière"
+    unit_of_measurement: "°C"
     type: WATERTEMP
 
   - platform: heat_curve_climate
     name: "Réglage chaudière"
     unit_of_measurement: "%"
+    icon: mdi:gauge
     type: SETPOINT
 
   - platform: heat_curve_climate
     name: "Erreur régulation"
+    unit_of_measurement: "K"
     type: ERROR
 
   - platform: heat_curve_climate
     name: "Delta température extérieure"
+    unit_of_measurement: "K"
     type: DELTA
+
+  - platform: heat_curve_climate
+    name: "Terme intégral"
+    unit_of_measurement: "K"
+    type: INTEGRAL
+
+  - platform: heat_curve_climate
+    name: "Terme proportionnel"
+    unit_of_measurement: "K"
+    type: PROPORTIONAL
 
 climate:
   - platform: heat_curve_climate
@@ -85,11 +102,12 @@ climate:
     visual:
       min_temperature: 7
       max_temperature: 25
-      temperature_step: 0.5
+      temperature_step: 0.1
     control_parameters:
       heat_factor: 1.65
       offset: 21.5
-      kp: 0
+      kp: 5
+      ki: 0
     output_parameters:
       minimum_output: 0.1
       output_factor: 1.9
@@ -124,9 +142,11 @@ api:
         heat_factor: float
         offset: float
         kp: float
+        ki: float
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
             heat_factor: !lambda 'return heat_factor;'
             offset: !lambda 'return offset;'
             kp: !lambda 'return kp;'
+            ki: !lambda 'return ki;'

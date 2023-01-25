@@ -6,6 +6,12 @@ namespace esphome {
 namespace heat_curve {
 static const char *const TAG = "heat_curve.climate";
 
+static const float MINIMUM_INTEGRAL = -5.0;
+static const float MAXIMUM_INTEGRAL = 15.0;
+static const float THRESHOLD_HIGH = 0.5;
+static const float THRESHOLD_LOW = -0.5;
+static const float DEADBAND_MULTIPLIER = 0.2;
+
 void HeatCurveClimate::setup() {
   // on state callback for current temperature
   if (this->current_sensor_) {
@@ -73,6 +79,7 @@ void HeatCurveClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "    heat_factor: %.2f", this->heat_factor_);
   ESP_LOGCONFIG(TAG, "    offset: %.2f", this->offset_);
   ESP_LOGCONFIG(TAG, "    kp: %.2f", this->kp_);
+  ESP_LOGCONFIG(TAG, "    ki: %.5f", this->ki_);
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
   ESP_LOGCONFIG(TAG, "    minimum_output_: %.2f", this->minimum_output_ / 100.0);
   ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
@@ -89,19 +96,26 @@ void HeatCurveClimate::update() {
     return;
   }
 
+  dt_ = calculate_relative_time_();
+
   // New return water temperature according to heat curve
   this->delta_ = this->target_temperature - this->outdoor_temp_;
-  new_temp = this->delta_ * this->heat_factor_ + this->offset_;
-  ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
 
-  // Proportional correction to accelerate convergence to target
+  // water_temp(delta_t) := heat_factor * delta_t + offset
+  new_temp = this->delta_ * this->heat_factor_ + this->offset_;
+
+  ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
+  ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", new_temp);
+
+  // Proportional and Integral correction to accelerate convergence to target
   if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature)) {
     this->error_ = this->target_temperature - this->current_temperature;
     ESP_LOGD(TAG, "Error: %.1f", this->error_);
 
-    this->proportional_term_ = this->kp_ * this->error_;
-    new_temp += this->proportional_term_;
-    ESP_LOGD(TAG, "Proportionnal term: %.1f", this->proportional_term_);
+    this->calculate_proportional_term_();
+    this->calculate_integral_term_();
+
+    new_temp += this->proportional_term_ + this->integral_term_;
   }
 
   ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
@@ -157,6 +171,52 @@ void HeatCurveClimate::write_output_(float value) {
     this->do_publish_ = true;
   }
   this->water_temp_computed_callback_.call();
+}
+
+float HeatCurveClimate::calculate_relative_time_() {
+  uint32_t now = millis();
+  uint32_t dt = now - this->last_time_;
+  if (last_time_ == 0) {
+    last_time_ = now;
+    return 0.0f;
+  }
+  last_time_ = now;
+  return dt / 1000.0f;
+}
+
+bool HeatCurveClimate::in_deadband() {
+  // return (fabs(error) < deadband_threshold);
+  float err = -error_;
+  return ((err > 0 && err < THRESHOLD_HIGH) || (err < 0 && err > THRESHOLD_LOW));
+}
+
+void HeatCurveClimate::calculate_proportional_term_() {
+  // p(t) := K_p * e(t)
+  proportional_term_ = kp_ * error_;
+  ESP_LOGD(TAG, "Proportionnal term: %.2f", this->proportional_term_);
+}
+
+void HeatCurveClimate::calculate_integral_term_() {
+  // i(t) := K_i * \int_{0}^{t} e(t) dt
+  float new_integral = error_ * dt_ * ki_;
+
+  if (this->output_value_ == 0 && new_integral < 0) {
+    return;
+  }
+
+  if (in_deadband()) {
+    integral_term_ += new_integral * DEADBAND_MULTIPLIER;
+  } else {
+    integral_term_ += new_integral;
+  }
+
+  // constrain accumulated integral value
+  if (integral_term_ < MINIMUM_INTEGRAL)
+    integral_term_ = MINIMUM_INTEGRAL;
+  if (integral_term_ > MAXIMUM_INTEGRAL)
+    integral_term_ = MAXIMUM_INTEGRAL;
+
+  ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
 }
 
 }  // namespace heat_curve

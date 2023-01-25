@@ -118,6 +118,7 @@ climate:
       heat_factor: 1.65
       offset: 21.5
       kp: 0
+      ki: 0.05
     output_parameters:
       minimum_output: 0.1
       output_factor: 1.9
@@ -133,6 +134,7 @@ Configuration variables:
   - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
   - **offset** (**Required**, float): The offset term of the heating curve.
   - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
+  - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
   - **minimum_output** (_Optional_, float): Output value below which output value is set to zero. Defaults to 0.1.
   - **output_factor** (_Optional_, float): Calibration factor of the output. Defaults to 1.
@@ -143,14 +145,15 @@ Configuration variables:
 
 The boiler water temperature is calculated from the outside temperature:
 
-`WATERTEMP` = `DELTA` * `heat_factor` + `offset` + `ERROR` * `kp`
+`WATERTEMP` = `DELTA` * `heat_factor` + `offset` + `ERROR` * `kp` + `INTEGRAL_TERM`
 
 where :
 
 - `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `ERROR` is the calculated error (target - current)
-- `heat_factor`, `offset` and `kp` are defined in the Climate `control_parameters`.
+- `INTEGRAL_TERM` is the cumulative sum of `ki` * `ERROR` * `dt`
+- `heat_factor`, `offset`, `kp` and `ki` are defined in the Climate `control_parameters`.
 
 `heat_factor`and `offset`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
@@ -227,6 +230,12 @@ Configuration variables:
   - `DELTA` - The temperature difference between the target and the outdoor.
   - `ERROR` - The calculated error (target - process_variable)
   - `PROPORTIONAL` - The proportional term of the controller (if `kp` is not 0).
+  - `INTEGRAL` - The integral term of the controller (if `ki` is not 0).
+  - `HEATFACTOR`- The current value of `heat_factor`
+  - `OFFSET`- The current value of `offset`
+  - `KP`- The current value of `kp`
+  - `KI`- The current value of `ki`
+
 
 Those sensors may be useful to set up your heating curve `control_parameters`.
 

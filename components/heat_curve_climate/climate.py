@@ -13,6 +13,7 @@ SetControlParametersAction = heat_curve_ns.class_("SetControlParametersAction", 
 CONF_CONTROL_PARAMETERS = "control_parameters"
 CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_KP = "kp"
+CONF_KI = "ki"
 CONF_HEATFACTOR = "heat_factor"
 CONF_OFFSET = "offset"
 CONF_OUTPUT = "output"
@@ -34,6 +35,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.Required(CONF_HEATFACTOR): cv.float_,
                     cv.Required(CONF_OFFSET): cv.float_,
                     cv.Optional(CONF_KP,  default=0): cv.float_,
+                    cv.Optional(CONF_KI,  default=0): cv.float_,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
@@ -66,6 +68,7 @@ async def to_code(config):
     cg.add(var.set_heat_factor(params[CONF_HEATFACTOR]))
     cg.add(var.set_offset(params[CONF_OFFSET]))
     cg.add(var.set_kp(params[CONF_KP]))
+    cg.add(var.set_ki(params[CONF_KI]))
 
     output_params = config[CONF_OUTPUT_PARAMETERS]
     cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
@@ -82,6 +85,7 @@ async def to_code(config):
             cv.Required(CONF_HEATFACTOR): cv.templatable(cv.float_),
             cv.Required(CONF_OFFSET): cv.templatable(cv.float_),
             cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
+            cv.Optional(CONF_KI, default=0.0): cv.templatable(cv.float_),
         }
     ),
 )
@@ -92,10 +96,13 @@ async def set_control_parameters(config, action_id, template_arg, args):
     kp_template_ = await cg.templatable(config[CONF_KP], args, float)
     cg.add(var.set_kp(kp_template_))
 
-    ki_template_ = await cg.templatable(config[CONF_HEATFACTOR], args, float)
-    cg.add(var.set_heat_factor(ki_template_))
+    ki_template_ = await cg.templatable(config[CONF_KI], args, float)
+    cg.add(var.set_ki(ki_template_))
 
-    kd_template_ = await cg.templatable(config[CONF_OFFSET], args, float)
-    cg.add(var.set_offset(kd_template_))
+    hf_template_ = await cg.templatable(config[CONF_HEATFACTOR], args, float)
+    cg.add(var.set_heat_factor(hf_template_))
+
+    offset_template_ = await cg.templatable(config[CONF_OFFSET], args, float)
+    cg.add(var.set_offset(offset_template_))
 
     return var

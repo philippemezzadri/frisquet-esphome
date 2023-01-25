@@ -1,0 +1,113 @@
+# File to be located in home assistant 'config/packages' folder.
+#
+input_number:
+  chaudiere_heat_factor:
+    name: Boiler Heating Factor
+    min: 0
+    max: 3
+    initial: 1.65
+    step: 0.01
+  chaudiere_offset:
+    name: Boiler Offset
+    min: 0
+    max: 30
+    initial: 21.5
+    step: 0.1
+  chaudiere_kp:
+    name: Boiler Kp
+    min: 0
+    max: 10
+    step: 0.5
+    initial: 5
+  chaudiere_ki:
+    name: Boiler Ki
+    min: 0
+    max: 1
+    step: 0.001
+    initial: 0
+
+automation:
+  - alias: Chaudière Hors Gel
+    description: ""
+    trigger:
+      - platform: numeric_state
+        entity_id: climate.chaudiere_frisquet
+        attribute: temperature
+        below: "7.2"
+    condition: []
+    action:
+      - service: esphome.boiler_set_boiler_mode
+        data:
+          mode: 4
+    mode: single
+  - alias: Chaudière Eco
+    description: ""
+    trigger:
+      - platform: numeric_state
+        entity_id: climate.chaudiere_frisquet
+        attribute: temperature
+        above: "7.2"
+        below: "17.2"
+    condition: []
+    action:
+      - service: esphome.boiler_set_boiler_mode
+        data:
+          mode: 0
+    mode: single
+  - alias: Chaudière Confort
+    description: ""
+    trigger:
+      - platform: numeric_state
+        entity_id: climate.chaudiere_frisquet
+        attribute: temperature
+        above: "17"
+    condition: []
+    action:
+      - service: esphome.boiler_set_boiler_mode
+        data:
+          mode: 3
+    mode: single
+
+  - alias: Chaudière Set Control Parameters
+    description: Set control parameters
+    trigger:
+      - platform: state
+        entity_id:
+          - input_number.chaudiere_heat_factor
+          - input_number.chaudiere_offset
+          - input_number.chaudiere_kp
+          - input_number.chaudiere_ki
+    condition: []
+    action:
+      - service: esphome.boiler_set_control_parameters
+        data:
+          heat_factor: "{{ states('input_number.chaudiere_heat_factor') | float}}"
+          offset: "{{ states('input_number.chaudiere_offset') | float }}"
+          kp: "{{ states('input_number.chaudiere_kp') | float }}"
+          ki: "{{ states('input_number.chaudiere_ki') | float }}"
+    mode: restart
+
+  - alias: Chaudière Restore Control Parameters
+    description: Restore control parameters after a reboot
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.chaudiere_frisquet_uptime
+        below: 60
+    condition: []
+    action:
+      - service: esphome.boiler_set_control_parameters
+        data:
+          heat_factor: "{{ states('input_number.chaudiere_heat_factor') | float}}"
+          offset: "{{ states('input_number.chaudiere_offset') | float }}"
+          kp: "{{ states('input_number.chaudiere_kp') | float }}"
+          ki: "{{ states('input_number.chaudiere_ki') | float }}"
+      - delay: "00:01:30"
+    mode: single
+    max_exceeded: silent
+
+template:
+  - binary_sensor:
+      - name: Etat Chaudière
+        device_class: "power"
+        state: >
+          {{ (states('sensor.debit_gazpar_tic') | float(0)) > 0 }}

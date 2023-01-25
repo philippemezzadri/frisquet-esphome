@@ -3,8 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     STATE_CLASS_MEASUREMENT,
-    UNIT_CELSIUS,
-    ICON_THERMOMETER,
+    ICON_GAUGE,
     CONF_TYPE,
 )
 from ..climate import heat_curve_ns, HeatCurveClimate
@@ -19,14 +18,18 @@ HEATCURVE_CLIMATE_SENSOR_TYPES = {
     "DELTA": HeatCurveClimateSensorType.PID_SENSOR_TYPE_DELTA,
     "WATERTEMP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_WATERTEMP,
     "PROPORTIONAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_PROPORTIONAL,
+    "INTEGRAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_INTEGRAL,
+    "HEATFACTOR": HeatCurveClimateSensorType.PID_SENSOR_TYPE_HEATFACTOR,
+    "OFFSET": HeatCurveClimateSensorType.PID_SENSOR_TYPE_OFFSET,
+    "KP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KP,
+    "KI": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KI,
 }
 
 CONF_CLIMATE_ID = "climate_id"
 CONFIG_SCHEMA = (
     sensor.sensor_schema(
         HeatCurveClimateSensor,
-        unit_of_measurement=UNIT_CELSIUS,
-        icon=ICON_THERMOMETER,
+        icon=ICON_GAUGE,
         accuracy_decimals=1,
         state_class=STATE_CLASS_MEASUREMENT,
     )

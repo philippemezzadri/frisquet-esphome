@@ -13,11 +13,13 @@ esp32:
   framework:
     type: arduino
 
-<<: !include common/common.yaml
-<<: !include common/logger.yaml
-<<: !include common/text_sensors.yaml
-<<: !include common/binary_sensors.yaml
-<<: !include common/switches.yaml  
+packages:
+  common: !include common/common.yaml
+  logger: !include common/logger.yaml
+  binary_sensors: !include common/binary_sensors.yaml
+  sensors: !include common/sensors.yaml
+  switches: !include common/switches.yaml
+  text_sensors: !include common/text_sensors.yaml
 
 time:
   - platform: homeassistant
@@ -34,9 +36,6 @@ time:
               id(gazpar_puissance_gaz_jour) = 0;
 
 sensor:
-  - !include common/sensor/wifi-signal.yaml
-  - !include common/sensor/uptime.yaml
-
   - platform: homeassistant
     id: grdf_coef
     entity_id: sensor.grdf_coef

@@ -33,6 +33,21 @@ void HeatCurveClimateSensor::update_from_parent_() {
     case PID_SENSOR_TYPE_PROPORTIONAL:
       value = this->parent_->get_proportional_term();
       break;
+    case PID_SENSOR_TYPE_INTEGRAL:
+      value = this->parent_->get_integral_term();
+      break;
+    case PID_SENSOR_TYPE_HEATFACTOR:
+      value = this->parent_->get_heat_factor();
+      break;
+    case PID_SENSOR_TYPE_OFFSET:
+      value = this->parent_->get_offset();
+      break;
+    case PID_SENSOR_TYPE_KP:
+      value = this->parent_->get_kp();
+      break;
+    case PID_SENSOR_TYPE_KI:
+      value = this->parent_->get_ki();
+      break;
     default:
       value = NAN;
       break;

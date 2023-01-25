@@ -13,6 +13,11 @@ enum HeatCurveClimateSensorType {
   PID_SENSOR_TYPE_ERROR,
   PID_SENSOR_TYPE_DELTA,
   PID_SENSOR_TYPE_PROPORTIONAL,
+  PID_SENSOR_TYPE_INTEGRAL,
+  PID_SENSOR_TYPE_HEATFACTOR,
+  PID_SENSOR_TYPE_OFFSET,
+  PID_SENSOR_TYPE_KP,
+  PID_SENSOR_TYPE_KI
 };
 
 class HeatCurveClimateSensor : public sensor::Sensor, public Component {
