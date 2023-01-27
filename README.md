@@ -129,6 +129,7 @@ Configuration variables:
 
 - **sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the current temperature.
 - **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
+- **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - **control_parameters** (**Required**): Control parameters of the controller (see [below](<#heat-curve-definition>)).
   - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
@@ -255,10 +256,24 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, ID): ID of the Heating Curve Climate.
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
 - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
 - **offset** (**Required**, float): The offset term of the heating curve.
 - **kp** (_Optional_, float): The factor for the proportional term of the controller. Defaults to 0.
+
+## `climate.pid.reset_integral_term` Action
+
+This [action](<https://esphome.io/guides/automations.html?highlight=automation#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
+
+```yaml
+on_...:
+  # Basic
+  - climate.heat_curve.reset_integral_term: boiler_climate
+```
+
+Configuration variables:
+
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate being reset.
 
 ## `boiler.set_mode` Action
 

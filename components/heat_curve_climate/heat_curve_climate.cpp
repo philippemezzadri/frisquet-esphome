@@ -8,9 +8,8 @@ static const char *const TAG = "heat_curve.climate";
 
 static const float MINIMUM_INTEGRAL = -5.0;
 static const float MAXIMUM_INTEGRAL = 15.0;
-static const float THRESHOLD_HIGH = 0.5;
-static const float THRESHOLD_LOW = -0.5;
-static const float DEADBAND_MULTIPLIER = 0.2;
+static const float THRESHOLD_HIGH = 0.3;
+static const float THRESHOLD_LOW = -0.3;
 
 void HeatCurveClimate::setup() {
   // on state callback for current temperature
@@ -44,8 +43,7 @@ void HeatCurveClimate::setup() {
   } else {
     // restore from defaults
     this->mode = climate::CLIMATE_MODE_HEAT;
-    // initialize target temperature to some value so that it's not NAN
-    this->target_temperature = roundf(this->current_temperature);
+    this->target_temperature = this->default_target_temperature_;
   }
 }
 
@@ -204,9 +202,7 @@ void HeatCurveClimate::calculate_integral_term_() {
     return;
   }
 
-  if (in_deadband()) {
-    integral_term_ += new_integral * DEADBAND_MULTIPLIER;
-  } else {
+  if (!in_deadband()) {
     integral_term_ += new_integral;
   }
 

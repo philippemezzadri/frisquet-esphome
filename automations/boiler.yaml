@@ -23,7 +23,7 @@ input_number:
     name: Boiler Ki
     min: 0
     max: 1
-    step: 0.001
+    step: 0.0005
     initial: 0
 
 automation:

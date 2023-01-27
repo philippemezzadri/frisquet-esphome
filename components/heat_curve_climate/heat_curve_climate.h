@@ -46,6 +46,10 @@ class HeatCurveClimate : public climate::Climate, public Component {
   float get_kp() { return kp_; }
   float get_ki() { return ki_; }
 
+  void set_default_target_temperature(float default_target_temperature) {
+    default_target_temperature_ = default_target_temperature;
+  }
+
  protected:
   void control(const climate::ClimateCall &call) override;
   climate::ClimateTraits traits() override;
@@ -68,7 +72,6 @@ class HeatCurveClimate : public climate::Climate, public Component {
   float output_calibration_offset_ = 0;
   float minimum_output_ = 10;
 
-  float accumulated_integral_ = 0;
   uint32_t last_time_ = 0;
 
   // Sensors
@@ -77,6 +80,7 @@ class HeatCurveClimate : public climate::Climate, public Component {
   output::FloatOutput *output_{nullptr};
 
   CallbackManager<void()> water_temp_computed_callback_;
+  float default_target_temperature_;
   bool do_publish_ = false;
 
   // Results
@@ -103,7 +107,6 @@ class SetControlParametersAction : public Action<Ts...> {
     this->parent_->set_offset(offset);
     this->parent_->set_kp(kp);
     this->parent_->set_ki(ki);
-    this->parent_->reset_integral_term();
     this->parent_->dump_config();
     this->parent_->update();
   }
@@ -114,6 +117,17 @@ class SetControlParametersAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(float, kp)
   TEMPLATABLE_VALUE(float, ki)
 
+  HeatCurveClimate *parent_;
+};
+
+template <typename... Ts>
+class PIDResetIntegralTermAction : public Action<Ts...> {
+ public:
+  PIDResetIntegralTermAction(HeatCurveClimate *parent) : parent_(parent) {}
+
+  void play(Ts... x) { this->parent_->reset_integral_term(); }
+
+ protected:
   HeatCurveClimate *parent_;
 };
 

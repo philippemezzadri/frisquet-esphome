@@ -9,6 +9,9 @@ HeatCurveClimate = heat_curve_ns.class_("HeatCurveClimate", climate.Climate, cg.
 
 # Actions
 SetControlParametersAction = heat_curve_ns.class_("SetControlParametersAction", automation.Action)
+PIDResetIntegralTermAction = heat_curve_ns.class_("PIDResetIntegralTermAction", automation.Action)
+
+CONF_DEFAULT_TARGET_TEMPERATURE = "default_target_temperature"
 
 CONF_CONTROL_PARAMETERS = "control_parameters"
 CONF_OUTPUT_PARAMETERS = "output_parameters"
@@ -28,6 +31,7 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(): cv.declare_id(HeatCurveClimate),
             cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
+            cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_OUTPUT): cv.use_id(output.FloatOutput),
             cv.Required(CONF_CONTROL_PARAMETERS): cv.Schema(
@@ -75,6 +79,8 @@ async def to_code(config):
     cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
     cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
 
+    cg.add(var.set_default_target_temperature(config[CONF_DEFAULT_TARGET_TEMPERATURE]))
+
 
 @automation.register_action(
     "climate.heat_curve.set_control_parameters",
@@ -106,3 +112,16 @@ async def set_control_parameters(config, action_id, template_arg, args):
     cg.add(var.set_offset(offset_template_))
 
     return var
+
+@automation.register_action(
+    "climate.heat_curve.reset_integral_term",
+    PIDResetIntegralTermAction,
+    automation.maybe_simple_id(
+        {
+            cv.Required(CONF_ID): cv.use_id(HeatCurveClimate),
+        }
+    ),
+)
+async def pid_reset_integral_term(config, action_id, template_arg, args):
+    paren = await cg.get_variable(config[CONF_ID])
+    return cg.new_Pvariable(action_id, template_arg, paren)

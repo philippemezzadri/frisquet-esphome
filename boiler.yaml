@@ -98,6 +98,7 @@ climate:
     name: ${name}
     sensor: current_temperature
     outdoor_sensor: outdoor_temperature
+    default_target_temperature: 19
     output: boiler_cmd
     visual:
       min_temperature: 7
@@ -150,3 +151,4 @@ api:
             offset: !lambda 'return offset;'
             kp: !lambda 'return kp;'
             ki: !lambda 'return ki;'
+        - climate.heat_curve.reset_integral_term: boiler_climate
