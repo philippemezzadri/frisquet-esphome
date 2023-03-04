@@ -9,7 +9,7 @@ esphome:
   name: ${device}
 
 preferences:
-  flash_write_interval: 72h
+  flash_write_interval: 1h
 
 external_components:
   - source: components
@@ -25,6 +25,7 @@ packages:
   sensors: !include common/sensors.yaml
   switches: !include common/switches.yaml
   text_sensors: !include common/text_sensors.yaml
+  debug: !include common/debug.yaml
 
 logger:
   baud_rate: 0
@@ -35,7 +36,7 @@ logger:
 
 dallas:
   - pin: GPIO26
-    
+
 sensor:
   - platform: homeassistant
     id: current_temperature
