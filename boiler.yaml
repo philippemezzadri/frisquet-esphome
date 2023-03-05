@@ -109,7 +109,7 @@ climate:
       heat_factor: 1.65
       offset: 21.5
       kp: 5
-      ki: 0
+      ki: 0.0005
     output_parameters:
       minimum_output: 0.1
       output_factor: 1.9
@@ -120,6 +120,11 @@ output:
     pin: 5
     id: boiler_cmd
     boiler_id: 03B9
+
+switch:
+  - platform: heat_curve_climate
+    name: "Heat Required"
+    restore_mode: RESTORE_DEFAULT_OFF
 
 api:
   services:

@@ -210,6 +210,26 @@ sensor:
 
 If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
 
+## `heat_curve_climate` Switch
+
+On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode. This can be undesirable as heat may be required by radiators in other rooms of the house.
+
+To address this issue, the Heating Curve Climate platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely. 
+
+This ensures that heat is still being supplied to the radiators and helps maintain a comfortable temperature throughout the house.
+
+```yaml
+switch:
+  - platform: heat_curve_climate
+    name: "Heat Required"
+```
+
+Configuration variables:
+
+- **name** (**Required**, string): The name of the switch.
+
+When the switch is on, the boiler will run at the  minimum power defined by the `minimum_output`parameter.
+
 ## `heat_curve_climate` Sensor
 
 Additionally, the Heating Curve Climate platform provides an optional sensor platform to monitor and give feedback from the Climate component.
@@ -237,7 +257,6 @@ Configuration variables:
   - `KP`- The current value of `kp`
   - `KI`- The current value of `ki`
 
-
 Those sensors may be useful to set up your heating curve `control_parameters`.
 
 ## `climate.heat_curve.set_control_parameters` Action
@@ -260,6 +279,7 @@ Configuration variables:
 - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
 - **offset** (**Required**, float): The offset term of the heating curve.
 - **kp** (_Optional_, float): The factor for the proportional term of the controller. Defaults to 0.
+- **ki** (_Optional_, float): The factor for the integral term of the controller. Defaults to 0.
 
 ## `climate.pid.reset_integral_term` Action
 
@@ -351,6 +371,8 @@ api:
             heat_factor: !lambda 'return heat_factor;'
             offset: !lambda 'return offset;'
             kp: !lambda 'return kp;'
+            ki: !lambda 'return ki;'
+        - climate.heat_curve.reset_integral_term: boiler_climate
 ```
 
 Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines (provided that the ESP name is `myFrisquetBoiler`):
