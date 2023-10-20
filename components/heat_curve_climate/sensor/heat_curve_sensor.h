@@ -4,6 +4,7 @@
 #include "esphome/core/component.h"
 
 namespace esphome {
+namespace climate {
 namespace heat_curve {
 
 enum HeatCurveClimateSensorType {
@@ -34,4 +35,5 @@ class HeatCurveClimateSensor : public sensor::Sensor, public Component {
 };
 
 }  // namespace heat_curve
+}  // namespace climate
 }  // namespace esphome

@@ -1,9 +1,13 @@
+#api:
+#  encryption:
+#    key: "r2+lfspnzSjTacD3a1JhH7nB2rCXkDCefKznTeKiLEA="
+
 substitutions:
   device: teleinfo
   name: "Teleinfo"
   reboot_timeout: 14d
   update_interval: 60s
-  ota_password: "7ededbaabf73e790adab39d39445faa8"
+  ota_password: "0d8dd7a8c90136a780ea155af9242933"
 
 esphome:
   name: ${device}
@@ -28,6 +32,7 @@ uart:
   baud_rate: 1200
   parity: EVEN
   data_bits: 7
+
 
 teleinfo:
   id: myteleinfo

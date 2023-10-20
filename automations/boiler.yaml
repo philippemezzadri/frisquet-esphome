@@ -7,24 +7,28 @@ input_number:
     max: 3
     initial: 1.65
     step: 0.01
+    mode: box
   chaudiere_offset:
     name: Boiler Offset
     min: 0
     max: 30
     initial: 21.5
     step: 0.1
+    mode: box
   chaudiere_kp:
     name: Boiler Kp
     min: 0
     max: 10
     step: 0.5
     initial: 5
+    mode: box
   chaudiere_ki:
     name: Boiler Ki
     min: 0
     max: 1
-    step: 0.0005
-    initial: 0
+    step: 0.001
+    initial: 0.0005
+    mode: box
 
 automation:
   - alias: Chaudière Hors Gel

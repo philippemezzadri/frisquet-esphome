@@ -38,7 +38,7 @@ time:
 sensor:
   - platform: homeassistant
     id: grdf_coef
-    entity_id: sensor.grdf_coef
+    entity_id: input_number.gas_coefficient
     internal: true
 
   - platform: pulse_meter

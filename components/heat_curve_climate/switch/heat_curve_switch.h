@@ -5,13 +5,12 @@
 #include "esphome/core/component.h"
 
 namespace esphome {
+namespace climate {
 namespace heat_curve {
 
 class HeatCurveClimateSwitch : public switch_::Switch, public Component {
  public:
   void set_parent(HeatCurveClimate *parent) { parent_ = parent; }
-
-  void setup() override;
   void dump_config() override;
 
  protected:
@@ -20,4 +19,5 @@ class HeatCurveClimateSwitch : public switch_::Switch, public Component {
 };
 
 }  // namespace heat_curve
+}  // namespace climate
 }  // namespace esphome

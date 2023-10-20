@@ -4,6 +4,7 @@
 #include "esphome/core/log.h"
 
 namespace esphome {
+namespace climate {
 namespace heat_curve {
 
 static const char *const TAG = "heat_curve.sensor";
@@ -57,4 +58,5 @@ void HeatCurveClimateSensor::update_from_parent_() {
 void HeatCurveClimateSensor::dump_config() { LOG_SENSOR("", "Heat Curve Climate Sensor", this); }
 
 }  // namespace heat_curve
+}  // namespace climate
 }  // namespace esphome
