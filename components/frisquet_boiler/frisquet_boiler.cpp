@@ -89,8 +89,8 @@ void FrisquetBoiler::send_message() {
     for (uint8_t i = 4; i <= 12; i++)
       checksum -= this->message_[i];
 
-    this->message_[13] = (uint8_t)((checksum) >> 8);  // highbyte
-    this->message_[14] = (uint8_t)((checksum)&0xff);  // lowbyte
+    this->message_[13] = (uint8_t)((checksum) >> 8);    // highbyte
+    this->message_[14] = (uint8_t)((checksum) & 0xff);  // lowbyte
 
     for (uint8_t i = 1; i < 17; i++)
       this->serialize_byte(this->message_[i], i);
@@ -169,6 +169,7 @@ void FrisquetBoiler::log_last_message() {
   }
 
   ESP_LOGD(TAG, "last message frames: %s", buffer);
+  free(buffer);
 }
 
 }  // namespace frisquet_boiler
