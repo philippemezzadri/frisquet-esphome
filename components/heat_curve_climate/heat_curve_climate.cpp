@@ -77,6 +77,7 @@ void HeatCurveClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "    kp: %.2f", this->kp_);
   ESP_LOGCONFIG(TAG, "    ki: %.5f", this->ki_);
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
+  ESP_LOGCONFIG(TAG, "    maximum_output_: %.2f", this->maximum_output_ / 100.0);
   ESP_LOGCONFIG(TAG, "    minimum_output_: %.2f", this->minimum_output_ / 100.0);
   ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
   ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
@@ -124,12 +125,12 @@ void HeatCurveClimate::update() {
 
   // Boiler setpoint calculation according to water temperature and calibration factors
   output = floor(new_temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
-  output = clamp(output, 0.0f, 100.0f);
+  output = clamp(output, 0.0f, this->maximum_output_);
 
   // shutdown boiler if outdoor temperature is too high or output below minimum value
   if (this->outdoor_temp_ > this->target_temperature - 2 || output < this->minimum_output_) {
     ESP_LOGD(TAG, "Forcing minimum output or IDLE");
-    output = this->heat_required_ ? this->minimum_output_ : 0;
+    output = this->heat_required_ ? this->heat_required_output_ : 0;
   }
 
   // Recalculate actual water temperature (knowing that the output is an integer)
