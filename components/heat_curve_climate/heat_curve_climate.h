@@ -25,6 +25,8 @@ class HeatCurveClimate : public Climate, public Component {
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
   void set_minimum_output(float min) { minimum_output_ = 100 * min; }
+  void set_maximum_output(float max) { maximum_output_ = 100 * max; }
+  void set_heat_required_output(float heatreq_out) { heat_required_output_ = 100 * heatreq_out; }
   void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
   void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
   void reset_integral_term() { integral_term_ = 0; }
@@ -73,7 +75,9 @@ class HeatCurveClimate : public Climate, public Component {
   float output_calibration_factor_ = 1;
   float output_calibration_offset_ = 0;
   float minimum_output_ = 10;
+  float maximum_output_ = 100;
   bool heat_required_ = false;
+  float heat_required_output_ = minimum_output_;
 
   uint32_t last_time_ = 0;
 

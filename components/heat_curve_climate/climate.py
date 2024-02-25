@@ -25,6 +25,8 @@ CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_OUTPUT_FACTOR = "output_factor"
 CONF_OUTPUT_OFFSET = "output_offset"
 CONF_MINIMUM_OUTPUT = "minimum_output"
+CONF_MAXIMUM_OUTPUT = "maximum_output"
+CONF_HEATREQ_OUTPUT = "heat_required_output"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
@@ -47,6 +49,8 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
                     cv.Optional(CONF_MINIMUM_OUTPUT, default=0.1): cv.float_,
+                    cv.Optional(CONF_MAXIMUM_OUTPUT, default=1.0): cv.float_,
+                    cv.Optional(CONF_HEATREQ_OUTPUT, default=0.1): cv.float_
                 }
             ),
         }
@@ -78,6 +82,8 @@ async def to_code(config):
     cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
     cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
     cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
+    cg.add(var.set_maximum_output(output_params[CONF_MAXIMUM_OUTPUT]))
+    cg.add(var.set_heat_required_output(output_params[CONF_HEATREQ_OUTPUT]))
 
     cg.add(var.set_default_target_temperature(config[CONF_DEFAULT_TARGET_TEMPERATURE]))
 
