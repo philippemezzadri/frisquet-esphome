@@ -129,8 +129,14 @@ void HeatCurveClimate::update() {
 
   // shutdown boiler if outdoor temperature is too high or output below minimum value
   if (this->outdoor_temp_ > this->target_temperature - 2 || output < this->minimum_output_) {
-    ESP_LOGD(TAG, "Forcing minimum output or IDLE");
-    output = this->heat_required_ ? this->heat_required_output_ : 0;
+    ESP_LOGD(TAG, "Forcing IDLE");
+    output = 0;
+  }
+
+  // if heat required by switch, minimum output is heat_required_output_
+  if (this->heat_required_ && output < this->heat_required_output_) {
+    ESP_LOGD(TAG, "Forcing heat required minimum output");
+    output = this->heat_required_output_;
   }
 
   // Recalculate actual water temperature (knowing that the output is an integer)

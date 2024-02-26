@@ -2,5 +2,3 @@
 api:
   reboot_timeout: ${reboot_timeout}
   # password: !secret api_password
-  encryption:
-    key: !secret esphome_encryption_key

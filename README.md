@@ -139,6 +139,8 @@ Configuration variables:
   - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
   - **minimum_output** (_Optional_, float): Output value below which output value is set to zero. Defaults to 0.1.
+  - **maximum_output** (_Optional_, float): Output value above which output value won't go (cap). Defaults to 1.
+  - **heat_required_output** (_Optional_, float): Minimum output value to be considered when the _Heat Required_ switch is on.  Defaults to 0.1.
   - **output_factor** (_Optional_, float): Calibration factor of the output. Defaults to 1.
   - **output_offset** (_Optional_, float): Calibration offset of the output. Defaults to 0.
 - All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
@@ -229,7 +231,7 @@ Configuration variables:
 
 - **name** (**Required**, string): The name of the switch.
 
-When the switch is on, the boiler will run at the  minimum power defined by the `minimum_output`parameter.
+When the switch is on, the boiler will run at the  minimum power defined by the `heat_required_output` parameter.
 
 ## `heat_curve_climate` Sensor
 
