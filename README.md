@@ -109,6 +109,7 @@ climate:
     name: "Chaudière Frisquet"
     sensor: current_temperature
     outdoor_sensor: outdoor_temperature
+    default_target_temperature: 19
     output: boiler_cmd
     visual:
       min_temperature: 7
@@ -177,7 +178,7 @@ The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water return te
 The actual value sent to the Output component is: `RESULT`= `SETPOINT` / 100
 
 `output_factor` and `output_offset` are defined in the Climate `output_parameters`.
-The following values seem to work well on Frisquet Hydromotix and Hydroconfort boilers:
+The following values seem to work well on Frisquet Hydromotrix and Hydroconfort boilers:
 
 ```yaml
 output_parameters:
