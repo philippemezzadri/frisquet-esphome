@@ -49,6 +49,8 @@ class HeatCurveClimate : public Climate, public Component {
   float get_offset() { return offset_; }
   float get_kp() { return kp_; }
   float get_ki() { return ki_; }
+  float output_to_temperature(float output);
+  float temperature_to_output(float temp);
 
   void set_default_target_temperature(float default_target_temperature) {
     default_target_temperature_ = default_target_temperature;

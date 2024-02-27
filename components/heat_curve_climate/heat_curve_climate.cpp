@@ -79,6 +79,7 @@ void HeatCurveClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
   ESP_LOGCONFIG(TAG, "    maximum_output_: %.2f", this->maximum_output_ / 100.0);
   ESP_LOGCONFIG(TAG, "    minimum_output_: %.2f", this->minimum_output_ / 100.0);
+  ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_ / 100.0);
   ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
   ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
   this->dump_traits_(TAG);
@@ -95,7 +96,7 @@ void HeatCurveClimate::update() {
   float output;
 
   if (std::isnan(this->outdoor_temp_)) {
-    ESP_LOGD(TAG, "Outdoor temperature not available, skipping calculation.");
+    ESP_LOGW(TAG, "Outdoor temperature not available, skipping calculation.");
     return;
   }
 
@@ -124,7 +125,7 @@ void HeatCurveClimate::update() {
   ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
 
   // Boiler setpoint calculation according to water temperature and calibration factors
-  output = floor(new_temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
+  output = this->temperature_to_output(new_temp);
   output = clamp(output, 0.0f, this->maximum_output_);
 
   // shutdown boiler if outdoor temperature is too high or output below minimum value
@@ -140,7 +141,8 @@ void HeatCurveClimate::update() {
   }
 
   // Recalculate actual water temperature (knowing that the output is an integer)
-  new_temp = (output - this->output_calibration_offset_) / this->output_calibration_factor_;
+  new_temp = this->output_to_temperature(output);
+
   ESP_LOGD(TAG, "Calculated output: %.0f%%", output);
   ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
   this->water_temp_ = new_temp;
@@ -211,10 +213,10 @@ void HeatCurveClimate::calculate_integral_term_() {
   float new_integral = error_ * dt_ * ki_;
 
   // Preventing integral wind up
-  if (this->output_value_ == 0 && new_integral < 0) {
+  if (this->output_value_ <= (this->minimum_output_ / 100) && new_integral < 0) {
     return;
   }
-  if (this->output_value_ >= 1 && new_integral > 0) {
+  if (this->output_value_ >= (this->maximum_output_ / 100) && new_integral > 0) {
     return;
   }
 
@@ -223,6 +225,14 @@ void HeatCurveClimate::calculate_integral_term_() {
   }
 
   ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
+}
+
+float HeatCurveClimate::output_to_temperature(float output) {
+  return (output - this->output_calibration_offset_) / this->output_calibration_factor_;
+}
+
+float HeatCurveClimate::temperature_to_output(float temp) {
+  return floor(temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
 }
 
 }  // namespace heat_curve
