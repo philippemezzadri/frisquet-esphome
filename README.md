@@ -16,7 +16,7 @@ The parameters `heat_factor` and `offset` of the `heat_curve_climate`component h
 
 Whilst `slope` provides the same functionnality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and substract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
 
-The same changes are applicable to the component [actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) and component sensors keyword.
+The same changes are applicable to the component [actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) and component [sensors](<#heat_curve_climate-sensor>).
 
 ## References
 
@@ -222,7 +222,7 @@ To get the Climate component working, two temperature sensors are required. They
 sensor:
   - platform: homeassistant
     id: current_temperature
-    entity_id: sensor.aqara_salon_temperature
+    entity_id: sensor.living_room_temperature
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
@@ -412,8 +412,8 @@ Those lines in the YAML file will expose three [services](https://www.home-assis
 ```yaml
 service: esphome.myFrisquetBoiler_set_control_parameters
 data:
-  slope: 1.65
-  shift: 21.5
+  slope: 1.2
+  shift: 3
   kp: 0
 ```
 
