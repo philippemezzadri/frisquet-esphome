@@ -42,7 +42,7 @@ The ESPHome replaces the original Eco Radio System HF receiver and is conneted t
 
 **Micro-fit 4 pin out:**
 
-<img src="doc/connector_4pin1.png" alt="Micro-fit 4 pinout drawing" width="80"/>
+![Micro-fit 4 pinout drawing](doc/connector_4pin1_80px.png)
 
 Defined viewing direction for the connector pin out:
 
@@ -62,26 +62,18 @@ They can be installed using the [External Components](https://esphome.io/compone
 
 ### Local
 
-The complete `components` folder must be copied into your `esphome` configuration folder.
-
-Your YAML configuration file must show at minimum the following code:
+The complete `components` folder must be copied into your `esphome` configuration folder and the YAML configuration file must show the following lines:
 
 ```yaml
-esphome:
-  name: myFrisquetBoiler
-
 external_components:
   - source: components
 ```
 
 ### Git
 
-With this method, you don't have to copy the files onto your system. Instead, the configuration file must show at minimum the following code:
+With this method, you don't have to copy the files onto your system. Instead, the configuration file will show the following lines:
 
 ```yaml
-esphome:
-  name: myFrisquetBoiler
-
 external_components:
   - source: github://philippemezzadri/frisquet-esphome
 ```
@@ -123,7 +115,7 @@ See [here](https://github.com/etimou/frisquet-arduino) for more details.
 In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide
 smooth control and does not anticipate weather evolution.
 
-It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outside temperature.
+It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outdoor temperature.
 
 ```yaml
 climate:
@@ -157,9 +149,9 @@ Configuration variables:
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - **rounded** (_Optional_, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
-- **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heat-curve-definition>)).
+- **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heating-curve-definition>)).
   - **slope** (_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
-  - **shift** (_Optional_, float): The shift term (offset) of the heating curve.  Defaults to 0.
+  - **shift** (_Optional_, float): The parallel shift term of the heating curve. Defaults to 0.
   - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
   - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
@@ -174,14 +166,14 @@ Configuration variables:
 
 The boiler water temperature is calculated from the outdoor temperature:
 
-`WATERTEMP` = `slope` * `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
+`WATERTEMP` = `slope` \* `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
 
 where :
 
 - `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `ERROR` is the calculated error (target - current)
-- `INTEGRAL_TERM` is the cumulative sum of `ki` * `ERROR` * `dt`
+- `INTEGRAL_TERM` is the cumulative sum of `ki` \* `ERROR` \* `dt`
 - `slope`, `shift`, `kp` and `ki` are defined in the Climate `control_parameters`.
 - `dt` is the time difference in seconds between two calculations.
 
@@ -243,7 +235,7 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 
 On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode. This can be undesirable as heat may be required by radiators in other rooms of the house.
 
-To address this issue, the Heating Curve Climate platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely. 
+To address this issue, the Heating Curve Climate platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely.
 
 This ensures that heat is still being supplied to the radiators and helps maintain a comfortable temperature throughout the house.
 
@@ -405,7 +397,7 @@ api:
         - climate.heat_curve.reset_integral_term: boiler_climate
 ```
 
-Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines (provided that the ESP name is `myFrisquetBoiler`):
+Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines (provided that the ESP device name is `myFrisquetBoiler`):
 
 ### Set climate control parameters
 
