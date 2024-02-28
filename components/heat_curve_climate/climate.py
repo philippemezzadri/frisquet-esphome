@@ -74,14 +74,13 @@ async def to_code(config):
     sens = await cg.get_variable(config[CONF_SENSOR])
     cg.add(var.set_sensor(sens))
 
-    outdoor = await cg.get_variable(config[CONF_OUTDOOR_SENSOR])
+    outdoor = await cg.get_variable()
     cg.add(var.set_outdoor_sensor(outdoor))
 
     out = await cg.get_variable(config[CONF_OUTPUT])
     cg.add(var.set_output(out))
 
-    rounded = await cg.get_variable(config[CONF_ROUNDED_OUPUT])
-    cg.add(var.set_rounded(rounded))
+    cg.add(var.set_rounded(config[CONF_ROUNDED_OUPUT]))
 
     params = config[CONF_CONTROL_PARAMETERS]
     cg.add(var.set_slope(params[CONF_SLOPE]))
