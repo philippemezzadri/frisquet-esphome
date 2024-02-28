@@ -5,15 +5,15 @@ input_number:
     name: Boiler Slope
     min: 0
     max: 3
-    initial: 1.65
+    initial: 1.4
     step: 0.01
     mode: box
   boiler_shift:
-    name: Boiler Shifts
+    name: Boiler Shift
     min: 0
     max: 30
-    initial: 21.5
-    step: 0.1
+    initial: 7
+    step: 0.5
     mode: box
   boiler_kp:
     name: Boiler Kp
