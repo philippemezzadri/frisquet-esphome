@@ -1,6 +1,6 @@
 substitutions:
   device: boiler
-  name: "Chaudière Frisquet"
+  name: "Frisquet Boiler"
   reboot_timeout: 14d
   update_interval: 60s
   ota_password: "86d8d705bb585eaf7a68c592a025884c"
@@ -40,7 +40,7 @@ dallas:
 sensor:
   - platform: homeassistant
     id: current_temperature
-    entity_id: sensor.aqara_salon_temperature
+    entity_id: sensor.living_room_temperature
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
@@ -56,40 +56,40 @@ sensor:
 
   - platform: dallas
     address: 0xA2032131AB675C28
-    name: "Départ chaudière"
+    name: "Boiler flow temperature"
 
   - platform: dallas
     address: 0xAB03213190136128
-    name: "Retour chaudière"
+    name: "Boiler return temperature"
 
   - platform: heat_curve_climate
-    name: "Consigne chaudière"
+    name: "Boiler temperature setpoint"
     unit_of_measurement: "°C"
     type: WATERTEMP
 
   - platform: heat_curve_climate
-    name: "Réglage chaudière"
+    name: "Boiler setting"
     unit_of_measurement: "%"
     icon: mdi:gauge
     type: SETPOINT
 
   - platform: heat_curve_climate
-    name: "Erreur régulation"
+    name: "Controller error"
     unit_of_measurement: "K"
     type: ERROR
 
   - platform: heat_curve_climate
-    name: "Delta température extérieure"
+    name: "Outdoor Temperature Difference"
     unit_of_measurement: "K"
     type: DELTA
 
   - platform: heat_curve_climate
-    name: "Terme intégral"
+    name: "Integral term"
     unit_of_measurement: "K"
     type: INTEGRAL
 
   - platform: heat_curve_climate
-    name: "Terme proportionnel"
+    name: "Proportionnal term"
     unit_of_measurement: "K"
     type: PROPORTIONAL
 
