@@ -72,16 +72,18 @@ ClimateTraits HeatingCurveClimate::traits() {
 void HeatingCurveClimate::dump_config() {
   LOG_CLIMATE("", "Heating Curve Climate", this);
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
-  ESP_LOGCONFIG(TAG, "    slope: %.2f", this->slope_);
-  ESP_LOGCONFIG(TAG, "    shift: %.2f", this->shift_);
-  ESP_LOGCONFIG(TAG, "    kp: %.2f", this->kp_);
-  ESP_LOGCONFIG(TAG, "    ki: %.5f", this->ki_);
+  ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_, this->ki_);
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
-  ESP_LOGCONFIG(TAG, "    maximum_output_: %.2f", this->maximum_output_ / 100.0);
-  ESP_LOGCONFIG(TAG, "    minimum_output_: %.2f", this->minimum_output_ / 100.0);
-  ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_ / 100.0);
-  ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
-  ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
+  ESP_LOGCONFIG(TAG, "    maximum_output: %.2f, minimum_output: %.2f", this->maximum_output_, this->minimum_output_);
+  ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_);
+  ESP_LOGCONFIG(TAG, "    output_factor: %.2f,  output_offset: %.2f", this->output_calibration_factor_, this->output_calibration_offset_);
+
+  if (this->rounded_) {
+    ESP_LOGCONFIG(TAG, "  Rounding enabled.");
+  } else {
+    ESP_LOGCONFIG(TAG, "  Rounding disabled.");
+  }
+
   this->dump_traits_(TAG);
 }
 
@@ -116,13 +118,10 @@ void HeatingCurveClimate::update() {
 
     this->calculate_proportional_term_();
     this->calculate_integral_term_();
-
     new_temp += this->proportional_term_ + this->integral_term_;
+    ESP_LOGD(TAG, "Calculated temperature after PI controller: %.1f°C", new_temp);
   }
 
-  ESP_LOGD(TAG, "Calculated temperature: %.1f°C", new_temp);
-
-  // Boiler setpoint calculation according to water temperature and calibration factors
   output = this->temperature_to_output(new_temp);
   output = clamp(output, 0.0f, this->maximum_output_);
 
@@ -138,17 +137,16 @@ void HeatingCurveClimate::update() {
     output = this->heat_required_output_;
   }
 
-  // Recalculate actual water temperature (knowing that the output is an integer)
-  new_temp = this->output_to_temperature(output);
+  ESP_LOGD(TAG, "Output: %.1f%%", output * 100);
 
-  ESP_LOGD(TAG, "Calculated output: %.0f%%", output);
-  ESP_LOGD(TAG, "Corrected temperature: %.1f°C", new_temp);
+  // Recalculate actual water temperature to take into accound rounding
+  new_temp = this->output_to_temperature(output);
   this->water_temp_ = new_temp;
 
   if (this->mode == CLIMATE_MODE_OFF) {
     this->write_output_(0.0);
   } else {
-    this->write_output_(output / 100);
+    this->write_output_(output);
   }
 
   if (this->do_publish_)
@@ -163,15 +161,15 @@ void HeatingCurveClimate::write_output_(float value) {
   ClimateAction new_action;
   if (value > 0) {
     new_action = CLIMATE_ACTION_HEATING;
-    ESP_LOGD(TAG, "Climate action is HEATING");
+    ESP_LOGI(TAG, "Climate action is HEATING");
   } else if (this->mode == CLIMATE_MODE_OFF) {
     new_action = CLIMATE_ACTION_OFF;
     this->water_temp_ = 20;
-    ESP_LOGD(TAG, "Climate mode is OFF");
+    ESP_LOGI(TAG, "Climate mode is OFF");
   } else {
     new_action = CLIMATE_ACTION_IDLE;
     this->water_temp_ = 20;
-    ESP_LOGD(TAG, "Climate action is IDLE");
+    ESP_LOGI(TAG, "Climate action is IDLE");
   }
 
   ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp_);
@@ -211,26 +209,31 @@ void HeatingCurveClimate::calculate_integral_term_() {
   float new_integral = error_ * dt_ * ki_;
 
   // Preventing integral wind up
-  if (this->output_value_ <= (this->minimum_output_ / 100) && new_integral < 0) {
+  if (this->output_value_ <= (this->minimum_output_ / 100.0) && new_integral < 0) {
     return;
   }
-  if (this->output_value_ >= (this->maximum_output_ / 100) && new_integral > 0) {
+  if (this->output_value_ >= (this->maximum_output_ / 100.0) && new_integral > 0) {
     return;
   }
 
   if (!in_deadband()) {
     integral_term_ += new_integral;
   }
-
   ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
 }
 
 float HeatingCurveClimate::output_to_temperature(float output) {
-  return (output - this->output_calibration_offset_) / this->output_calibration_factor_;
+  return (100 * output - this->output_calibration_offset_) / this->output_calibration_factor_;
 }
 
 float HeatingCurveClimate::temperature_to_output(float temp) {
-  return floor(temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
+  float output;
+  output = temp * this->output_calibration_factor_ + this->output_calibration_offset_;
+
+  if (this->rounded_) {
+    return floor(output + 0.5) / 100.0;
+  }
+  return output / 100.0;
 }
 
 }  // namespace heat_curve

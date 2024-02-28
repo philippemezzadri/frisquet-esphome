@@ -134,6 +134,7 @@ climate:
     outdoor_sensor: outdoor_temperature
     default_target_temperature: 19
     output: boiler_cmd
+    rounded: true
     visual:
       min_temperature: 7
       max_temperature: 28
@@ -155,8 +156,9 @@ Configuration variables:
 - **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
+- **rounded** (_Optional_, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
 - **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heat-curve-definition>)).
-  - **slope** (*_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
+  - **slope** (_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
   - **shift** (_Optional_, float): The shift term (offset) of the heating curve.  Defaults to 0.
   - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
   - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.

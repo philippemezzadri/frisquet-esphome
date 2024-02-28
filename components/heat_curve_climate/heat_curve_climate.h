@@ -19,14 +19,15 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
   void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
   void set_heat_required(bool value);
+  void set_rounded(bool rounded) { rounded_ = rounded }
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_slope(float slope) { slope_ = slope; }
   void set_shift(float shift) { shift_ = shift; }
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
-  void set_minimum_output(float min) { minimum_output_ = 100 * min; }
-  void set_maximum_output(float max) { maximum_output_ = 100 * max; }
-  void set_heat_required_output(float heatreq_out) { heat_required_output_ = 100 * heatreq_out; }
+  void set_minimum_output(float min) { minimum_output_ = min; }
+  void set_maximum_output(float max) { maximum_output_ = max; }
+  void set_heat_required_output(float heatreq_out) { heat_required_output_ = heatreq_out; }
   void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
   void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
   void reset_integral_term() { integral_term_ = 0; }
@@ -76,10 +77,11 @@ class HeatingCurveClimate : public Climate, public Component {
   float outdoor_temp_ = NAN;
   float output_calibration_factor_ = 1;
   float output_calibration_offset_ = 0;
-  float minimum_output_ = 10;
-  float maximum_output_ = 100;
+  float minimum_output_ = 0.1;
+  float maximum_output_ = 1;
+  float heat_required_output_ = 0.1;
   bool heat_required_ = false;
-  float heat_required_output_ = minimum_output_;
+  bool rounded_ = false;
 
   uint32_t last_time_ = 0;
 

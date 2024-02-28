@@ -33,6 +33,7 @@ CONF_OUTPUT_OFFSET = "output_offset"
 CONF_MINIMUM_OUTPUT = "minimum_output"
 CONF_MAXIMUM_OUTPUT = "maximum_output"
 CONF_HEATREQ_OUTPUT = "heat_required_output"
+CONF_ROUNDED_OUPUT = "rounded"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
@@ -42,6 +43,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_OUTPUT): cv.use_id(output.FloatOutput),
+            cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
             cv.Optional(CONF_CONTROL_PARAMETERS): cv.Schema(
                 {
                     cv.Optional(CONF_SLOPE, default=1.5): cv.float_,
@@ -77,6 +79,9 @@ async def to_code(config):
 
     out = await cg.get_variable(config[CONF_OUTPUT])
     cg.add(var.set_output(out))
+
+    rounded = await cg.get_variable(config[CONF_ROUNDED_OUPUT])
+    cg.add(var.set_rounded(rounded))
 
     params = config[CONF_CONTROL_PARAMETERS]
     cg.add(var.set_slope(params[CONF_SLOPE]))
