@@ -9,6 +9,15 @@ The **Frisquet Boiler** component appears as a [Float Output](<https://esphome.i
 
 It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid).
 
+## Breaking change in version 1.5
+
+Some parameters names and behaviour have changed in version`1.5`.
+The parameters `heat_factor` and `offset` of the `heat_curve_climate`component have been replaced by `slope` and `shift`. Those terms are more commonly used by boiler manifacturers.
+
+Whilst `slope` provides the same functionnality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and substract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
+
+The same changes are applicable to the component [actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) and component sensors keyword.
+
 ## References
 
 This work is strongly inspired from:
@@ -111,7 +120,7 @@ See [here](https://github.com/etimou/frisquet-arduino) for more details.
 
 ## Heating Curve Climate
 
-In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could do the trick but it does not provide
+In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide
 smooth control and does not anticipate weather evolution.
 
 It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outside temperature.
@@ -147,8 +156,8 @@ Configuration variables:
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heat-curve-definition>)).
-  - **slope** (**Required**, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
-  - **shift** (**Required**, float): The shift term (offset) of the heating curve.  Defaults to 0.
+  - **slope** (*_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
+  - **shift** (_Optional_, float): The shift term (offset) of the heating curve.  Defaults to 0.
   - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
   - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
@@ -159,9 +168,9 @@ Configuration variables:
   - **output_offset** (_Optional_, float): Calibration offset of the output. Defaults to 0.
 - All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
 
-### Heat curve definition
+### Heating curve definition
 
-The boiler water temperature is calculated from the outside temperature:
+The boiler water temperature is calculated from the outdoor temperature:
 
 `WATERTEMP` = `slope` * `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
 
@@ -172,6 +181,7 @@ where :
 - `ERROR` is the calculated error (target - current)
 - `INTEGRAL_TERM` is the cumulative sum of `ki` * `ERROR` * `dt`
 - `slope`, `shift`, `kp` and `ki` are defined in the Climate `control_parameters`.
+- `dt` is the time difference in seconds between two calculations.
 
 `slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
@@ -269,8 +279,8 @@ Configuration variables:
   - `ERROR` - The calculated error (target - process_variable)
   - `PROPORTIONAL` - The proportional term of the controller (if `kp` is not 0).
   - `INTEGRAL` - The integral term of the controller (if `ki` is not 0).
-  - `HEATFACTOR`- The current value of `heat_factor`
-  - `OFFSET`- The current value of `offset`
+  - `SLOPE`- The current value of `slope`
+  - `SHIFT`- The current value of `shift`
   - `KP`- The current value of `kp`
   - `KI`- The current value of `ki`
 
@@ -285,8 +295,8 @@ on_...:
   then:
     - climate.heat_curve.set_control_parameters:
         id: boiler_climate
-        slope: 1.65
-        shift: 21.5
+        slope: 1.45
+        shift: 3
         kp: 0
         ki: 0
 ```

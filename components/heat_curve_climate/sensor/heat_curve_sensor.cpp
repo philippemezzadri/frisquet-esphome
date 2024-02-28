@@ -37,10 +37,10 @@ void HeatCurveClimateSensor::update_from_parent_() {
     case PID_SENSOR_TYPE_INTEGRAL:
       value = this->parent_->get_integral_term();
       break;
-    case PID_SENSOR_TYPE_HEATFACTOR:
+    case PID_SENSOR_TYPE_SLOPE:
       value = this->parent_->get_slope();
       break;
-    case PID_SENSOR_TYPE_OFFSET:
+    case PID_SENSOR_TYPE_SHIFT:
       value = this->parent_->get_shift();
       break;
     case PID_SENSOR_TYPE_KP:
