@@ -19,7 +19,7 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
   void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
   void set_heat_required(bool value);
-  void set_rounded(bool rounded) { rounded_ = rounded }
+  void set_rounded(bool rounded) { rounded_ = rounded; }
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_slope(float slope) { slope_ = slope; }
   void set_shift(float shift) { shift_ = shift; }
