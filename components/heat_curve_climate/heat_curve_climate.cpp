@@ -5,7 +5,7 @@
 namespace esphome {
 namespace climate {
 namespace heat_curve {
-static const char *const TAG = "heat_curve.climate";
+static const char *const TAG = "heating_curve.climate";
 
 static const float THRESHOLD_HIGH = 0.15;
 static const float THRESHOLD_LOW = -0.15;
@@ -70,7 +70,7 @@ ClimateTraits HeatingCurveClimate::traits() {
 }
 
 void HeatingCurveClimate::dump_config() {
-  LOG_CLIMATE("", "Heat Curve Climate", this);
+  LOG_CLIMATE("", "Heating Curve Climate", this);
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
   ESP_LOGCONFIG(TAG, "    slope: %.2f", this->slope_);
   ESP_LOGCONFIG(TAG, "    shift: %.2f", this->shift_);

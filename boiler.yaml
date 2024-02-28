@@ -12,7 +12,7 @@ preferences:
   flash_write_interval: 1h
 
 external_components:
-  - source: components
+  - source: github://philippemezzadri/frisquet-esphome
   
 esp32:
   board: esp32dev

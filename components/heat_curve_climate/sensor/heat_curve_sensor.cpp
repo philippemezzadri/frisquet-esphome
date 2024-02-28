@@ -7,7 +7,7 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
-static const char *const TAG = "heat_curve.sensor";
+static const char *const TAG = "heating_curve.sensor";
 
 void HeatCurveClimateSensor::setup() {
   this->parent_->add_temperature_computed_callback([this]() { this->update_from_parent_(); });
