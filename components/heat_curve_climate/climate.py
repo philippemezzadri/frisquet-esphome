@@ -74,7 +74,7 @@ async def to_code(config):
     sens = await cg.get_variable(config[CONF_SENSOR])
     cg.add(var.set_sensor(sens))
 
-    outdoor = await cg.get_variable()
+    outdoor = await cg.get_variable(config[CONF_OUTDOOR_SENSOR])
     cg.add(var.set_outdoor_sensor(outdoor))
 
     out = await cg.get_variable(config[CONF_OUTPUT])
