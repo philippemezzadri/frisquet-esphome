@@ -10,12 +10,12 @@ namespace heat_curve {
 
 class HeatCurveClimateSwitch : public switch_::Switch, public Component {
  public:
-  void set_parent(HeatCurveClimate *parent) { parent_ = parent; }
+  void set_parent(HeatingCurveClimate *parent) { parent_ = parent; }
   void dump_config() override;
 
  protected:
   void write_state(bool state) override;
-  HeatCurveClimate *parent_;
+  HeatingCurveClimate *parent_;
 };
 
 }  // namespace heat_curve

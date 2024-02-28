@@ -10,7 +10,7 @@ static const char *const TAG = "heat_curve.climate";
 static const float THRESHOLD_HIGH = 0.15;
 static const float THRESHOLD_LOW = -0.15;
 
-void HeatCurveClimate::setup() {
+void HeatingCurveClimate::setup() {
   // on state callback for current temperature
   if (this->current_sensor_) {
     this->current_sensor_->add_on_state_callback([this](float state) {
@@ -46,7 +46,7 @@ void HeatCurveClimate::setup() {
 }
 
 /// Override control to change settings of the climate device
-void HeatCurveClimate::control(const ClimateCall &call) {
+void HeatingCurveClimate::control(const ClimateCall &call) {
   if (call.get_mode().has_value())
     this->mode = *call.get_mode();
   if (call.get_target_temperature().has_value())
@@ -60,7 +60,7 @@ void HeatCurveClimate::control(const ClimateCall &call) {
 }
 
 /// Return the traits of this controller
-ClimateTraits HeatCurveClimate::traits() {
+ClimateTraits HeatingCurveClimate::traits() {
   auto traits = ClimateTraits();
   traits.set_supports_current_temperature(this->current_sensor_ != nullptr);
   traits.set_supported_modes({CLIMATE_MODE_OFF, CLIMATE_MODE_HEAT});
@@ -69,11 +69,11 @@ ClimateTraits HeatCurveClimate::traits() {
   return traits;
 }
 
-void HeatCurveClimate::dump_config() {
+void HeatingCurveClimate::dump_config() {
   LOG_CLIMATE("", "Heat Curve Climate", this);
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
-  ESP_LOGCONFIG(TAG, "    heat_factor: %.2f", this->heat_factor_);
-  ESP_LOGCONFIG(TAG, "    offset: %.2f", this->offset_);
+  ESP_LOGCONFIG(TAG, "    slope: %.2f", this->slope_);
+  ESP_LOGCONFIG(TAG, "    shift: %.2f", this->shift_);
   ESP_LOGCONFIG(TAG, "    kp: %.2f", this->kp_);
   ESP_LOGCONFIG(TAG, "    ki: %.5f", this->ki_);
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
@@ -85,13 +85,13 @@ void HeatCurveClimate::dump_config() {
   this->dump_traits_(TAG);
 }
 
-void HeatCurveClimate::set_heat_required(bool value) {
+void HeatingCurveClimate::set_heat_required(bool value) {
   this->heat_required_ = value;
   ESP_LOGD(TAG, "Heat required: %s", value ? "true" : "false");
   this->update();
 }
 
-void HeatCurveClimate::update() {
+void HeatingCurveClimate::update() {
   float new_temp;
   float output;
 
@@ -102,11 +102,9 @@ void HeatCurveClimate::update() {
 
   dt_ = calculate_relative_time_();
 
-  // New return water temperature according to heat curve
+  // New return water temperature according to heating curve
   this->delta_ = this->target_temperature - this->outdoor_temp_;
-
-  // water_temp(delta_t) := heat_factor * delta_t + offset
-  new_temp = this->delta_ * this->heat_factor_ + this->offset_;
+  new_temp = this->delta_ * this->slope_ + this->target_temperature + this->shift_;
 
   ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
   ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", new_temp);
@@ -157,7 +155,7 @@ void HeatCurveClimate::update() {
     this->publish_state();
 }
 
-void HeatCurveClimate::write_output_(float value) {
+void HeatingCurveClimate::write_output_(float value) {
   this->output_value_ = value;
   this->output_->set_level(clamp(value, 0.0f, 1.0f));
 
@@ -185,7 +183,7 @@ void HeatCurveClimate::write_output_(float value) {
   this->water_temp_computed_callback_.call();
 }
 
-float HeatCurveClimate::calculate_relative_time_() {
+float HeatingCurveClimate::calculate_relative_time_() {
   uint32_t now = millis();
   uint32_t dt = now - this->last_time_;
   if (last_time_ == 0) {
@@ -196,19 +194,19 @@ float HeatCurveClimate::calculate_relative_time_() {
   return dt / 1000.0f;
 }
 
-bool HeatCurveClimate::in_deadband() {
+bool HeatingCurveClimate::in_deadband() {
   // return (fabs(error) < deadband_threshold);
   float err = -error_;
   return ((err > 0 && err < THRESHOLD_HIGH) || (err < 0 && err > THRESHOLD_LOW));
 }
 
-void HeatCurveClimate::calculate_proportional_term_() {
+void HeatingCurveClimate::calculate_proportional_term_() {
   // p(t) := K_p * e(t)
   proportional_term_ = kp_ * error_;
   ESP_LOGD(TAG, "Proportionnal term: %.2f", this->proportional_term_);
 }
 
-void HeatCurveClimate::calculate_integral_term_() {
+void HeatingCurveClimate::calculate_integral_term_() {
   // i(t) := K_i * \int_{0}^{t} e(t) dt
   float new_integral = error_ * dt_ * ki_;
 
@@ -227,11 +225,11 @@ void HeatCurveClimate::calculate_integral_term_() {
   ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
 }
 
-float HeatCurveClimate::output_to_temperature(float output) {
+float HeatingCurveClimate::output_to_temperature(float output) {
   return (output - this->output_calibration_offset_) / this->output_calibration_factor_;
 }
 
-float HeatCurveClimate::temperature_to_output(float temp) {
+float HeatingCurveClimate::temperature_to_output(float temp) {
   return floor(temp * this->output_calibration_factor_ + this->output_calibration_offset_ + 0.5);
 }
 

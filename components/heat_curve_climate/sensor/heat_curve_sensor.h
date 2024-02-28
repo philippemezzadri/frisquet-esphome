@@ -24,13 +24,13 @@ enum HeatCurveClimateSensorType {
 class HeatCurveClimateSensor : public sensor::Sensor, public Component {
  public:
   void setup() override;
-  void set_parent(HeatCurveClimate *parent) { parent_ = parent; }
+  void set_parent(HeatingCurveClimate *parent) { parent_ = parent; }
   void set_type(HeatCurveClimateSensorType type) { type_ = type; }
   void dump_config() override;
 
  protected:
   void update_from_parent_();
-  HeatCurveClimate *parent_;
+  HeatingCurveClimate *parent_;
   HeatCurveClimateSensorType type_;
 };
 

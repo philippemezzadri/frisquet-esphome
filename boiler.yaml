@@ -106,8 +106,8 @@ climate:
       max_temperature: 25
       temperature_step: 0.1
     control_parameters:
-      heat_factor: 1.65
-      offset: 21.5
+      slope: 1.45
+      shift: 7
       kp: 5
       ki: 0.0005
     output_parameters:
@@ -146,15 +146,15 @@ api:
             
     - service: set_control_parameters
       variables:
-        heat_factor: float
-        offset: float
+        slope: float
+        shift: float
         kp: float
         ki: float
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
-            heat_factor: !lambda 'return heat_factor;'
-            offset: !lambda 'return offset;'
+            slope: !lambda 'return slope;'
+            shift: !lambda 'return shift;'
             kp: !lambda 'return kp;'
             ki: !lambda 'return ki;'
         - climate.heat_curve.reset_integral_term: boiler_climate

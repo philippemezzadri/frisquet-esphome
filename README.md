@@ -44,12 +44,14 @@ _Note_: It has been observed that the current supplied by the boiler main board 
 
 ## Installation
 
-**Note:** for the previous installation method (deprecated) based on custom components, see [here](doc/custom_components.md).
-
 The Frisquet ESPHome component concists in two components:
 
 - `heat_curve_climate` a custom [Climate](<https://esphome.io/components/climate/index.html>) component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint.
 - `friquet_boiler` a custom [Float Output](<https://esphome.io/components/output/>) component that will actually communicate with the Frisquet boiler.
+
+They can be installed using the [External Components](https://esphome.io/components/external_components) feature of ESPHome.
+
+### Local
 
 The complete `components` folder must be copied into your `esphome` configuration folder.
 
@@ -61,6 +63,18 @@ esphome:
 
 external_components:
   - source: components
+```
+
+### Git
+
+With this method, you don't have to copy the files onto your system. Instead, the configuration file must show at minimum the following code:
+
+```yaml
+esphome:
+  name: myFrisquetBoiler
+
+external_components:
+  - source: github://philippemezzadri/frisquet-esphome
 ```
 
 ## Frisquet Boiler Output
@@ -116,10 +130,10 @@ climate:
       max_temperature: 28
       temperature_step: 0.1
     control_parameters:
-      heat_factor: 1.65
-      offset: 21.5
-      kp: 0
-      ki: 0.05
+      slope: 1.45
+      shift: 3
+      kp: 5
+      ki: 0.0001
     output_parameters:
       minimum_output: 0.1
       output_factor: 1.9
@@ -132,9 +146,9 @@ Configuration variables:
 - **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
-- **control_parameters** (**Required**): Control parameters of the controller (see [below](<#heat-curve-definition>)).
-  - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
-  - **offset** (**Required**, float): The offset term of the heating curve.
+- **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heat-curve-definition>)).
+  - **slope** (**Required**, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
+  - **shift** (**Required**, float): The shift term (offset) of the heating curve.  Defaults to 0.
   - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
   - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
@@ -149,7 +163,7 @@ Configuration variables:
 
 The boiler water temperature is calculated from the outside temperature:
 
-`WATERTEMP` = `DELTA` * `heat_factor` + `offset` + `ERROR` * `kp` + `INTEGRAL_TERM`
+`WATERTEMP` = `slope` * `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
 
 where :
 
@@ -157,17 +171,17 @@ where :
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `ERROR` is the calculated error (target - current)
 - `INTEGRAL_TERM` is the cumulative sum of `ki` * `ERROR` * `dt`
-- `heat_factor`, `offset`, `kp` and `ki` are defined in the Climate `control_parameters`.
+- `slope`, `shift`, `kp` and `ki` are defined in the Climate `control_parameters`.
 
-`heat_factor`and `offset`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
+`slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
 
 If you don't know how to start, you can use the following values:
 
 ```yaml
 control_parameters:
-  heat_factor: 1.5
-  offset: 23
+  slope: 1.5
+  offset: 3
   kp: 2
 ```
 
@@ -180,7 +194,7 @@ The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water return te
 The actual value sent to the Output component is: `RESULT`= `SETPOINT` / 100
 
 `output_factor` and `output_offset` are defined in the Climate `output_parameters`.
-The following values seem to work well on Frisquet Hydromotrix and Hydroconfort boilers:
+The following values seem to work well on **Frisquet Hydromotrix** and **Hydroconfort** boilers:
 
 ```yaml
 output_parameters:
@@ -231,7 +245,7 @@ Configuration variables:
 
 - **name** (**Required**, string): The name of the switch.
 
-When the switch is on, the boiler will run at the  minimum power defined by the `heat_required_output` parameter.
+When the switch is on, the boiler will run at the minimum power defined by the `heat_required_output` parameter.
 
 ## `heat_curve_climate` Sensor
 
@@ -271,9 +285,10 @@ on_...:
   then:
     - climate.heat_curve.set_control_parameters:
         id: boiler_climate
-        heat_factor: 1.65
-        offset: 21.5
+        slope: 1.65
+        shift: 21.5
         kp: 0
+        ki: 0
 ```
 
 Configuration variables:
@@ -365,14 +380,14 @@ api:
 
     - service: set_control_parameters
       variables:
-        heat_factor: float
-        offset: float
+        slope: float
+        shift: float
         kp: float
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
-            heat_factor: !lambda 'return heat_factor;'
-            offset: !lambda 'return offset;'
+            slope: !lambda 'return slope;'
+            shift: !lambda 'return shift;'
             kp: !lambda 'return kp;'
             ki: !lambda 'return ki;'
         - climate.heat_curve.reset_integral_term: boiler_climate
@@ -385,8 +400,8 @@ Those lines in the YAML file will expose three [services](https://www.home-assis
 ```yaml
 service: esphome.myFrisquetBoiler_set_control_parameters
 data:
-  heat_factor: 1.65
-  offset: 21.5
+  slope: 1.65
+  shift: 21.5
   kp: 0
 ```
 
@@ -407,3 +422,16 @@ data:
 ```
 
 Those are only examples. Any kind of service can be defined to suit your needs.
+
+## Configuration files
+
+The [boiler.yaml](boiler.yaml) file includes all options described above. To use it, you need to customize all sensors IDs and names. If you are using Dallas temperature sensor, you need to enter their proper addresses. If not, you have to delete the corresponding lines.
+
+The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
+
+One way of using it is to copy it in a folder called `packages`of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
+
+```yaml
+homeassistant:
+  packages: !include_dir_named packages
+```

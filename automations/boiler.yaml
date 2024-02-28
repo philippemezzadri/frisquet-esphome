@@ -1,28 +1,28 @@
 # File to be located in home assistant 'config/packages' folder.
 #
 input_number:
-  chaudiere_heat_factor:
-    name: Boiler Heating Factor
+  boiler_slope:
+    name: Boiler Slope
     min: 0
     max: 3
     initial: 1.65
     step: 0.01
     mode: box
-  chaudiere_offset:
-    name: Boiler Offset
+  boiler_shift:
+    name: Boiler Shifts
     min: 0
     max: 30
     initial: 21.5
     step: 0.1
     mode: box
-  chaudiere_kp:
+  boiler_kp:
     name: Boiler Kp
     min: 0
     max: 10
     step: 0.5
     initial: 5
     mode: box
-  chaudiere_ki:
+  boiler_ki:
     name: Boiler Ki
     min: 0
     max: 1
@@ -31,7 +31,7 @@ input_number:
     mode: box
 
 automation:
-  - alias: Chaudière Hors Gel
+  - alias: Boiler Anti-freeze Mode
     description: ""
     trigger:
       - platform: numeric_state
@@ -44,7 +44,7 @@ automation:
         data:
           mode: 4
     mode: single
-  - alias: Chaudière Eco
+  - alias: Boiler Eco Mode
     description: ""
     trigger:
       - platform: numeric_state
@@ -58,7 +58,7 @@ automation:
         data:
           mode: 0
     mode: single
-  - alias: Chaudière Confort
+  - alias: Boiler Confort Mode
     description: ""
     trigger:
       - platform: numeric_state
@@ -72,26 +72,26 @@ automation:
           mode: 3
     mode: single
 
-  - alias: Chaudière Set Control Parameters
+  - alias: Boiler Set Control Parameters
     description: Set control parameters
     trigger:
       - platform: state
         entity_id:
-          - input_number.chaudiere_heat_factor
-          - input_number.chaudiere_offset
-          - input_number.chaudiere_kp
-          - input_number.chaudiere_ki
+          - input_number.boiler_slope
+          - input_number.boiler_shift
+          - input_number.boiler_kp
+          - input_number.boiler_ki
     condition: []
     action:
       - service: esphome.boiler_set_control_parameters
         data:
-          heat_factor: "{{ states('input_number.chaudiere_heat_factor') | float}}"
-          offset: "{{ states('input_number.chaudiere_offset') | float }}"
-          kp: "{{ states('input_number.chaudiere_kp') | float }}"
-          ki: "{{ states('input_number.chaudiere_ki') | float }}"
+          slope: "{{ states('input_number.boiler_slope') | float}}"
+          shift: "{{ states('input_number.boiler_shift') | float }}"
+          kp: "{{ states('input_number.boiler_kp') | float }}"
+          ki: "{{ states('input_number.boiler_ki') | float }}"
     mode: restart
 
-  - alias: Chaudière Restore Control Parameters
+  - alias: Boiler Restore Control Parameters
     description: Restore control parameters after a reboot
     trigger:
       - platform: numeric_state
@@ -101,17 +101,11 @@ automation:
     action:
       - service: esphome.boiler_set_control_parameters
         data:
-          heat_factor: "{{ states('input_number.chaudiere_heat_factor') | float}}"
-          offset: "{{ states('input_number.chaudiere_offset') | float }}"
-          kp: "{{ states('input_number.chaudiere_kp') | float }}"
-          ki: "{{ states('input_number.chaudiere_ki') | float }}"
+          slope: "{{ states('input_number.boiler_slope') | float}}"
+          shift: "{{ states('input_number.boiler_shift') | float }}"
+          kp: "{{ states('input_number.boiler_kp') | float }}"
+          ki: "{{ states('input_number.boiler_ki') | float }}"
       - delay: "00:01:30"
     mode: single
     max_exceeded: silent
 
-template:
-  - binary_sensor:
-      - name: Etat Chaudière
-        device_class: "power"
-        state: >
-          {{ (states('sensor.debit_gazpar_tic') | float(0)) > 0 }}
