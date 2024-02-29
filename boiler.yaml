@@ -101,7 +101,7 @@ climate:
     outdoor_sensor: outdoor_temperature
     default_target_temperature: 19
     output: boiler_cmd
-    rounded: true
+    
     visual:
       min_temperature: 7
       max_temperature: 25
@@ -112,6 +112,7 @@ climate:
       kp: 5
       ki: 0.0005
     output_parameters:
+      rounded: true
       minimum_output: 0.1
       output_factor: 1.9
       output_offset: -41

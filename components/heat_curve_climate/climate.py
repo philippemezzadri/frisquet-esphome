@@ -43,7 +43,6 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_OUTPUT): cv.use_id(output.FloatOutput),
-            cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
             cv.Optional(CONF_CONTROL_PARAMETERS): cv.Schema(
                 {
                     cv.Optional(CONF_SLOPE, default=1.5): cv.float_,
@@ -54,6 +53,7 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
                 {
+                    cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
                     cv.Optional(CONF_MINIMUM_OUTPUT, default=0.1): cv.float_,
@@ -80,8 +80,6 @@ async def to_code(config):
     out = await cg.get_variable(config[CONF_OUTPUT])
     cg.add(var.set_output(out))
 
-    cg.add(var.set_rounded(config[CONF_ROUNDED_OUPUT]))
-
     params = config[CONF_CONTROL_PARAMETERS]
     cg.add(var.set_slope(params[CONF_SLOPE]))
     cg.add(var.set_shift(params[CONF_SHIFT]))
@@ -89,6 +87,7 @@ async def to_code(config):
     cg.add(var.set_ki(params[CONF_KI]))
 
     output_params = config[CONF_OUTPUT_PARAMETERS]
+    cg.add(var.set_rounded(output_params[CONF_ROUNDED_OUPUT]))
     cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
     cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
     cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
