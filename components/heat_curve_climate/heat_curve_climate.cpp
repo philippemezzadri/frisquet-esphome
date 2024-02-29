@@ -74,15 +74,16 @@ void HeatingCurveClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
   ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_, this->ki_);
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
+
+  if (this->rounded_) {
+    ESP_LOGCONFIG(TAG, "    Rounding enabled.");
+  } else {
+    ESP_LOGCONFIG(TAG, "    Rounding disabled.");
+  }
+
   ESP_LOGCONFIG(TAG, "    maximum_output: %.2f, minimum_output: %.2f", this->maximum_output_, this->minimum_output_);
   ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_);
   ESP_LOGCONFIG(TAG, "    output_factor: %.2f,  output_offset: %.2f", this->output_calibration_factor_, this->output_calibration_offset_);
-
-  if (this->rounded_) {
-    ESP_LOGCONFIG(TAG, "  Rounding enabled.");
-  } else {
-    ESP_LOGCONFIG(TAG, "  Rounding disabled.");
-  }
 
   this->dump_traits_(TAG);
 }
