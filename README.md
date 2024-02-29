@@ -11,8 +11,7 @@ It is recommended to combine it with the **Heating Curve Climate** component als
 
 ## Breaking change in version 1.5
 
-Some parameters names and behaviour have changed in version`1.5`.
-The parameters `heat_factor` and `offset` of the `heat_curve_climate`component have been replaced by `slope` and `shift`. Those terms are more commonly used by boiler manifacturers.
+Some parameters names and behaviour have changed in version 1.5. The parameters `heat_factor` and `offset` of the `heat_curve_climate`component have been replaced by `slope` and `shift`. Those terms are more commonly used by boiler manufacturers.
 
 Whilst `slope` provides the same functionnality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and substract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
 
@@ -151,20 +150,20 @@ Configuration variables:
 - **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heating-curve-definition>)).
   - **slope** (_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
   - **shift** (_Optional_, float): The parallel shift term of the heating curve. Defaults to 0.
-  - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. Defaults to 0.
-  - **ki** (_Optional_, float): The factor for the integral term of the heating curve. Defaults to 0.
+  - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to 0.
+  - **ki** (_Optional_, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to 0.
 - **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
   - **rounded** (_Optional_, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
   - **minimum_output** (_Optional_, float): Output value below which output value is set to zero. Defaults to 0.1.
   - **maximum_output** (_Optional_, float): Output value above which output value won't go (cap). Defaults to 1.
-  - **heat_required_output** (_Optional_, float): Minimum output value to be considered when the _Heat Required_ switch is on.  Defaults to 0.1.
+  - **heat_required_output** (_Optional_, float): Minimum output value to be considered when the [_Heat Required_ switch](#heat_curve_climate-switch) is on.  Defaults to 0.1.
   - **output_factor** (_Optional_, float): Calibration factor of the output. Defaults to 1.
   - **output_offset** (_Optional_, float): Calibration offset of the output. Defaults to 0.
 - All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
 
 ### Heating curve definition
 
-The boiler water temperature is calculated from the outdoor temperature:
+The boiler flow temperature is calculated from the outdoor temperature:
 
 `WATERTEMP` = `slope` \* `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
 
@@ -177,21 +176,31 @@ where :
 - `slope`, `shift`, `kp` and `ki` are defined in the Climate `control_parameters`.
 - `dt` is the time difference in seconds between two calculations.
 
+![heat curve example graph](doc/heat_curve_graph.webp)
+
+In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
+
 `slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
+
+The following standard values for the `slope` may be used as a guide:
+
+- 0.3 to 0.5 in a well insulated house with underfloor heating
+- 1.0 to 1.2 for a well insulated house with radiators
+- 1.4 to 1.6 for an older, detached building with radiators
 
 If you don't know how to start, you can use the following values:
 
 ```yaml
 control_parameters:
   slope: 1.5
-  offset: 3
+  shift: 0
   kp: 2
 ```
 
 ### Setpoint calibration factors
 
-The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water return temperature (`WATERTEMP`) are linked by the following formula:
+The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water flow temperature (`WATERTEMP`) are linked by the following formula:
 
 `SETPOINT` = `WATERTEMP` * `output_factor` + `output_offset`
 
@@ -202,6 +211,7 @@ The following values seem to work well on **Frisquet Hydromotrix** and **Hydroco
 
 ```yaml
 output_parameters:
+  rounded: true
   output_factor: 1.9
   output_offset: -41
 ```
@@ -433,7 +443,9 @@ The [boiler.yaml](boiler.yaml) file includes all options described above. To use
 
 The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
 
-One way of using it is to copy it in a folder called `packages`of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
+The proposed automations allows you to modifiy the `output_parameters` from the Home Assistant UI and to restore them anytime the ESP reboots.
+
+One way of using this file is to copy it in a folder named `packages`of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
 
 ```yaml
 homeassistant:
