@@ -5,11 +5,17 @@ from esphome.components import climate, sensor, output
 from esphome.const import CONF_ID, CONF_SENSOR
 
 heat_curve_ns = cg.esphome_ns.namespace("heat_curve")
-HeatCurveClimate = heat_curve_ns.class_("HeatCurveClimate", climate.Climate, cg.Component)
+HeatingCurveClimate = heat_curve_ns.class_(
+    "HeatingCurveClimate", climate.Climate, cg.Component
+)
 
 # Actions
-SetControlParametersAction = heat_curve_ns.class_("SetControlParametersAction", automation.Action)
-PIDResetIntegralTermAction = heat_curve_ns.class_("PIDResetIntegralTermAction", automation.Action)
+SetControlParametersAction = heat_curve_ns.class_(
+    "SetControlParametersAction", automation.Action
+)
+PIDResetIntegralTermAction = heat_curve_ns.class_(
+    "PIDResetIntegralTermAction", automation.Action
+)
 
 CONF_DEFAULT_TARGET_TEMPERATURE = "default_target_temperature"
 
@@ -17,8 +23,8 @@ CONF_CONTROL_PARAMETERS = "control_parameters"
 CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_KP = "kp"
 CONF_KI = "ki"
-CONF_HEATFACTOR = "heat_factor"
-CONF_OFFSET = "offset"
+CONF_SLOPE = "slope"
+CONF_SHIFT = "shift"
 CONF_OUTPUT = "output"
 CONF_OUTDOOR_SENSOR = "outdoor_sensor"
 CONF_OUTPUT_PARAMETERS = "output_parameters"
@@ -27,30 +33,32 @@ CONF_OUTPUT_OFFSET = "output_offset"
 CONF_MINIMUM_OUTPUT = "minimum_output"
 CONF_MAXIMUM_OUTPUT = "maximum_output"
 CONF_HEATREQ_OUTPUT = "heat_required_output"
+CONF_ROUNDED_OUPUT = "rounded"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
         {
-            cv.GenerateID(): cv.declare_id(HeatCurveClimate),
+            cv.GenerateID(): cv.declare_id(HeatingCurveClimate),
             cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_OUTPUT): cv.use_id(output.FloatOutput),
-            cv.Required(CONF_CONTROL_PARAMETERS): cv.Schema(
+            cv.Optional(CONF_CONTROL_PARAMETERS): cv.Schema(
                 {
-                    cv.Required(CONF_HEATFACTOR): cv.float_,
-                    cv.Required(CONF_OFFSET): cv.float_,
-                    cv.Optional(CONF_KP,  default=0): cv.float_,
-                    cv.Optional(CONF_KI,  default=0): cv.float_,
+                    cv.Optional(CONF_SLOPE, default=1.5): cv.float_,
+                    cv.Optional(CONF_SHIFT, default=0): cv.float_,
+                    cv.Optional(CONF_KP, default=0): cv.float_,
+                    cv.Optional(CONF_KI, default=0): cv.float_,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
                 {
+                    cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
                     cv.Optional(CONF_MINIMUM_OUTPUT, default=0.1): cv.float_,
                     cv.Optional(CONF_MAXIMUM_OUTPUT, default=1.0): cv.float_,
-                    cv.Optional(CONF_HEATREQ_OUTPUT, default=0.1): cv.float_
+                    cv.Optional(CONF_HEATREQ_OUTPUT, default=0.1): cv.float_,
                 }
             ),
         }
@@ -73,12 +81,13 @@ async def to_code(config):
     cg.add(var.set_output(out))
 
     params = config[CONF_CONTROL_PARAMETERS]
-    cg.add(var.set_heat_factor(params[CONF_HEATFACTOR]))
-    cg.add(var.set_offset(params[CONF_OFFSET]))
+    cg.add(var.set_slope(params[CONF_SLOPE]))
+    cg.add(var.set_shift(params[CONF_SHIFT]))
     cg.add(var.set_kp(params[CONF_KP]))
     cg.add(var.set_ki(params[CONF_KI]))
 
     output_params = config[CONF_OUTPUT_PARAMETERS]
+    cg.add(var.set_rounded(output_params[CONF_ROUNDED_OUPUT]))
     cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
     cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
     cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
@@ -93,9 +102,9 @@ async def to_code(config):
     SetControlParametersAction,
     automation.maybe_simple_id(
         {
-            cv.Required(CONF_ID): cv.use_id(HeatCurveClimate),
-            cv.Required(CONF_HEATFACTOR): cv.templatable(cv.float_),
-            cv.Required(CONF_OFFSET): cv.templatable(cv.float_),
+            cv.Required(CONF_ID): cv.use_id(HeatingCurveClimate),
+            cv.Required(CONF_SLOPE): cv.templatable(cv.float_),
+            cv.Required(CONF_SHIFT): cv.templatable(cv.float_),
             cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
             cv.Optional(CONF_KI, default=0.0): cv.templatable(cv.float_),
         }
@@ -111,20 +120,21 @@ async def set_control_parameters(config, action_id, template_arg, args):
     ki_template_ = await cg.templatable(config[CONF_KI], args, float)
     cg.add(var.set_ki(ki_template_))
 
-    hf_template_ = await cg.templatable(config[CONF_HEATFACTOR], args, float)
-    cg.add(var.set_heat_factor(hf_template_))
+    hf_template_ = await cg.templatable(config[CONF_SLOPE], args, float)
+    cg.add(var.set_slope(hf_template_))
 
-    offset_template_ = await cg.templatable(config[CONF_OFFSET], args, float)
-    cg.add(var.set_offset(offset_template_))
+    offset_template_ = await cg.templatable(config[CONF_SHIFT], args, float)
+    cg.add(var.set_shift(offset_template_))
 
     return var
+
 
 @automation.register_action(
     "climate.heat_curve.reset_integral_term",
     PIDResetIntegralTermAction,
     automation.maybe_simple_id(
         {
-            cv.Required(CONF_ID): cv.use_id(HeatCurveClimate),
+            cv.Required(CONF_ID): cv.use_id(HeatingCurveClimate),
         }
     ),
 )

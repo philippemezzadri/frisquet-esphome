@@ -12,21 +12,22 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
-class HeatCurveClimate : public Climate, public Component {
+class HeatingCurveClimate : public Climate, public Component {
  public:
   void update();
 
   void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
   void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
   void set_heat_required(bool value);
+  void set_rounded(bool rounded) { rounded_ = rounded; }
   void set_output(output::FloatOutput *output) { output_ = output; }
-  void set_heat_factor(float heatfactor) { heat_factor_ = heatfactor; }
-  void set_offset(float offset) { offset_ = offset; }
+  void set_slope(float slope) { slope_ = slope; }
+  void set_shift(float shift) { shift_ = shift; }
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
-  void set_minimum_output(float min) { minimum_output_ = 100 * min; }
-  void set_maximum_output(float max) { maximum_output_ = 100 * max; }
-  void set_heat_required_output(float heatreq_out) { heat_required_output_ = 100 * heatreq_out; }
+  void set_minimum_output(float min) { minimum_output_ = min; }
+  void set_maximum_output(float max) { maximum_output_ = max; }
+  void set_heat_required_output(float heatreq_out) { heat_required_output_ = heatreq_out; }
   void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
   void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
   void reset_integral_term() { integral_term_ = 0; }
@@ -45,8 +46,8 @@ class HeatCurveClimate : public Climate, public Component {
   float get_integral_term() const { return integral_term_; }
   float get_error() { return error_; }
   float get_delta() { return delta_; }
-  float get_heat_factor() { return heat_factor_; }
-  float get_offset() { return offset_; }
+  float get_slope() { return slope_; }
+  float get_shift() { return shift_; }
   float get_kp() { return kp_; }
   float get_ki() { return ki_; }
   float output_to_temperature(float output);
@@ -68,18 +69,19 @@ class HeatCurveClimate : public Climate, public Component {
   void calculate_integral_term_();
 
   // Parameters & inputs
-  float heat_factor_ = 1.7;
+  float slope_ = 1.5;
   float dt_;
   float kp_ = 0;
   float ki_ = 0;
-  float offset_ = 20;
+  float shift_ = 0;
   float outdoor_temp_ = NAN;
   float output_calibration_factor_ = 1;
   float output_calibration_offset_ = 0;
-  float minimum_output_ = 10;
-  float maximum_output_ = 100;
+  float minimum_output_ = 0.1;
+  float maximum_output_ = 1;
+  float heat_required_output_ = 0.1;
   bool heat_required_ = false;
-  float heat_required_output_ = minimum_output_;
+  bool rounded_ = false;
 
   uint32_t last_time_ = 0;
 
@@ -104,16 +106,16 @@ class HeatCurveClimate : public Climate, public Component {
 template <typename... Ts>
 class SetControlParametersAction : public Action<Ts...> {
  public:
-  SetControlParametersAction(HeatCurveClimate *parent) : parent_(parent) {}
+  SetControlParametersAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
   void play(Ts... x) {
-    auto heat_factor = this->heat_factor_.value(x...);
-    auto offset = this->offset_.value(x...);
+    auto slope = this->slope_.value(x...);
+    auto shift = this->shift_.value(x...);
     auto kp = this->kp_.value(x...);
     auto ki = this->ki_.value(x...);
 
-    this->parent_->set_heat_factor(heat_factor);
-    this->parent_->set_offset(offset);
+    this->parent_->set_slope(slope);
+    this->parent_->set_shift(shift);
     this->parent_->set_kp(kp);
     this->parent_->set_ki(ki);
     this->parent_->dump_config();
@@ -121,23 +123,23 @@ class SetControlParametersAction : public Action<Ts...> {
   }
 
  protected:
-  TEMPLATABLE_VALUE(float, heat_factor)
-  TEMPLATABLE_VALUE(float, offset)
+  TEMPLATABLE_VALUE(float, slope)
+  TEMPLATABLE_VALUE(float, shift)
   TEMPLATABLE_VALUE(float, kp)
   TEMPLATABLE_VALUE(float, ki)
 
-  HeatCurveClimate *parent_;
+  HeatingCurveClimate *parent_;
 };
 
 template <typename... Ts>
 class PIDResetIntegralTermAction : public Action<Ts...> {
  public:
-  PIDResetIntegralTermAction(HeatCurveClimate *parent) : parent_(parent) {}
+  PIDResetIntegralTermAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
   void play(Ts... x) { this->parent_->reset_integral_term(); }
 
  protected:
-  HeatCurveClimate *parent_;
+  HeatingCurveClimate *parent_;
 };
 
 }  // namespace heat_curve

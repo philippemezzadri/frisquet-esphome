@@ -15,8 +15,8 @@ enum HeatCurveClimateSensorType {
   PID_SENSOR_TYPE_DELTA,
   PID_SENSOR_TYPE_PROPORTIONAL,
   PID_SENSOR_TYPE_INTEGRAL,
-  PID_SENSOR_TYPE_HEATFACTOR,
-  PID_SENSOR_TYPE_OFFSET,
+  PID_SENSOR_TYPE_SLOPE,
+  PID_SENSOR_TYPE_SHIFT,
   PID_SENSOR_TYPE_KP,
   PID_SENSOR_TYPE_KI
 };
@@ -24,13 +24,13 @@ enum HeatCurveClimateSensorType {
 class HeatCurveClimateSensor : public sensor::Sensor, public Component {
  public:
   void setup() override;
-  void set_parent(HeatCurveClimate *parent) { parent_ = parent; }
+  void set_parent(HeatingCurveClimate *parent) { parent_ = parent; }
   void set_type(HeatCurveClimateSensorType type) { type_ = type; }
   void dump_config() override;
 
  protected:
   void update_from_parent_();
-  HeatCurveClimate *parent_;
+  HeatingCurveClimate *parent_;
   HeatCurveClimateSensorType type_;
 };
 

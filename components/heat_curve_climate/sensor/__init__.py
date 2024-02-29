@@ -6,9 +6,11 @@ from esphome.const import (
     ICON_GAUGE,
     CONF_TYPE,
 )
-from ..climate import heat_curve_ns, HeatCurveClimate
+from ..climate import heat_curve_ns, HeatingCurveClimate
 
-HeatCurveClimateSensor = heat_curve_ns.class_("HeatCurveClimateSensor", sensor.Sensor, cg.Component)
+HeatCurveClimateSensor = heat_curve_ns.class_(
+    "HeatCurveClimateSensor", sensor.Sensor, cg.Component
+)
 HeatCurveClimateSensorType = heat_curve_ns.enum("HeatCurveClimateSensorType")
 
 HEATCURVE_CLIMATE_SENSOR_TYPES = {
@@ -19,8 +21,8 @@ HEATCURVE_CLIMATE_SENSOR_TYPES = {
     "WATERTEMP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_WATERTEMP,
     "PROPORTIONAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_PROPORTIONAL,
     "INTEGRAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_INTEGRAL,
-    "HEATFACTOR": HeatCurveClimateSensorType.PID_SENSOR_TYPE_HEATFACTOR,
-    "OFFSET": HeatCurveClimateSensorType.PID_SENSOR_TYPE_OFFSET,
+    "SLOPE": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SLOPE,
+    "SHIFT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SHIFT,
     "KP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KP,
     "KI": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KI,
 }
@@ -35,7 +37,7 @@ CONFIG_SCHEMA = (
     )
     .extend(
         {
-            cv.GenerateID(CONF_CLIMATE_ID): cv.use_id(HeatCurveClimate),
+            cv.GenerateID(CONF_CLIMATE_ID): cv.use_id(HeatingCurveClimate),
             cv.Required(CONF_TYPE): cv.enum(HEATCURVE_CLIMATE_SENSOR_TYPES, upper=True),
         }
     )

@@ -7,7 +7,7 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
-static const char *const TAG = "heat_curve.sensor";
+static const char *const TAG = "heating_curve.sensor";
 
 void HeatCurveClimateSensor::setup() {
   this->parent_->add_temperature_computed_callback([this]() { this->update_from_parent_(); });
@@ -37,11 +37,11 @@ void HeatCurveClimateSensor::update_from_parent_() {
     case PID_SENSOR_TYPE_INTEGRAL:
       value = this->parent_->get_integral_term();
       break;
-    case PID_SENSOR_TYPE_HEATFACTOR:
-      value = this->parent_->get_heat_factor();
+    case PID_SENSOR_TYPE_SLOPE:
+      value = this->parent_->get_slope();
       break;
-    case PID_SENSOR_TYPE_OFFSET:
-      value = this->parent_->get_offset();
+    case PID_SENSOR_TYPE_SHIFT:
+      value = this->parent_->get_shift();
       break;
     case PID_SENSOR_TYPE_KP:
       value = this->parent_->get_kp();

@@ -1,6 +1,6 @@
 substitutions:
   device: boiler
-  name: "Chaudière Frisquet"
+  name: "Frisquet Boiler"
   reboot_timeout: 14d
   update_interval: 60s
   ota_password: "86d8d705bb585eaf7a68c592a025884c"
@@ -12,7 +12,7 @@ preferences:
   flash_write_interval: 1h
 
 external_components:
-  - source: components
+  - source: github://philippemezzadri/frisquet-esphome
   
 esp32:
   board: esp32dev
@@ -40,7 +40,7 @@ dallas:
 sensor:
   - platform: homeassistant
     id: current_temperature
-    entity_id: sensor.aqara_salon_temperature
+    entity_id: sensor.living_room_temperature
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
@@ -56,40 +56,40 @@ sensor:
 
   - platform: dallas
     address: 0xA2032131AB675C28
-    name: "Départ chaudière"
+    name: "Boiler flow temperature"
 
   - platform: dallas
     address: 0xAB03213190136128
-    name: "Retour chaudière"
+    name: "Boiler return temperature"
 
   - platform: heat_curve_climate
-    name: "Consigne chaudière"
+    name: "Boiler temperature setpoint"
     unit_of_measurement: "°C"
     type: WATERTEMP
 
   - platform: heat_curve_climate
-    name: "Réglage chaudière"
+    name: "Boiler setting"
     unit_of_measurement: "%"
     icon: mdi:gauge
     type: SETPOINT
 
   - platform: heat_curve_climate
-    name: "Erreur régulation"
+    name: "Controller error"
     unit_of_measurement: "K"
     type: ERROR
 
   - platform: heat_curve_climate
-    name: "Delta température extérieure"
+    name: "Outdoor Temperature Difference"
     unit_of_measurement: "K"
     type: DELTA
 
   - platform: heat_curve_climate
-    name: "Terme intégral"
+    name: "Integral term"
     unit_of_measurement: "K"
     type: INTEGRAL
 
   - platform: heat_curve_climate
-    name: "Terme proportionnel"
+    name: "Proportionnal term"
     unit_of_measurement: "K"
     type: PROPORTIONAL
 
@@ -101,16 +101,18 @@ climate:
     outdoor_sensor: outdoor_temperature
     default_target_temperature: 19
     output: boiler_cmd
+    
     visual:
       min_temperature: 7
       max_temperature: 25
       temperature_step: 0.1
     control_parameters:
-      heat_factor: 1.65
-      offset: 21.5
+      slope: 1.45
+      shift: 7
       kp: 5
       ki: 0.0005
     output_parameters:
+      rounded: true
       minimum_output: 0.1
       output_factor: 1.9
       output_offset: -41
@@ -146,15 +148,15 @@ api:
             
     - service: set_control_parameters
       variables:
-        heat_factor: float
-        offset: float
+        slope: float
+        shift: float
         kp: float
         ki: float
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
-            heat_factor: !lambda 'return heat_factor;'
-            offset: !lambda 'return offset;'
+            slope: !lambda 'return slope;'
+            shift: !lambda 'return shift;'
             kp: !lambda 'return kp;'
             ki: !lambda 'return ki;'
         - climate.heat_curve.reset_integral_term: boiler_climate
