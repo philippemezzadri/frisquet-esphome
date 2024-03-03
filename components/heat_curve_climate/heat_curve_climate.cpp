@@ -249,7 +249,7 @@ float HeatingCurveClimate::get_alternate_heat_curve() {
 
   outdoor_mean_temp = 0.7 * this->outdoor_weighted_temp_.value() + 0.3 * this->outdoor_temp_;
   delta = this->target_temperature - outdoor_mean_temp;
-  flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
+  flow_temp = this->target_temperature + this->shift_ + this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
   return flow_temp;
 }
 
