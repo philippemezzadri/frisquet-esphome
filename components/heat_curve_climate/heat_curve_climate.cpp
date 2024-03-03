@@ -247,7 +247,10 @@ float HeatingCurveClimate::get_alternate_heat_curve() {
   float delta;
   float flow_temp;
 
+  ESP_LOGD(TAG, "Outdoor weighted average: %.1f°C", this->outdoor_weighted_temp_.value());
   outdoor_mean_temp = 0.7 * this->outdoor_weighted_temp_.value() + 0.3 * this->outdoor_temp_;
+  ESP_LOGD(TAG, "Outdoor mean temp: %.1f°C", outdoor_mean_temp);
+
   delta = this->target_temperature - outdoor_mean_temp;
   flow_temp = this->target_temperature + this->shift_ + this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
   return flow_temp;
