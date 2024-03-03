@@ -6,6 +6,8 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
+static const char *const TAG = "heating_curve.climate";
+
 static const float WEIGHTED_AVERAGE_PERIOD = 10;
 static const float WEIGHTED_AVERAGE_ALPHA = 0.1;
 
