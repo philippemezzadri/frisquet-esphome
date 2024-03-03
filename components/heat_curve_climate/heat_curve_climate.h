@@ -55,7 +55,7 @@ class HeatingCurveClimate : public Climate,
   float get_ki() { return ki_; }
   float output_to_temperature(float output);
   float temperature_to_output(float temp);
-  float get_alternate_heat_curve();
+  float get_heat_curve_temp();
 
   void
   set_default_target_temperature(float default_target_temperature) {
