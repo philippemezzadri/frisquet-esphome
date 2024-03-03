@@ -29,6 +29,7 @@ void HeatingCurveClimate::setup() {
     this->outoor_sensor_->add_on_state_callback([this](float state) {
       this->do_publish_ = roundf(state * 100) != roundf(this->outdoor_temp_ * 100);
       this->outdoor_temp_ = state;
+      this->outdoor_weighted_temp_.new_value(state);
       this->update(); });
     this->outdoor_temp_ = this->outoor_sensor_->state;
   } else
@@ -97,6 +98,7 @@ void HeatingCurveClimate::set_heat_required(bool value) {
 void HeatingCurveClimate::update() {
   float new_temp;
   float output;
+  float alt_temp;
 
   if (std::isnan(this->outdoor_temp_)) {
     ESP_LOGW(TAG, "Outdoor temperature not available, skipping calculation.");
@@ -111,6 +113,9 @@ void HeatingCurveClimate::update() {
 
   ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
   ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", new_temp);
+
+  alt_temp = get_alternate_heat_curve();
+  ESP_LOGD(TAG, "Heating alternate curve temperature: %.1f°C", alt_temp);
 
   // Proportional and Integral correction to accelerate convergence to target
   if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature)) {
@@ -235,6 +240,17 @@ float HeatingCurveClimate::temperature_to_output(float temp) {
     return floor(output + 0.5) / 100.0;
   }
   return output / 100.0;
+}
+
+float HeatingCurveClimate::get_alternate_heat_curve() {
+  float outdoor_mean_temp;
+  float delta;
+  float flow_temp;
+
+  outdoor_mean_temp = 0.7 * this->outdoor_weighted_temp_.value() + 0.3 * this->outdoor_temp_;
+  delta = this->target_temperature - outdoor_mean_temp;
+  flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta ^ 2);
+  return flow_temp;
 }
 
 }  // namespace heat_curve

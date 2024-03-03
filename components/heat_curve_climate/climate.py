@@ -34,6 +34,7 @@ CONF_MINIMUM_OUTPUT = "minimum_output"
 CONF_MAXIMUM_OUTPUT = "maximum_output"
 CONF_HEATREQ_OUTPUT = "heat_required_output"
 CONF_ROUNDED_OUPUT = "rounded"
+CONF_ALTERNATE_CURVE = "alt_curve"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
@@ -49,6 +50,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_SHIFT, default=0): cv.float_,
                     cv.Optional(CONF_KP, default=0): cv.float_,
                     cv.Optional(CONF_KI, default=0): cv.float_,
+                    cv.Optional(CONF_ALTERNATE_CURVE, default=False): cv.boolean,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
@@ -85,6 +87,7 @@ async def to_code(config):
     cg.add(var.set_shift(params[CONF_SHIFT]))
     cg.add(var.set_kp(params[CONF_KP]))
     cg.add(var.set_ki(params[CONF_KI]))
+    cg.add(var.set_alt_curve(params[CONF_ALTERNATE_CURVE]))
 
     output_params = config[CONF_OUTPUT_PARAMETERS]
     cg.add(var.set_rounded(output_params[CONF_ROUNDED_OUPUT]))

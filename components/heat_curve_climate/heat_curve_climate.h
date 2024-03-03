@@ -7,12 +7,14 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
+#include "weighted_average.h"
 
 namespace esphome {
 namespace climate {
 namespace heat_curve {
 
-class HeatingCurveClimate : public Climate, public Component {
+class HeatingCurveClimate : public Climate,
+                            public Component {
  public:
   void update();
 
@@ -20,6 +22,7 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
   void set_heat_required(bool value);
   void set_rounded(bool rounded) { rounded_ = rounded; }
+  void set_alt_curve(bool alt) { alt_curve_ = alt; }
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_slope(float slope) { slope_ = slope; }
   void set_shift(float shift) { shift_ = shift; }
@@ -52,8 +55,10 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_ki() { return ki_; }
   float output_to_temperature(float output);
   float temperature_to_output(float temp);
+  float get_alternate_heat_curve();
 
-  void set_default_target_temperature(float default_target_temperature) {
+  void
+  set_default_target_temperature(float default_target_temperature) {
     default_target_temperature_ = default_target_temperature;
   }
 
@@ -82,6 +87,9 @@ class HeatingCurveClimate : public Climate, public Component {
   float heat_required_output_ = 0.1;
   bool heat_required_ = false;
   bool rounded_ = false;
+  bool alt_curve_ = false;
+
+  WeightedAverage outdoor_weighted_temp_;
 
   uint32_t last_time_ = 0;
 
