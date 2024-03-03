@@ -252,7 +252,7 @@ float HeatingCurveClimate::get_alternate_heat_curve() {
   ESP_LOGD(TAG, "Outdoor mean temp: %.1f°C", outdoor_mean_temp);
 
   delta = outdoor_mean_temp - this->target_temperature;
-  flow_temp = this->target_temperature - this->shift_ + this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
+  flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
   return flow_temp;
 }
 
