@@ -74,6 +74,13 @@ void HeatingCurveClimate::dump_config() {
   LOG_CLIMATE("", "Heating Curve Climate", this);
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
   ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_, this->ki_);
+
+  if (this->alt_curve_) {
+    ESP_LOGCONFIG(TAG, "    Using alternate heating curve.");
+  } else {
+    ESP_LOGCONFIG(TAG, "    Using standard heating curve.");
+  }
+
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
 
   if (this->rounded_) {
@@ -105,17 +112,9 @@ void HeatingCurveClimate::update() {
     return;
   }
 
-  dt_ = calculate_relative_time_();
+  this->dt_ = calculate_relative_time_();
 
-  // New return water temperature according to heating curve
-  this->delta_ = this->target_temperature - this->outdoor_temp_;
-  new_temp = this->delta_ * this->slope_ + this->target_temperature + this->shift_;
-
-  ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
-  ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", new_temp);
-
-  alt_temp = get_alternate_heat_curve();
-  ESP_LOGD(TAG, "Heating alternate curve temperature: %.1f°C", alt_temp);
+  new_temp = get_heat_curve_temp();
 
   // Proportional and Integral correction to accelerate convergence to target
   if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature)) {
@@ -125,6 +124,7 @@ void HeatingCurveClimate::update() {
     this->calculate_proportional_term_();
     this->calculate_integral_term_();
     new_temp += this->proportional_term_ + this->integral_term_;
+
     ESP_LOGD(TAG, "Calculated temperature after PI controller: %.1f°C", new_temp);
   }
 
@@ -212,7 +212,7 @@ void HeatingCurveClimate::calculate_proportional_term_() {
 
 void HeatingCurveClimate::calculate_integral_term_() {
   // i(t) := K_i * \int_{0}^{t} e(t) dt
-  float new_integral = error_ * dt_ * ki_;
+  float new_integral = this->error_ * this->dt_ * this->ki_;
 
   // Preventing integral wind up
   if (this->output_value_ <= (this->minimum_output_ / 100.0) && new_integral < 0) {
@@ -242,17 +242,26 @@ float HeatingCurveClimate::temperature_to_output(float temp) {
   return output / 100.0;
 }
 
-float HeatingCurveClimate::get_alternate_heat_curve() {
+float HeatingCurveClimate::get_heat_curve_temp() {
   float outdoor_mean_temp;
   float delta;
   float flow_temp;
 
-  ESP_LOGD(TAG, "Outdoor weighted average: %.1f°C", this->outdoor_weighted_temp_.value());
-  outdoor_mean_temp = 0.7 * this->outdoor_weighted_temp_.value() + 0.3 * this->outdoor_temp_;
-  ESP_LOGD(TAG, "Outdoor mean temp: %.1f°C", outdoor_mean_temp);
+  this->delta_ = this->target_temperature - this->outdoor_temp_;
+  ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
+  ESP_LOGD(TAG, "Outdoor weighted average temperature: %.1f°C", this->outdoor_weighted_temp_.value());
 
-  delta = outdoor_mean_temp - this->target_temperature;
-  flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
+  if (this->alt_curve_) {
+    ESP_LOGD(TAG, "Using alternate heating curve");
+    outdoor_mean_temp = 0.7 * this->outdoor_weighted_temp_.value() + 0.3 * this->outdoor_temp_;
+    ESP_LOGD(TAG, "Outdoor mean temp: %.1f°C", outdoor_mean_temp);
+    delta = outdoor_mean_temp - this->target_temperature;
+    flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
+  } else {
+    flow_temp = this->delta_ * this->slope_ + this->target_temperature + this->shift_;
+  }
+
+  ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", flow_temp);
   return flow_temp;
 }
 

@@ -8,13 +8,16 @@ namespace heat_curve {
 
 static const char *const TAG = "heating_curve.climate";
 
-static const float WEIGHTED_AVERAGE_PERIOD = 10;
+static const float WEIGHTED_AVERAGE_PERIOD = 2;
 static const float WEIGHTED_AVERAGE_ALPHA = 0.1;
 
 WeightedAverage::WeightedAverage()
     : update_every_(WEIGHTED_AVERAGE_PERIOD), update_at_(WEIGHTED_AVERAGE_PERIOD), alpha_(WEIGHTED_AVERAGE_ALPHA) {}
 
 float WeightedAverage::new_value(float value) {
+  ESP_LOGD(TAG, "WeightedAverage  update every:%i", this->update_every_);
+  ESP_LOGD(TAG, "WeightedAverage  update at:%i", this->update_at_);
+
   if (++this->update_at_ >= this->update_every_) {
     if (!std::isnan(value)) {
       if (this->first_value_) {
@@ -26,7 +29,7 @@ float WeightedAverage::new_value(float value) {
     }
 
     const float average = std::isnan(value) ? value : this->accumulator_;
-    ESP_LOGD(TAG, "WeightedAverage::new_value(%f) -> %f", value, average);
+    ESP_LOGD(TAG, "WeightedAverage new_value(%f) -> %f", value, average);
 
     this->update_at_ = 0;
     return average;
