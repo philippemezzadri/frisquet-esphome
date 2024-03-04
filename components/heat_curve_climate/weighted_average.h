@@ -15,8 +15,6 @@ class WeightedAverage {
  protected:
   bool first_value_{true};
   float accumulator_{NAN};
-  size_t update_every_;
-  size_t update_at_;
   float alpha_;
 };
 
