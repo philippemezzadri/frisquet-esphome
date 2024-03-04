@@ -7,7 +7,6 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
-#include "weighted_average.h"
 
 namespace esphome {
 namespace climate {
@@ -88,8 +87,6 @@ class HeatingCurveClimate : public Climate,
   bool heat_required_ = false;
   bool rounded_ = false;
   bool alt_curve_ = false;
-
-  WeightedAverage outdoor_weighted_temp_;
 
   uint32_t last_time_ = 0;
 
