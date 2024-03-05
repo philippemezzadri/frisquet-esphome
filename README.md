@@ -21,13 +21,13 @@ The same changes are applicable to the component [actions](<https://esphome.io/g
 
 This work is strongly inspired from:
 
-- (Décodage du signal Frisquet Eco Radio System)<https://antoinegrall.wordpress.com/decodage-frisquet-ers/> (French)
-- (Decoding the wireless heating control Vaillant CalorMatic 340f)<http://wiki.kainhofer.com/hardware/vaillantvrt340f>
-- (frisquet-arduino)<https://github.com/etimou/frisquet-arduino>
+- [Décodage du signal Frisquet Eco Radio System](<https://antoinegrall.wordpress.com/decodage-frisquet-ers/>) (French)
+- [Decoding the wireless heating control Vaillant CalorMatic 340f](<http://wiki.kainhofer.com/hardware/vaillantvrt340f>)
+- [frisquet-arduino](<https://github.com/etimou/frisquet-arduino>)
 
 and from the discussions held in this thread:
 
-- (Régulation d'une chaudière Frisquet ECO radio System)<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4> (French)
+- [Régulation d'une chaudière Frisquet ECO radio System](<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4>) (French)
 
 ## Wiring
 
