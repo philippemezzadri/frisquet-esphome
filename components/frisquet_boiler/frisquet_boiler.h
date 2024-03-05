@@ -5,11 +5,18 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 
+// HIGH and LOW are defined in esp32-hal-gpio.h
+
+#ifndef HIGH
+#define HIGH 0x1
+#endif
+
+#ifndef LOW
+#define LOW 0x0
+#endif
+
 namespace esphome {
 namespace frisquet_boiler {
-
-static const int HIGH{0x1};
-static const int LOW{0x0};
 
 static const int DELAY_CYCLE_CMD{240000};         // delay between 2 commands (4min)
 static const int DELAY_CYCLE_CMD_INIT{240000};    // delay for the 1st command after startup (4min)
