@@ -21,13 +21,13 @@ The same changes are applicable to the component [actions](<https://esphome.io/g
 
 This work is strongly inspired from:
 
-- <https://antoinegrall.wordpress.com/decodage-frisquet-ers/>
-- <http://wiki.kainhofer.com/hardware/vaillantvrt340f>
-- <https://github.com/etimou/frisquet-arduino>
+- (Décodage du signal Frisquet Eco Radio System)<https://antoinegrall.wordpress.com/decodage-frisquet-ers/> (French)
+- (Decoding the wireless heating control Vaillant CalorMatic 340f)<http://wiki.kainhofer.com/hardware/vaillantvrt340f>
+- (frisquet-arduino)<https://github.com/etimou/frisquet-arduino>
 
-and from the discussions made in this thread:
+and from the discussions held in this thread:
 
-- <https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4> (French)
+- (Régulation d'une chaudière Frisquet ECO radio System)<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4> (French)
 
 ## Wiring
 
@@ -45,10 +45,10 @@ The ESPHome replaces the original Eco Radio System HF receiver and is conneted t
 
 Defined viewing direction for the connector pin out:
 
-- Receptable - _rear view_
-- Header - _front view_
+- Receptable - *rear view*
+- Header - *front view*
 
-_Note_: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
+*Note*: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
 
 ## Installation
 
@@ -109,6 +109,8 @@ The output value received by the component is any rational value between 0 and 1
 your boiler to receive the messages from the ESP. This ID can be retrieved by connecting the radio receiver signal wire to an Arduino.
 See [here](https://github.com/etimou/frisquet-arduino) for more details.
 
+*Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output``value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
+
 ## Heating Curve Climate
 
 In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide
@@ -147,18 +149,18 @@ Configuration variables:
 - **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
-- **control_parameters** (_Optional_): Control parameters of the controller (see [below](<#heating-curve-definition>)).
-  - **slope** (_Optional_, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
-  - **shift** (_Optional_, float): The parallel shift term of the heating curve. Defaults to 0.
-  - **kp** (_Optional_, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to 0.
-  - **ki** (_Optional_, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to 0.
-- **output_parameters** (_Optional_): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
-  - **rounded** (_Optional_, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
-  - **minimum_output** (_Optional_, float): Output value below which output value is set to zero. Defaults to 0.1.
-  - **maximum_output** (_Optional_, float): Output value above which output value won't go (cap). Defaults to 1.
-  - **heat_required_output** (_Optional_, float): Minimum output value to be considered when the [_Heat Required_ switch](#heat_curve_climate-switch) is on.  Defaults to 0.1.
-  - **output_factor** (_Optional_, float): Calibration factor of the output. Defaults to 1.
-  - **output_offset** (_Optional_, float): Calibration offset of the output. Defaults to 0.
+- **control_parameters** (*Optional*): Control parameters of the controller (see [below](<#heating-curve-definition>)).
+  - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
+  - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to 0.
+  - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to 0.
+  - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to 0.
+- **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
+  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
+  - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to 0.1.
+  - **maximum_output** (*Optional*, float): Output value above which output value won't go (cap). Defaults to 1.
+  - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to 0.1.
+  - **output_factor** (*Optional*, float): Calibration factor of the output. Defaults to 1.
+  - **output_offset** (*Optional*, float): Calibration offset of the output. Defaults to 0.
 - All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
 
 ### Heating curve definition
@@ -236,10 +238,15 @@ sensor:
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
+      - exponential_moving_average:
+          alpha: 0.3
+          send_every: 1
       - heartbeat: 60s
 ```
 
 If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
+
+*Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
 ## `heat_curve_climate` Switch
 
@@ -310,8 +317,8 @@ Configuration variables:
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
 - **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
 - **offset** (**Required**, float): The offset term of the heating curve.
-- **kp** (_Optional_, float): The factor for the proportional term of the controller. Defaults to 0.
-- **ki** (_Optional_, float): The factor for the integral term of the controller. Defaults to 0.
+- **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to 0.
+- **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to 0.
 
 ## `climate.pid.reset_integral_term` Action
 

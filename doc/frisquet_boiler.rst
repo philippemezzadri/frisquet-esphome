@@ -80,10 +80,16 @@ See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
     This is an **output component** and will not be visible from the frontend. Output components are intermediary
     components that can be attached to for example climate components.
 
-    It is recommended to combine the **Frisquet Boiler Output** with the :doc:`/components/heat_curve_climate`. 
+    It is recommended to combine the **Frisquet Boiler Output** with the :doc:`Heating Curve Climate </components/heat_curve_climate>`. 
     This :doc:`/components/climate/index` will offer temperature control using an outdoor temperature sensor. 
     If needed, it is also possible to use any kind of Climate component, such as the :doc:`/components/climate/pid`.
 
+.. note::
+
+    The ``frisquet_boiler`` component will send commands to the boiler right after the update of the ``output``value and then 
+    every 4 minutes. The component must receive regularly updates from the Climate component. 
+    To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated 
+    during 15 minutes. In such case, the boiler will put itself in safe mode.
 
 ``boiler.set_mode`` Action
 --------------------------
