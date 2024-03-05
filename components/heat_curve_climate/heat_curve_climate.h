@@ -12,6 +12,10 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
+static const float THRESHOLD_HIGH{0.15};
+static const float THRESHOLD_LOW{-0.15};
+static const int OFF_MODE_TEMPERATURE{20};
+
 class HeatingCurveClimate : public Climate,
                             public Component {
  public:
@@ -73,22 +77,22 @@ class HeatingCurveClimate : public Climate,
   void calculate_integral_term_();
 
   // Parameters & inputs
-  float slope_ = 1.5;
-  float dt_;
-  float kp_ = 0;
-  float ki_ = 0;
-  float shift_ = 0;
-  float outdoor_temp_ = NAN;
-  float output_calibration_factor_ = 1;
-  float output_calibration_offset_ = 0;
-  float minimum_output_ = 0.1;
-  float maximum_output_ = 1;
-  float heat_required_output_ = 0.1;
-  bool heat_required_ = false;
-  bool rounded_ = false;
-  bool alt_curve_ = false;
+  float slope_{1.5};
+  float dt_{0};
+  float kp_{0};
+  float ki_{0};
+  float shift_{0};
+  float outdoor_temp_{NAN};
+  float output_calibration_factor_{1};
+  float output_calibration_offset_{0};
+  float minimum_output_{0.1};
+  float maximum_output_{1};
+  float heat_required_output_{0.1};
+  bool heat_required_{false};
+  bool rounded_{false};
+  bool alt_curve_{false};
 
-  uint32_t last_time_ = 0;
+  uint32_t last_time_{0};
 
   // Sensors
   sensor::Sensor *current_sensor_{nullptr};
@@ -100,12 +104,12 @@ class HeatingCurveClimate : public Climate,
   bool do_publish_ = false;
 
   // Results
-  float output_value_ = 0;
-  float water_temp_ = 20;
-  float delta_ = NAN;
-  float error_ = NAN;
-  float integral_term_ = 0;
-  float proportional_term_ = 0;
+  float output_value_{0};
+  float water_temp_{20};
+  float delta_{NAN};
+  float error_{NAN};
+  float integral_term_{0};
+  float proportional_term_{0};
 };
 
 template <typename... Ts>
