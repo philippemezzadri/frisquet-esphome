@@ -226,19 +226,14 @@ float HeatingCurveClimate::output_to_temperature(float output) {
 
 float HeatingCurveClimate::temperature_to_output(float temp) {
   float output = temp * this->output_calibration_factor_ + this->output_calibration_offset_;
-
-  if (this->rounded_) {
-    return floor(output + 0.5) / 100.0;
-  }
-  return output / 100.0;
+  return this->rounded_ ? floor(output + 0.5) / 100.0 : output / 100.0;
 }
 
 float HeatingCurveClimate::get_heat_curve_temp() {
-  float flow_temp;
-
   this->delta_ = this->target_temperature - this->outdoor_temp_;
   ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
 
+  float flow_temp;
   if (this->alt_curve_) {
     ESP_LOGD(TAG, "Using alternate heating curve");
     float delta = -this->delta_;
