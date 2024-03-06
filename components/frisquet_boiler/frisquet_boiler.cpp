@@ -46,7 +46,8 @@ void FrisquetBoiler::write_state(float state) {
 
 void FrisquetBoiler::loop() {
   long now = millis();
-  if ((now - this->last_cmd_ > this->delay_cycle_cmd_) && ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
+  if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
+      ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
     ESP_LOGD(TAG, "Sending messages");
     this->send_message();
     this->last_cmd_ = now;
@@ -89,8 +90,8 @@ void FrisquetBoiler::send_message() {
     for (uint8_t i = 4; i <= 12; i++)
       checksum -= this->message_[i];
 
-    this->message_[13] = (uint8_t)((checksum) >> 8);    // highbyte
-    this->message_[14] = (uint8_t)((checksum) & 0xff);  // lowbyte
+    this->message_[13] = (uint8_t) ((checksum) >> 8);    // highbyte
+    this->message_[14] = (uint8_t) ((checksum) & 0xff);  // lowbyte
 
     for (uint8_t i = 1; i < 17; i++)
       this->serialize_byte(this->message_[i], i);
@@ -158,7 +159,7 @@ void FrisquetBoiler::write_bit(bool bitValue) {
 
 void FrisquetBoiler::log_last_message() {
   char const *formatString = "%02X";
-  char *buffer = (char *)malloc(100 * sizeof(char));
+  char *buffer = (char *) malloc(100 * sizeof(char));
   char *endofBuffer = buffer;
   int valueCount = 16;
   int i;

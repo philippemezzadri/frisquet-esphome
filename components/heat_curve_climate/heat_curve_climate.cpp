@@ -11,12 +11,12 @@ void HeatingCurveClimate::setup() {
   // on state callback for current temperature
   if (this->current_sensor_) {
     this->current_sensor_->add_on_state_callback([this](float state) {
-      if (state != this->current_temperature)
-      {
+      if (state != this->current_temperature) {
         this->do_publish_ = roundf(state * 100) != roundf(this->current_temperature * 100);
         this->current_temperature = state;
-        this->update();        
-      } });
+        this->update();
+      }
+    });
     this->current_temperature = this->current_sensor_->state;
   } else
     this->current_temperature = NAN;
@@ -26,7 +26,8 @@ void HeatingCurveClimate::setup() {
     this->outoor_sensor_->add_on_state_callback([this](float state) {
       this->do_publish_ = roundf(state * 100) != roundf(this->outdoor_temp_ * 100);
       this->outdoor_temp_ = state;
-      this->update(); });
+      this->update();
+    });
     this->outdoor_temp_ = this->outoor_sensor_->state;
   } else
     this->outdoor_temp_ = 15.0;  // Default outdoor temp if there is no sensor
@@ -69,7 +70,8 @@ ClimateTraits HeatingCurveClimate::traits() {
 void HeatingCurveClimate::dump_config() {
   LOG_CLIMATE("", "Heating Curve Climate", this);
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
-  ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_, this->ki_);
+  ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_,
+                this->ki_);
 
   if (this->alt_curve_) {
     ESP_LOGCONFIG(TAG, "    Using alternate heating curve.");
@@ -87,7 +89,8 @@ void HeatingCurveClimate::dump_config() {
 
   ESP_LOGCONFIG(TAG, "    maximum_output: %.2f, minimum_output: %.2f", this->maximum_output_, this->minimum_output_);
   ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_);
-  ESP_LOGCONFIG(TAG, "    output_factor: %.2f,  output_offset: %.2f", this->output_calibration_factor_, this->output_calibration_offset_);
+  ESP_LOGCONFIG(TAG, "    output_factor: %.2f,  output_offset: %.2f", this->output_calibration_factor_,
+                this->output_calibration_offset_);
 
   this->dump_traits_(TAG);
 }
@@ -239,7 +242,8 @@ float HeatingCurveClimate::get_heat_curve_temp() {
   if (this->alt_curve_) {
     ESP_LOGD(TAG, "Using alternate heating curve");
     float delta = -this->delta_;
-    flow_temp = this->target_temperature + this->shift_ - this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
+    flow_temp = this->target_temperature + this->shift_ -
+                this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
   } else {
     flow_temp = this->delta_ * this->slope_ + this->target_temperature + this->shift_;
   }

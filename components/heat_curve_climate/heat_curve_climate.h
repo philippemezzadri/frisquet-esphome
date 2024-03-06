@@ -16,8 +16,7 @@ static const float THRESHOLD_HIGH{0.15};
 static const float THRESHOLD_LOW{-0.15};
 static const int OFF_MODE_TEMPERATURE{20};
 
-class HeatingCurveClimate : public Climate,
-                            public Component {
+class HeatingCurveClimate : public Climate, public Component {
  public:
   void update();
 
@@ -60,8 +59,7 @@ class HeatingCurveClimate : public Climate,
   float temperature_to_output(float temp);
   float get_heat_curve_temp();
 
-  void
-  set_default_target_temperature(float default_target_temperature) {
+  void set_default_target_temperature(float default_target_temperature) {
     default_target_temperature_ = default_target_temperature;
   }
 
@@ -112,8 +110,7 @@ class HeatingCurveClimate : public Climate,
   float proportional_term_{0};
 };
 
-template <typename... Ts>
-class SetControlParametersAction : public Action<Ts...> {
+template<typename... Ts> class SetControlParametersAction : public Action<Ts...> {
  public:
   SetControlParametersAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
@@ -140,8 +137,7 @@ class SetControlParametersAction : public Action<Ts...> {
   HeatingCurveClimate *parent_;
 };
 
-template <typename... Ts>
-class PIDResetIntegralTermAction : public Action<Ts...> {
+template<typename... Ts> class PIDResetIntegralTermAction : public Action<Ts...> {
  public:
   PIDResetIntegralTermAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
