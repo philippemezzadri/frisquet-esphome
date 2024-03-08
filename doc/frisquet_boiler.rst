@@ -5,6 +5,7 @@ Frisquet Boiler Output
 
 .. seo::
     :description: Instructions for installing and setting up a Frisquet boiler output.
+    :image: logo-friquet.svg
 
 This ``frisquet_boiler`` component allows communication between an ESPHome device and a `Frisquet <https://www.frisquet.com/en>`__ 
 heating boiler (equipped with Eco Radio System remote thermostat).
@@ -138,7 +139,7 @@ Configuration variables:
 See Also
 --------
 
-- `Décodage du signal Frisquet Eco Radio System <https://antoinegrall.wordpress.com/decodage-frisquet-ers/>`__
+- `Décodage du signal Frisquet Eco Radio System <https://antoinegrall.wordpress.com/decodage-frisquet-ers/>`__ (French)
 - `Decoding the wireless heating control Vaillant CalorMatic 340f <http://wiki.kainhofer.com/hardware/vaillantvrt340f>`__
 - :doc:`/components/output/index`
 - :doc:`/components/climate/index`

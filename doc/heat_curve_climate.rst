@@ -49,7 +49,7 @@ Configuration variables:
 - **control_parameters** (*Optional*): Control parameters of the controller.
 
   - **alt_curve** (*Optional*, boolean): Set to ``true`` to use an alternate heating curve. 
-    Default to ``false``.  
+    Defaults to ``false``.  
   - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. 
     Defaults to ``1.5``.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. 

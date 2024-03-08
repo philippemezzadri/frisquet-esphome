@@ -41,7 +41,7 @@ The ESPHome replaces the original Eco Radio System HF receiver and is conneted t
 
 **Micro-fit 4 pin out:**
 
-![Micro-fit 4 pinout drawing](doc/connector_4pin1_80px.png)
+![Micro-fit 4 pinout drawing](images/connector_4pin1_80px.png)
 
 Defined viewing direction for the connector pin out:
 
@@ -150,7 +150,7 @@ Configuration variables:
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - **control_parameters** (*Optional*): Control parameters of the controller (see [below](<#heating-curve-definition>)).
-  - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Default to `false`.
+  - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Defaults to `false`.
   - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to `1.5`.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to `0`.
   - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
@@ -176,7 +176,7 @@ where :
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `slope` and `shift` are defined in the Climate `control_parameters`.
 
-![heat curve example graph](doc/heat_curve_graph.png)
+![heat curve example graph](images/heat_curve_graph.png)
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
@@ -202,7 +202,7 @@ control_parameters:
 
 If you struggle in finding the good `slope`and `shift`, you can try to set `alt_curve` to `true`. You can do it especially if you can't find settings that work for both cold winter and spring. The alternate heating curve is not linear like the standard curve but is polynomial and is designed to show a reduced slope for high delta between the outdoor and target temperatures.
 
-![Graph of alternate heating curve](doc/alternate_heating_curve.png)
+![Graph of alternate heating curve](images/alternate_heating_curve.png)
 
 In the above example, both curves have the same `slope` parameter.
 
