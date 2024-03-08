@@ -150,35 +150,33 @@ Configuration variables:
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
 - **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
 - **control_parameters** (*Optional*): Control parameters of the controller (see [below](<#heating-curve-definition>)).
-  - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to 1.5.
-  - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to 0.
-  - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to 0.
-  - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to 0.
+  - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Default to `false`.
+  - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to `1.5`.
+  - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to `0`.
+  - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
+  - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
 - **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
-  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to false.
-  - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to 0.1.
-  - **maximum_output** (*Optional*, float): Output value above which output value won't go (cap). Defaults to 1.
-  - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to 0.1.
-  - **output_factor** (*Optional*, float): Calibration factor of the output. Defaults to 1.
-  - **output_offset** (*Optional*, float): Calibration offset of the output. Defaults to 0.
+  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to `false`.
+  - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to `0.1`.
+  - **maximum_output** (*Optional*, float): Output value above which output value won't go (cap). Defaults to `1`.
+  - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to `0.1`.
+  - **output_factor** (*Optional*, float): Calibration factor of the output. Defaults to `1`.
+  - **output_offset** (*Optional*, float): Calibration offset of the output. Defaults to `0`.
 - All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
 
 ### Heating curve definition
 
 The boiler flow temperature is calculated from the outdoor temperature:
 
-`WATERTEMP` = `slope` \* `DELTA` + `target temperature` + `shift` + `ERROR`* `kp` + `INTEGRAL_TERM`
+`WATERTEMP` = `slope` \* `DELTA` + `target temperature` + `shift`
 
 where :
 
 - `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
 - `DELTA` is the temperature difference between the target and the outdoor,
-- `ERROR` is the calculated error (target - current)
-- `INTEGRAL_TERM` is the cumulative sum of `ki` \* `ERROR` \* `dt`
-- `slope`, `shift`, `kp` and `ki` are defined in the Climate `control_parameters`.
-- `dt` is the time difference in seconds between two calculations.
+- `slope` and `shift` are defined in the Climate `control_parameters`.
 
-![heat curve example graph](doc/heat_curve_graph.webp)
+![heat curve example graph](doc/heat_curve_graph.png)
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
@@ -199,6 +197,35 @@ control_parameters:
   shift: 0
   kp: 2
 ```
+
+**Alternate heating curve:**
+
+If you struggle in finding the good `slope`and `shift`, you can try to set `alt_curve` to `true`. You can do it especially if you can't find settings that work for both cold winter and spring. The alternate heating curve is not linear like the standard curve but is polynomial and is designed to show a reduced slope for high delta between the outdoor and target temperatures.
+
+![Graph of alternate heating curve](doc/alternate_heating_curve.png)
+
+In the above example, both curves have the same `slope` parameter.
+
+### Proportionnal and integral terms
+
+If needed, proportionnal and integral terms can be added to the heating curve:
+
+`WATERTEMP` =  `HEATING_CURVE_TEMP` + `ERROR`* `kp` + `INTEGRAL_TERM`
+
+where :
+
+- `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
+- `HEATING_CURVE_TEMP`is the heating curve temperature calculated above.
+- `ERROR` is the calculated error (target - current)
+- `INTEGRAL_TERM` is the cumulative sum of `ki` \* `ERROR` \* `dt`
+- `dt` is the time difference in seconds between two calculations.
+- `kp` and `ki` are defined in the Climate `control_parameters`.
+
+**Warning:**
+
+Setting a proportionnal factor `kp` can be useful to accelerate the convergence when the target temperature is changed. The value of `kp` should remain low to maintain the stability of the system and avoid overshoots.
+
+However, setting an integral factor `ki`can be tricky to use and depends on many factors such as the house thermal inertia. We do not recommend to use it unless you know what you are doing.
 
 ### Setpoint calibration factors
 
