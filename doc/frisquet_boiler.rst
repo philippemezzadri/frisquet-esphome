@@ -18,13 +18,24 @@ Wiring
 
 The ESPHome replaces the original Eco Radio System HF receiver and is connected to the boiler main board through a micro-fit 4 socket.
 
-ESP32       Boiler Side         Pin number
------------ ------------------- ----------
-GND         black wire          1
-GPIO Pin    yellow wire         2
-5V          red wire (optional) 3
+.. list-table:: ESP32 to boiler wiring
+   :widths: 10 20 10
+   :header-rows: 1
 
-.. figure:: images/connector_4pin1_80px.png
+   * - ESP32
+     - Boiler Side
+     - Pin number
+   * - GND
+     - black wire 
+     - 1
+   * - GPIO Pin
+     - yellow wire
+     - 2
+   * - 5V
+     - red wire (optional)
+     - 3
+
+.. figure:: ../images/connector_4pin1_80px.png
     :align: center
   
     Micro-fit 4 pinout drawing

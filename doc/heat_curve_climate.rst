@@ -92,9 +92,7 @@ where :
 - ``DELTA`` is the temperature difference between the target and the outdoor,
 - ``slope`` and ``shift`` are defined in the Climate ``control_parameters``.
 
-![heat curve example graph](images/heat_curve_graph.webp)
-
-.. figure:: images/heat_curve_graph.png
+.. figure:: ../images/heat_curve_graph.png
     :align: center
   
     Example of heating curves with different slopes
@@ -127,7 +125,7 @@ You can do it especially if you can't find settings that work for both cold wint
 The alternate heating curve is not linear like the standard curve but is polynomial and is designed to show 
 a reduced slope for high delta between the outdoor and target temperatures.
 
-.. figure:: images/alternate_heating_curve.png
+.. figure:: ../images/alternate_heating_curve.png
     :align: center
   
     Comparison of teh standard and alternate hetaing curves
