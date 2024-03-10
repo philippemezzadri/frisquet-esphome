@@ -7,16 +7,24 @@ Frisquet Boiler Output
     :description: Instructions for installing and setting up a Frisquet boiler output.
     :image: logo-friquet.svg
 
-This ``frisquet_boiler`` component allows communication between an ESPHome device and a `Frisquet <https://www.frisquet.com/en>`__ 
-heating boiler (equipped with Eco Radio System remote thermostat).
+This ``frisquet_boiler`` component allows communication between an ESPHome device and a 
+`Frisquet <https://www.frisquet.com/en>`__ heating boiler 
+(equipped with Eco Radio System remote thermostat).
 
-The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the Eco Radio System module. 
-More recent boilers equipped with the Visio module are not compatible because Frisquet has since implemented encryption in its communication protocol.
+The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the 
+Eco Radio System module (ERS). More recent boilers equipped with the Visio module are not compatible 
+because Frisquet has since implemented encryption in its communication protocol.
+
+.. note:: 
+    The communication protocol used by Frisquet is the same as the one used by the Vaillant for its 
+    CalorMatic 340f remote controller. This has not been tested but this ESPHome component should 
+    work for those products.
 
 Wiring
 ------
 
-The ESPHome replaces the original Eco Radio System HF receiver and is connected to the boiler main board through a micro-fit 4 socket.
+The ESPHome replaces the original Eco Radio System HF receiver and is connected to the boiler main board 
+through a micro-fit 4 socket.
 
 .. list-table:: ESP32 to boiler wiring
    :widths: 10 20 10
@@ -98,7 +106,7 @@ See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
 
 .. note::
 
-    The ``frisquet_boiler`` component will send commands to the boiler right after the update of the ``output``value and then 
+    The ``frisquet_boiler`` component will send commands to the boiler right after the update of the ``output`` value and then 
     every 4 minutes. The component must receive regularly updates from the Climate component. 
     To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated 
     during 15 minutes. In such case, the boiler will put itself in safe mode.
