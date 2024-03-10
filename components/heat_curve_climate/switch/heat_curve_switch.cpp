@@ -8,9 +8,7 @@ namespace heat_curve {
 
 static const char *const TAG = "heating_curve.switch";
 
-void HeatCurveClimateSwitch::dump_config() {
-  LOG_SWITCH("", "Heating Curve Climate Switch", this);
-}
+void HeatCurveClimateSwitch::dump_config() { LOG_SWITCH("", "Heating Curve Climate Switch", this); }
 
 void HeatCurveClimateSwitch::write_state(bool state) {
   this->parent_->set_heat_required(state);

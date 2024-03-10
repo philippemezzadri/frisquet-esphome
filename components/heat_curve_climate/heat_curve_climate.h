@@ -12,6 +12,10 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
+static const float THRESHOLD_HIGH{0.15};
+static const float THRESHOLD_LOW{-0.15};
+static const int OFF_MODE_TEMPERATURE{20};
+
 class HeatingCurveClimate : public Climate, public Component {
  public:
   void update();
@@ -20,6 +24,7 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
   void set_heat_required(bool value);
   void set_rounded(bool rounded) { rounded_ = rounded; }
+  void set_alt_curve(bool alt) { alt_curve_ = alt; }
   void set_output(output::FloatOutput *output) { output_ = output; }
   void set_slope(float slope) { slope_ = slope; }
   void set_shift(float shift) { shift_ = shift; }
@@ -52,6 +57,7 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_ki() { return ki_; }
   float output_to_temperature(float output);
   float temperature_to_output(float temp);
+  float get_heat_curve_temp();
 
   void set_default_target_temperature(float default_target_temperature) {
     default_target_temperature_ = default_target_temperature;
@@ -69,21 +75,22 @@ class HeatingCurveClimate : public Climate, public Component {
   void calculate_integral_term_();
 
   // Parameters & inputs
-  float slope_ = 1.5;
-  float dt_;
-  float kp_ = 0;
-  float ki_ = 0;
-  float shift_ = 0;
-  float outdoor_temp_ = NAN;
-  float output_calibration_factor_ = 1;
-  float output_calibration_offset_ = 0;
-  float minimum_output_ = 0.1;
-  float maximum_output_ = 1;
-  float heat_required_output_ = 0.1;
-  bool heat_required_ = false;
-  bool rounded_ = false;
+  float slope_{1.5};
+  float dt_{0};
+  float kp_{0};
+  float ki_{0};
+  float shift_{0};
+  float outdoor_temp_{NAN};
+  float output_calibration_factor_{1};
+  float output_calibration_offset_{0};
+  float minimum_output_{0.1};
+  float maximum_output_{1};
+  float heat_required_output_{0.1};
+  bool heat_required_{false};
+  bool rounded_{false};
+  bool alt_curve_{false};
 
-  uint32_t last_time_ = 0;
+  uint32_t last_time_{0};
 
   // Sensors
   sensor::Sensor *current_sensor_{nullptr};
@@ -95,16 +102,15 @@ class HeatingCurveClimate : public Climate, public Component {
   bool do_publish_ = false;
 
   // Results
-  float output_value_ = 0;
-  float water_temp_ = 20;
-  float delta_ = NAN;
-  float error_ = NAN;
-  float integral_term_ = 0;
-  float proportional_term_ = 0;
+  float output_value_{0};
+  float water_temp_{20};
+  float delta_{NAN};
+  float error_{NAN};
+  float integral_term_{0};
+  float proportional_term_{0};
 };
 
-template <typename... Ts>
-class SetControlParametersAction : public Action<Ts...> {
+template<typename... Ts> class SetControlParametersAction : public Action<Ts...> {
  public:
   SetControlParametersAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
@@ -131,8 +137,7 @@ class SetControlParametersAction : public Action<Ts...> {
   HeatingCurveClimate *parent_;
 };
 
-template <typename... Ts>
-class PIDResetIntegralTermAction : public Action<Ts...> {
+template<typename... Ts> class PIDResetIntegralTermAction : public Action<Ts...> {
  public:
   PIDResetIntegralTermAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
