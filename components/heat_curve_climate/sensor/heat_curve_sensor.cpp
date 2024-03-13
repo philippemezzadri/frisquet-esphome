@@ -55,7 +55,7 @@ void HeatCurveClimateSensor::update_from_parent_() {
   }
   this->publish_state(value);
 }
-void HeatCurveClimateSensor::dump_config() { LOG_SENSOR("", "Heat Curve Climate Sensor", this); }
+void HeatCurveClimateSensor::dump_config() { LOG_SENSOR("", "Heating Curve Climate Sensor", this); }
 
 }  // namespace heat_curve
 }  // namespace climate

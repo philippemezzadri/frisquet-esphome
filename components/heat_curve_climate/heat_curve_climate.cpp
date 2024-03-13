@@ -195,15 +195,30 @@ float HeatingCurveClimate::calculate_relative_time_() {
 
 bool HeatingCurveClimate::in_deadband() {
   float err = -this->error_;
-  return ((err > 0 && err < THRESHOLD_HIGH) || (err < 0 && err > THRESHOLD_LOW));
+  return (THRESHOLD_LOW < err && err < THRESHOLD_HIGH);
 }
 
 void HeatingCurveClimate::calculate_proportional_term_() {
+  // p(t) := K_p * e(t)
   this->proportional_term_ = this->kp_ * this->error_;
+
+  // set dead-zone to -X to +X
+  if (in_deadband()) {
+    // shallow the proportional_term in the deadband by the pdm
+    this->proportional_term_ *= KP_MULTIPLIER;
+
+  } else {
+    // pdm_offset prevents a jump when leaving the deadband
+    float threshold = (error_ < 0) ? THRESHOLD_HIGH : THRESHOLD_LOW;
+    float pdm_offset = (threshold - (KP_MULTIPLIER * threshold)) * kp_;
+    this->proportional_term_ += pdm_offset;
+  }
+
   ESP_LOGD(TAG, "Proportionnal term: %.2f", this->proportional_term_);
 }
 
 void HeatingCurveClimate::calculate_integral_term_() {
+  // i(t) := K_i * \int_{0}^{t} e(t) dt
   float new_integral = this->error_ * this->dt_ * this->ki_;
 
   // Preventing integral wind up
