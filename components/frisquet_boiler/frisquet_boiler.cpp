@@ -38,6 +38,7 @@ void FrisquetBoiler::write_state(float state) {
     this->send_message();
     this->last_cmd_ = this->last_order_;
     this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
+    this->calculate_flow_temperature();
   }
 }
 
@@ -55,6 +56,8 @@ void FrisquetBoiler::loop() {
 void FrisquetBoiler::dump_config() {
   ESP_LOGCONFIG(TAG, "Frisquet Boiler Output");
   ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x%.2x", this->boiler_id_[0], this->boiler_id_[1]);
+  ESP_LOGCONFIG(TAG, "  Calibration factor: %.2f", this->output_calibration_factor_);
+  ESP_LOGCONFIG(TAG, "  Calibration offset: %.2f", this->output_calibration_offset_);
   LOG_PIN("  Pin: ", this->pin_);
   LOG_FLOAT_OUTPUT(this);
 }
@@ -167,6 +170,15 @@ void FrisquetBoiler::log_last_message() {
 
   ESP_LOGD(TAG, "last message frames: %s", buffer);
   free(buffer);
+}
+
+void FrisquetBoiler::calculate_flow_temperature() {
+  this->flow_temperature_ =
+      this->operating_setpoint_ > 0
+          ? (this->operating_setpoint_ - this->output_calibration_offset_) / this->output_calibration_factor_
+          : 20;
+
+  ESP_LOGD(TAG, "Boiler flow temperature: %.1f°C", this->flow_temperature_);
 }
 
 }  // namespace frisquet_boiler

@@ -38,6 +38,9 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void set_pin(GPIOPin *pin) { pin_ = pin; }
   void set_mode(int mode);
   void set_boiler_id(const char *str);
+  void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
+  void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
+  void calculate_flow_temperature();
 
  protected:
   void digital_write(bool value) { this->pin_->digital_write(value); }
@@ -58,6 +61,9 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00,
                           0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
   uint8_t boiler_id_[2];
+  float output_calibration_factor_{1.9};
+  float output_calibration_offset_{-41};
+  float flow_temperature_{20.0};
 };
 
 template<typename... Ts> class SetModeAction : public Action<Ts...> {
