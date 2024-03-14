@@ -9,7 +9,7 @@ namespace frisquet_boiler {
 static const char *const TAG = "frisquet.output.sensor";
 
 void FrisquetBoilerSensor::setup() {
-  this->parent_->add_temperature_computed_callback([this]() { this->update_from_parent_(); });
+  this->parent_->add_sensor_callback([this]() { this->update_from_parent_(); });
   this->update_from_parent_();
 }
 void FrisquetBoilerSensor::update_from_parent_() {
