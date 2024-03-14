@@ -23,7 +23,7 @@ void FrisquetBoiler::set_boiler_id(const char *str) {
 }
 
 void FrisquetBoiler::write_state(float state) {
-  int new_demand = state * 100;
+  int new_demand = round(state * 100);
 
   // Cmd = 15 is known as not working
   if (new_demand == 15)
@@ -168,17 +168,16 @@ void FrisquetBoiler::log_last_message() {
       endofBuffer += sprintf(endofBuffer, "%c", ' ');
   }
 
-  ESP_LOGD(TAG, "last message frames: %s", buffer);
+  ESP_LOGD(TAG, "Last message frames: %s", buffer);
   free(buffer);
+  ESP_LOGD(TAG, "Boiler flow temperature: %.1f°C", this->flow_temperature_);
 }
 
 void FrisquetBoiler::calculate_flow_temperature() {
   this->flow_temperature_ =
       this->operating_setpoint_ > 0
           ? (this->operating_setpoint_ - this->output_calibration_offset_) / this->output_calibration_factor_
-          : 20;
-
-  ESP_LOGD(TAG, "Boiler flow temperature: %.1f°C", this->flow_temperature_);
+          : NAN;
 }
 
 }  // namespace frisquet_boiler

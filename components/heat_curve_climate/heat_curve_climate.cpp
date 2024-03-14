@@ -119,8 +119,7 @@ void HeatingCurveClimate::update() {
     this->calculate_proportional_term_();
     this->calculate_integral_term_();
     new_temp += this->proportional_term_ + this->integral_term_;
-
-    ESP_LOGD(TAG, "Calculated temperature after PI controller: %.1f°C", new_temp);
+    ESP_LOGD(TAG, "Adjusted temperature: %.1f°C", new_temp);
   }
 
   // convert to output
@@ -172,8 +171,6 @@ void HeatingCurveClimate::write_output_(float value) {
     this->water_temp_ = OFF_MODE_TEMPERATURE;
     ESP_LOGI(TAG, "Climate action is IDLE");
   }
-
-  ESP_LOGD(TAG, "Water temperature setpoint: %.1f°C", this->water_temp_);
 
   if (new_action != this->action) {
     this->action = new_action;
@@ -241,7 +238,7 @@ float HeatingCurveClimate::output_to_temperature(float output) {
 
 float HeatingCurveClimate::temperature_to_output(float temp) {
   float output = temp * this->output_calibration_factor_ + this->output_calibration_offset_;
-  return this->rounded_ ? floor(output + 0.5) / 100.0 : output / 100.0;
+  return this->rounded_ ? round(output) / 100.0 : output / 100.0;
 }
 
 float HeatingCurveClimate::get_heat_curve_temp() {
