@@ -111,6 +111,27 @@ See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
     To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated 
     during 15 minutes. In such case, the boiler will put itself in safe mode.
 
+``frisquet_boiler`` Sensor
+-----------------------------
+
+Additionally, the Heating Curve Climate platform provides an optional sensor platform to monitor and give feedback from the Climate component.
+
+.. code-block:: yaml
+
+    sensor:
+      - platform: frisquet_boiler
+        name: "Boiler flow temperature"
+        type: FLOWTEMP
+
+Configuration variables:
+************************
+
+- **name** (**Required**, string): The name of the sensor.
+- **type** (**Required**, string): The value to monitor. One of
+  - ``SETPOINT`` - The setpoint sent to the boiler (%).
+  - ``FLOWTEMP`` - The resulting water temperature resulting from ``SETPOINT``.
+
+
 ``boiler.set_mode`` Action
 --------------------------
 

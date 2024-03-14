@@ -31,7 +31,6 @@ of heating :doc:`/components/output/index`.
           slope: 1.45
           shift: 2
         output_parameters:
-          rounded: true
           minimum_output: 0.1
           output_factor: 1.9
           output_offset: -41
@@ -63,8 +62,7 @@ Configuration variables:
   
 - **output_parameters** (*Optional*): Output parameters of the controller.
 
-  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. This is recommended 
-    if used in conjunction with the :doc:`/components/output/friquet_boiler`. 
+  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits.
     Defaults to ``false``.
   - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. 
     Defaults to ``0.1``.
@@ -169,7 +167,6 @@ The following values seem to work well on **Frisquet Hydromotrix** and **Hydroco
 .. code-block:: yaml
 
     output_parameters:
-      rounded: true
       output_factor: 1.9
       output_offset: -41
 
@@ -237,7 +234,7 @@ Configuration variables:
 - **type** (**Required**, string): The value to monitor. One of
   - ``RESULT`` - The resulting value sent to the output component (float between ```0`` and ``1``).
   - ``SETPOINT`` - The setpoint sent to the boiler (%, actually 100 * ``RESULT``).
-  - ``WATERTEMP`` - The resulting water temperature resulting from ``SETPOINT``.
+  - ``WATERTEMP`` - The calculated heating water temperature.
   - ``DELTA`` - The temperature difference between the target and the outdoor.
   - ``ERROR`` - The calculated error (target - process_variable)
   - ``PROPORTIONAL`` - The proportional term of the controller (if ``kp`` is not ``0``).

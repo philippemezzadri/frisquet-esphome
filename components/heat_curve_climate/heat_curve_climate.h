@@ -15,7 +15,6 @@ namespace heat_curve {
 static const float THRESHOLD_HIGH{0.15};
 static const float THRESHOLD_LOW{-0.15};
 static const float KP_MULTIPLIER{0.2};
-static const int OFF_MODE_TEMPERATURE{20};
 
 class HeatingCurveClimate : public Climate, public Component {
  public:

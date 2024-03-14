@@ -127,17 +127,11 @@ climate:
     outdoor_sensor: outdoor_temperature
     default_target_temperature: 19
     output: boiler_cmd
-    visual:
-      min_temperature: 7
-      max_temperature: 28
-      temperature_step: 0.1
     control_parameters:
       slope: 1.45
       shift: 3
       kp: 5
-      ki: 0.0001
     output_parameters:
-      rounded: true
       minimum_output: 0.1
       output_factor: 1.9
       output_offset: -41
@@ -156,7 +150,7 @@ Configuration variables:
   - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
   - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
 - **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
-  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. This is recommended if used in conjunction with the `friquet_boiler` output. Defaults to `false`.
+  - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. Defaults to `false`.
   - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to `0.1`.
   - **maximum_output** (*Optional*, float): Output value above which output value won't go (cap). Defaults to `1`.
   - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to `0.1`.
@@ -240,7 +234,6 @@ The following values seem to work well on **Frisquet Hydromotrix** and **Hydroco
 
 ```yaml
 output_parameters:
-  rounded: true
   output_factor: 1.9
   output_offset: -41
 ```
@@ -295,14 +288,34 @@ Configuration variables:
 
 When the switch is on, the boiler will run at the minimum power defined by the `heat_required_output` parameter.
 
+## `frisquet_boiler` Sensor
+
+Additionally, the **Frisquet Boiler** platform provides an optional sensor platform to monitor and give feedback from the Output component.
+
+```yaml
+sensor:
+  - platform: frisquet_boiler
+    name: "Boiler Flow Temperature"
+    type: FLOWTEMP
+```
+
+Configuration variables:
+
+- **name** (**Required**, string): The name of the sensor.
+- **type** (**Required**, string): The value to monitor. One of
+  - `SETPOINT` - The setpoint given the boiler (%).
+  - `FLOWTEMP` - The water temperature resulting from the `SETPOINT`.
+
+If the boiler is off, the flow temperature is unavailable.
+
 ## `heat_curve_climate` Sensor
 
-Additionally, the Heating Curve Climate platform provides an optional sensor platform to monitor and give feedback from the Climate component.
+Additionally, the **Heating Curve Climate** platform provides an optional sensor platform to monitor and give feedback from the Climate component.
 
 ```yaml
 sensor:
   - platform: heat_curve_climate
-    name: "Consigne chaudière"
+    name: "Heating Curve Temperature"
     type: WATERTEMP
 ```
 
@@ -312,7 +325,7 @@ Configuration variables:
 - **type** (**Required**, string): The value to monitor. One of
   - `RESULT` - The resulting value sent to the output component (float between 0 and 1).
   - `SETPOINT` - The setpoint sent to the boiler (%, actually 100 * `RESULT`).
-  - `WATERTEMP` - The resulting water temperature resulting from `SETPOINT`.
+  - `WATERTEMP` - The calculated heating water temperature.
   - `DELTA` - The temperature difference between the target and the outdoor.
   - `ERROR` - The calculated error (target - process_variable)
   - `PROPORTIONAL` - The proportional term of the controller (if `kp` is not 0).

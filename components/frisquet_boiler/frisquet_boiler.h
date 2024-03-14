@@ -70,7 +70,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   uint8_t boiler_id_[2];
   float output_calibration_factor_{1.9};
   float output_calibration_offset_{-41};
-  float flow_temperature_{20.0};
+  float flow_temperature_{NAN};
 };
 
 template<typename... Ts> class SetModeAction : public Action<Ts...> {

@@ -114,13 +114,15 @@ void HeatingCurveClimate::update() {
   // Proportional and Integral correction to accelerate convergence to target
   if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature)) {
     this->error_ = this->target_temperature - this->current_temperature;
-    ESP_LOGD(TAG, "Error: %.1f", this->error_);
+    ESP_LOGD(TAG, "Error: %.1fK", this->error_);
 
     this->calculate_proportional_term_();
     this->calculate_integral_term_();
     new_temp += this->proportional_term_ + this->integral_term_;
     ESP_LOGD(TAG, "Adjusted temperature: %.1f°C", new_temp);
   }
+
+  this->water_temp_ = new_temp;
 
   // convert to output
   float output = this->temperature_to_output(new_temp);
@@ -139,9 +141,6 @@ void HeatingCurveClimate::update() {
   }
 
   ESP_LOGD(TAG, "Output: %.1f%%", output * 100);
-
-  // Recalculate actual water temperature to take into accound rounding
-  this->water_temp_ = this->output_to_temperature(output);
 
   if (this->mode == CLIMATE_MODE_OFF) {
     this->write_output_(0.0);
@@ -164,11 +163,11 @@ void HeatingCurveClimate::write_output_(float value) {
     ESP_LOGI(TAG, "Climate action is HEATING");
   } else if (this->mode == CLIMATE_MODE_OFF) {
     new_action = CLIMATE_ACTION_OFF;
-    this->water_temp_ = OFF_MODE_TEMPERATURE;
+    this->water_temp_ = NAN;
     ESP_LOGI(TAG, "Climate mode is OFF");
   } else {
     new_action = CLIMATE_ACTION_IDLE;
-    this->water_temp_ = OFF_MODE_TEMPERATURE;
+    this->water_temp_ = NAN;
     ESP_LOGI(TAG, "Climate action is IDLE");
   }
 
@@ -211,7 +210,7 @@ void HeatingCurveClimate::calculate_proportional_term_() {
     this->proportional_term_ += pdm_offset;
   }
 
-  ESP_LOGD(TAG, "Proportionnal term: %.2f", this->proportional_term_);
+  ESP_LOGD(TAG, "Proportionnal term: %.2fK", this->proportional_term_);
 }
 
 void HeatingCurveClimate::calculate_integral_term_() {
@@ -231,7 +230,7 @@ void HeatingCurveClimate::calculate_integral_term_() {
       this->integral_term_ += new_integral;
     }
 
-    ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
+    ESP_LOGD(TAG, "Integral term: %.3fK", this->integral_term_);
   }
 }
 
