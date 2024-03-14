@@ -94,11 +94,15 @@ Configuration variables:
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The id to use for this output component.
 - **pin** (**Required**, [Pin](<https://esphome.io/guides/configuration-types.html#config-pin>)): The pin number connected to the boiler.
 - **boiler_id** (**Required**, string): The identifier of your boiler (see below).
+- **calibration_factor** (*Optional*, float): Calibration factor of the boiler. Defaults to `1.9`.
+- **calibration_offset** (*Optional*, float): Calibration offset of the boiler. Defaults to `-41`.
 - All other options from [Float Output](<https://esphome.io/components/output/>).
 
 If `min_power`is set to a value that is not zero, it is important to set `zero_means_zero` to `true`. This can be safely ignored if `min_power` and `max_power` are kept at their default values.
 
-The output value received by the component is any rational value between 0 and 1. Internaly, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100 :
+`calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the water flow temperature. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
+
+The output value received by the component is any rational value between `0` and `1`. Internaly, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
 - 10 : water pump starts, no heating
@@ -310,7 +314,7 @@ If the boiler is off, the flow temperature is unavailable.
 
 ## `heat_curve_climate` Sensor
 
-Additionally, the **Heating Curve Climate** platform provides an optional sensor platform to monitor and give feedback from the Climate component.
+The **Heating Curve Climate** platform also provides an optional sensor platform to monitor and give feedback from the Climate component.
 
 ```yaml
 sensor:
