@@ -176,7 +176,7 @@ void HeatingCurveClimate::write_output_(float value) {
     this->action = new_action;
     this->do_publish_ = true;
   }
-  this->water_temp_computed_callback_.call();
+  this->internal_sensor_callback_.call();
 }
 
 float HeatingCurveClimate::calculate_relative_time_() {
@@ -215,21 +215,24 @@ void HeatingCurveClimate::calculate_proportional_term_() {
 }
 
 void HeatingCurveClimate::calculate_integral_term_() {
-  // i(t) := K_i * \int_{0}^{t} e(t) dt
-  float new_integral = this->error_ * this->dt_ * this->ki_;
+  if (this->ki_ > 0) {
+    // i(t) := K_i * \int_{0}^{t} e(t) dt
+    float new_integral = this->error_ * this->dt_ * this->ki_;
 
-  // Preventing integral wind up
-  if (this->output_value_ <= (this->minimum_output_ / 100.0) && new_integral < 0) {
-    return;
-  }
-  if (this->output_value_ >= (this->maximum_output_ / 100.0) && new_integral > 0) {
-    return;
-  }
+    // Preventing integral wind up
+    if (this->output_value_ <= (this->minimum_output_ / 100.0) && new_integral < 0) {
+      return;
+    }
+    if (this->output_value_ >= (this->maximum_output_ / 100.0) && new_integral > 0) {
+      return;
+    }
 
-  if (!in_deadband()) {
-    this->integral_term_ += new_integral;
+    if (!in_deadband()) {
+      this->integral_term_ += new_integral;
+    }
+
+    ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
   }
-  ESP_LOGD(TAG, "Integral term: %.5f", this->integral_term_);
 }
 
 float HeatingCurveClimate::output_to_temperature(float output) {
@@ -243,7 +246,7 @@ float HeatingCurveClimate::temperature_to_output(float temp) {
 
 float HeatingCurveClimate::get_heat_curve_temp() {
   this->delta_ = this->target_temperature - this->outdoor_temp_;
-  ESP_LOGD(TAG, "Delta T: %.1f", this->delta_);
+  ESP_LOGD(TAG, "Delta T: %.1fK", this->delta_);
 
   float flow_temp;
   if (this->alt_curve_) {

@@ -178,6 +178,8 @@ void FrisquetBoiler::calculate_flow_temperature() {
       this->operating_setpoint_ > 0
           ? (this->operating_setpoint_ - this->output_calibration_offset_) / this->output_calibration_factor_
           : NAN;
+
+  this->internal_sensor_callback_.call();
 }
 
 }  // namespace frisquet_boiler

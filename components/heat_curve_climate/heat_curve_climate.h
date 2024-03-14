@@ -43,7 +43,7 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
 
   void add_temperature_computed_callback(std::function<void()> &&callback) {
-    water_temp_computed_callback_.add(std::move(callback));
+    internal_sensor_callback_.add(std::move(callback));
   }
 
   float get_output_value() const { return output_value_; }
@@ -98,7 +98,7 @@ class HeatingCurveClimate : public Climate, public Component {
   sensor::Sensor *outoor_sensor_{nullptr};
   output::FloatOutput *output_{nullptr};
 
-  CallbackManager<void()> water_temp_computed_callback_;
+  CallbackManager<void()> internal_sensor_callback_;
   float default_target_temperature_;
   bool do_publish_ = false;
 
