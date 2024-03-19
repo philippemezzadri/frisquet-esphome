@@ -6,18 +6,27 @@ from esphome.components import output
 from esphome.const import CONF_ID, CONF_PIN, CONF_MODE
 
 CONF_BOILER_ID = "boiler_id"
+CONF_CALIBRATION_FACTOR = "calibration_factor"
+CONF_CALIBRATION_OFFSET = "calibration_offset"
 
-frisquet_boiler = cg.esphome_ns.namespace('frisquet_boiler')
-FrisquetBoiler = frisquet_boiler.class_('FrisquetBoiler', output.FloatOutput,cg.Component)
+frisquet_boiler = cg.esphome_ns.namespace("frisquet_boiler")
+FrisquetBoiler = frisquet_boiler.class_(
+    "FrisquetBoiler", output.FloatOutput, cg.Component
+)
 
 # Actions
 SetModeAction = frisquet_boiler.class_("SetModeAction", automation.Action)
 
-CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend({
-    cv.Required(CONF_ID): cv.declare_id(FrisquetBoiler),
-    cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
-    cv.Required(CONF_BOILER_ID): cv.string,
-}).extend(cv.COMPONENT_SCHEMA)
+CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
+    {
+        cv.Required(CONF_ID): cv.declare_id(FrisquetBoiler),
+        cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
+        cv.Required(CONF_BOILER_ID): cv.string,
+        cv.Optional(CONF_CALIBRATION_FACTOR, default=1.9): cv.float_,
+        cv.Optional(CONF_CALIBRATION_OFFSET, default=-41): cv.float_,
+    }
+).extend(cv.COMPONENT_SCHEMA)
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -26,9 +35,12 @@ async def to_code(config):
 
     boiler_id = config[CONF_BOILER_ID]
     cg.add(var.set_boiler_id(boiler_id))
+    cg.add(var.set_output_calibration_factor(config[CONF_CALIBRATION_FACTOR]))
+    cg.add(var.set_output_calibration_offset(config[CONF_CALIBRATION_OFFSET]))
 
     pin = await cg.gpio_pin_expression(config[CONF_PIN])
     cg.add(var.set_pin(pin))
+
 
 @automation.register_action(
     "boiler.set_mode",

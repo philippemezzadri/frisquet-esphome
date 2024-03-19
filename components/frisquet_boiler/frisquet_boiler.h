@@ -38,6 +38,14 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void set_pin(GPIOPin *pin) { pin_ = pin; }
   void set_mode(int mode);
   void set_boiler_id(const char *str);
+  void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
+  void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
+  void calculate_flow_temperature();
+
+  void add_sensor_callback(std::function<void()> &&callback) { internal_sensor_callback_.add(std::move(callback)); }
+
+  float get_flow_temperature() { return flow_temperature_; }
+  int get_setpoint() { return operating_setpoint_; }
 
  protected:
   void digital_write(bool value) { this->pin_->digital_write(value); }
@@ -45,6 +53,8 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void serialize_byte(uint8_t byteValue, uint8_t byteIndex);
   void write_bit(bool bitValue);
   void log_last_message();
+
+  CallbackManager<void()> internal_sensor_callback_;
 
   GPIOPin *pin_;
   int operating_mode_{3};
@@ -58,6 +68,9 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00,
                           0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
   uint8_t boiler_id_[2];
+  float output_calibration_factor_{1.9};
+  float output_calibration_offset_{-41};
+  float flow_temperature_{NAN};
 };
 
 template<typename... Ts> class SetModeAction : public Action<Ts...> {

@@ -74,14 +74,19 @@ Configuration variables:
 - **id** (**Required**, :ref:`config-id`): The id to use for this output component.
 - **pin** (**Required**, :ref:`Pin Schema <config-pin_schema>`): The pin number connected to the boiler.
 - **boiler_id** (**Required**, string): The identifier of your boiler (see below).
+- **calibration_factor** (*Optional*, float): Calibration factor of the boiler. Defaults to ``1.9``.
+- **calibration_offset** (*Optional*, float): Calibration offset of the boiler. Defaults to ``-41``.
 - All other options from :ref:`Output <config-output>`.
 
-If `min_power` is set to a value that is not zero, it is important to set `zero_means_zero` to `true`. 
-This can be safely ignored if `min_power` and `max_power` are kept at their default values.
+If ``min_power`` is set to a value that is not zero, it is important to set ``zero_means_zero`` to ``true``. 
+This can be safely ignored if ``min_power`` and ``max_power`` are kept at their default values.
 
-The output value received by the component is any rational value between 0 and 1. 
+``calibration_factor`` and  ``calibration_offset`` are used by the internal sensor to calculate the water flow 
+temperature. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
+
+The output value received by the component is any rational value between ``0`` and ``1``. 
 Internally, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler 
-only accepts orders as integers between 0 and 100 :
+only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
 - 10 : water pump starts, no heating
@@ -110,6 +115,28 @@ See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
     every 4 minutes. The component must receive regularly updates from the Climate component. 
     To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated 
     during 15 minutes. In such case, the boiler will put itself in safe mode.
+
+``frisquet_boiler`` Sensor
+-----------------------------
+
+Additionally, the Heating Curve Climate platform provides an optional sensor platform to monitor and give feedback 
+from the Output component.
+
+.. code-block:: yaml
+
+    sensor:
+      - platform: frisquet_boiler
+        name: "Boiler flow temperature"
+        type: FLOWTEMP
+
+Configuration variables:
+************************
+
+- **name** (**Required**, string): The name of the sensor.
+- **type** (**Required**, string): The value to monitor. One of
+  - ``SETPOINT`` - The setpoint sent to the boiler (%).
+  - ``FLOWTEMP`` - The resulting water temperature resulting from ``SETPOINT``.
+
 
 ``boiler.set_mode`` Action
 --------------------------

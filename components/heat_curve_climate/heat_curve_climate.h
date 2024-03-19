@@ -14,7 +14,7 @@ namespace heat_curve {
 
 static const float THRESHOLD_HIGH{0.15};
 static const float THRESHOLD_LOW{-0.15};
-static const int OFF_MODE_TEMPERATURE{20};
+static const float KP_MULTIPLIER{0.2};
 
 class HeatingCurveClimate : public Climate, public Component {
  public:
@@ -42,7 +42,7 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
 
   void add_temperature_computed_callback(std::function<void()> &&callback) {
-    water_temp_computed_callback_.add(std::move(callback));
+    internal_sensor_callback_.add(std::move(callback));
   }
 
   float get_output_value() const { return output_value_; }
@@ -97,7 +97,7 @@ class HeatingCurveClimate : public Climate, public Component {
   sensor::Sensor *outoor_sensor_{nullptr};
   output::FloatOutput *output_{nullptr};
 
-  CallbackManager<void()> water_temp_computed_callback_;
+  CallbackManager<void()> internal_sensor_callback_;
   float default_target_temperature_;
   bool do_publish_ = false;
 

@@ -62,36 +62,16 @@ sensor:
     address: 0xAB03213190136128
     name: "Boiler return temperature"
 
-  - platform: heat_curve_climate
-    name: "Boiler temperature setpoint"
+  - platform: frisquet_boiler
+    name: "Boiler temperature setting"
     unit_of_measurement: "°C"
-    type: WATERTEMP
+    type: FLOWTEMP
 
-  - platform: heat_curve_climate
+  - platform: frisquet_boiler
     name: "Boiler setting"
     unit_of_measurement: "%"
     icon: mdi:gauge
     type: SETPOINT
-
-  - platform: heat_curve_climate
-    name: "Controller error"
-    unit_of_measurement: "K"
-    type: ERROR
-
-  - platform: heat_curve_climate
-    name: "Outdoor Temperature Difference"
-    unit_of_measurement: "K"
-    type: DELTA
-
-  - platform: heat_curve_climate
-    name: "Integral term"
-    unit_of_measurement: "K"
-    type: INTEGRAL
-
-  - platform: heat_curve_climate
-    name: "Proportionnal term"
-    unit_of_measurement: "K"
-    type: PROPORTIONAL
 
 climate:
   - platform: heat_curve_climate
@@ -105,14 +85,16 @@ climate:
     visual:
       min_temperature: 7
       max_temperature: 25
-      temperature_step: 0.1
+      temperature_step: 
+        target_temperature: 0.5
+        current_temperature: 0.1
+
     control_parameters:
-      slope: 1.45
-      shift: 7
+      slope: 1.4
+      shift: 2
       kp: 5
-      ki: 0.0005
+
     output_parameters:
-      rounded: true
       minimum_output: 0.1
       output_factor: 1.9
       output_offset: -41
