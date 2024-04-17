@@ -3,7 +3,6 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     STATE_CLASS_MEASUREMENT,
-    DEVICE_CLASS_TEMPERATURE,
     UNIT_CELSIUS,
     ICON_THERMOMETER,
     CONF_TYPE,
@@ -27,7 +26,6 @@ CONFIG_SCHEMA = (
         unit_of_measurement=UNIT_CELSIUS,
         icon=ICON_THERMOMETER,
         accuracy_decimals=1,
-        device_class=DEVICE_CLASS_TEMPERATURE,
         state_class=STATE_CLASS_MEASUREMENT,
     )
     .extend(
