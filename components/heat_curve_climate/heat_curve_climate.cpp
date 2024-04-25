@@ -134,6 +134,12 @@ void HeatingCurveClimate::update() {
     output = 0;
   }
 
+  // shutdown boiler if ambiant temperature is too high
+  if (this->error_ <= MAX_ERROR) {
+    ESP_LOGD(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
+    output = 0;
+  }
+
   // if heat required by switch, minimum output is heat_required_output_
   if (this->heat_required_ && output < this->heat_required_output_) {
     ESP_LOGD(TAG, "Forcing heat required minimum output");

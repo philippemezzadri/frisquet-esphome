@@ -14,6 +14,7 @@ namespace heat_curve {
 
 static const float THRESHOLD_HIGH{0.15};
 static const float THRESHOLD_LOW{-0.15};
+static const float MAX_ERROR{-1.0};
 static const float KP_MULTIPLIER{0.2};
 
 class HeatingCurveClimate : public Climate, public Component {
