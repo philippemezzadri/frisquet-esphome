@@ -123,11 +123,15 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
     auto shift = this->shift_.value(x...);
     auto kp = this->kp_.value(x...);
     auto ki = this->ki_.value(x...);
+    auto max_error = this->ki_.value(x...);
+    auto min_delta = this->ki_.value(x...);
 
     this->parent_->set_slope(slope);
     this->parent_->set_shift(shift);
     this->parent_->set_kp(kp);
     this->parent_->set_ki(ki);
+    this->parent_->set_max_error(max_error);
+    this->parent_->set_min_delta(min_delta);
     this->parent_->dump_config();
     this->parent_->update();
   }
@@ -137,6 +141,8 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
   TEMPLATABLE_VALUE(float, shift)
   TEMPLATABLE_VALUE(float, kp)
   TEMPLATABLE_VALUE(float, ki)
+  TEMPLATABLE_VALUE(float, max_error)
+  TEMPLATABLE_VALUE(float, min_delta)
 
   HeatingCurveClimate *parent_;
 };
