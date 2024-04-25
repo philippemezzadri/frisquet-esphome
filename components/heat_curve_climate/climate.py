@@ -35,6 +35,8 @@ CONF_MAXIMUM_OUTPUT = "maximum_output"
 CONF_HEATREQ_OUTPUT = "heat_required_output"
 CONF_ROUNDED_OUPUT = "rounded"
 CONF_ALTERNATE_CURVE = "alt_curve"
+CONF_MAX_ERROR = "max_error"
+CONF_MIN_DELTA = "min_delta"
 
 CONFIG_SCHEMA = cv.All(
     climate.CLIMATE_SCHEMA.extend(
@@ -51,6 +53,8 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_KP, default=0): cv.float_,
                     cv.Optional(CONF_KI, default=0): cv.float_,
                     cv.Optional(CONF_ALTERNATE_CURVE, default=False): cv.boolean,
+                    cv.Optional(CONF_MAX_ERROR, default=1.0): cv.float_,
+                    cv.Optional(CONF_MIN_DELTA, default=2.0): cv.float_,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
@@ -88,6 +92,8 @@ async def to_code(config):
     cg.add(var.set_kp(params[CONF_KP]))
     cg.add(var.set_ki(params[CONF_KI]))
     cg.add(var.set_alt_curve(params[CONF_ALTERNATE_CURVE]))
+    cg.add(var.set_max_error(params[CONF_MAX_ERROR]))
+    cg.add(var.set_min_delta(params[CONF_MIN_DELTA]))
 
     output_params = config[CONF_OUTPUT_PARAMETERS]
     cg.add(var.set_rounded(output_params[CONF_ROUNDED_OUPUT]))
@@ -110,6 +116,8 @@ async def to_code(config):
             cv.Required(CONF_SHIFT): cv.templatable(cv.float_),
             cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
             cv.Optional(CONF_KI, default=0.0): cv.templatable(cv.float_),
+            cv.Optional(CONF_MAX_ERROR, default=1.0): cv.templatable(cv.float_),
+            cv.Optional(CONF_MIN_DELTA, default=2.0): cv.templatable(cv.float_),
         }
     ),
 )
@@ -123,11 +131,17 @@ async def set_control_parameters(config, action_id, template_arg, args):
     ki_template_ = await cg.templatable(config[CONF_KI], args, float)
     cg.add(var.set_ki(ki_template_))
 
-    hf_template_ = await cg.templatable(config[CONF_SLOPE], args, float)
-    cg.add(var.set_slope(hf_template_))
+    slope_template_ = await cg.templatable(config[CONF_SLOPE], args, float)
+    cg.add(var.set_slope(slope_template_))
 
-    offset_template_ = await cg.templatable(config[CONF_SHIFT], args, float)
-    cg.add(var.set_shift(offset_template_))
+    shift_template_ = await cg.templatable(config[CONF_SHIFT], args, float)
+    cg.add(var.set_shift(shift_template_))
+
+    max_error_template_ = await cg.templatable(config[CONF_MAX_ERROR], args, float)
+    cg.add(var.set_max_error(max_error_template_))
+
+    min_delta_template_ = await cg.templatable(config[CONF_MIN_DELTA], args, float)
+    cg.add(var.set_min_delta(min_delta_template_))
 
     return var
 

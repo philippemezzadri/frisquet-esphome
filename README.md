@@ -151,6 +151,8 @@ Configuration variables:
   - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Defaults to `false`.
   - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to `1.5`.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to `0`.
+  - **max_error** (*Optional*, float) : The regulation error above which the boiler stops (e.g. when the ambiant temperature is too high because of external heat inputs). Defaults to `1`.
+  - **min_delta** (*Optional*, float) : The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
   - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
   - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
 - **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
@@ -274,7 +276,7 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 
 ## `heat_curve_climate` Switch
 
-On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode. This can be undesirable as heat may be required by radiators in other rooms of the house.
+On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode (in accordance with `max_error`, `min_delta` and `minimum_output` settings). This can be undesirable as heat may be required by radiators in other rooms of the house.
 
 To address this issue, the Heating Curve Climate platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely.
 
@@ -290,7 +292,7 @@ Configuration variables:
 
 - **name** (**Required**, string): The name of the switch.
 
-When the switch is on, the boiler will run at the minimum power defined by the `heat_required_output` parameter.
+When the switch is on, the boiler will never go below the minimum power defined by the `heat_required_output` parameter.
 
 ## `frisquet_boiler` Sensor
 
@@ -350,10 +352,9 @@ on_...:
   then:
     - climate.heat_curve.set_control_parameters:
         id: boiler_climate
-        slope: 1.45
-        shift: 3
+        slope: 1.2
+        shift: 1
         kp: 0
-        ki: 0
 ```
 
 Configuration variables:

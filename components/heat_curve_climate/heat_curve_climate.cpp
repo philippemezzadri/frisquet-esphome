@@ -72,25 +72,24 @@ void HeatingCurveClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "  Control Parameters:");
   ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_,
                 this->ki_);
+  ESP_LOGCONFIG(TAG, "    max_error: %.1fK", this->max_error_);
+  ESP_LOGCONFIG(TAG, "    min_delta: %.1fK", this->min_delta_);
 
   if (this->alt_curve_) {
     ESP_LOGCONFIG(TAG, "    Using alternate heating curve.");
-  } else {
-    ESP_LOGCONFIG(TAG, "    Using standard heating curve.");
   }
 
   ESP_LOGCONFIG(TAG, "  Output Parameters:");
 
   if (this->rounded_) {
     ESP_LOGCONFIG(TAG, "    Rounding enabled.");
-  } else {
-    ESP_LOGCONFIG(TAG, "    Rounding disabled.");
   }
 
-  ESP_LOGCONFIG(TAG, "    maximum_output: %.2f, minimum_output: %.2f", this->maximum_output_, this->minimum_output_);
+  ESP_LOGCONFIG(TAG, "    maximum_output: %.2f", this->maximum_output_);
+  ESP_LOGCONFIG(TAG, "    minimum_output: %.2f", this->minimum_output_);
   ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_);
-  ESP_LOGCONFIG(TAG, "    output_factor: %.2f,  output_offset: %.2f", this->output_calibration_factor_,
-                this->output_calibration_offset_);
+  ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
+  ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
 
   this->dump_traits_(TAG);
 }
@@ -108,7 +107,6 @@ void HeatingCurveClimate::update() {
   }
 
   this->dt_ = calculate_relative_time_();
-
   float new_temp = get_heat_curve_temp();
 
   // Proportional and Integral correction to accelerate convergence to target
@@ -129,13 +127,13 @@ void HeatingCurveClimate::update() {
   output = clamp(output, 0.0f, this->maximum_output_);
 
   // shutdown boiler if outdoor temperature is too high or output below minimum value
-  if (this->outdoor_temp_ > this->target_temperature - 2 || output < this->minimum_output_) {
+  if (this->delta_ < this->min_delta_ || output < this->minimum_output_) {
     ESP_LOGD(TAG, "Forcing IDLE");
     output = 0;
   }
 
   // shutdown boiler if ambiant temperature is too high
-  if (this->error_ <= MAX_ERROR) {
+  if (this->error_ <= -this->max_error_) {
     ESP_LOGD(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
     output = 0;
   }

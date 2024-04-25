@@ -14,7 +14,6 @@ namespace heat_curve {
 
 static const float THRESHOLD_HIGH{0.15};
 static const float THRESHOLD_LOW{-0.15};
-static const float MAX_ERROR{-1.0};
 static const float KP_MULTIPLIER{0.2};
 
 class HeatingCurveClimate : public Climate, public Component {
@@ -31,6 +30,8 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_shift(float shift) { shift_ = shift; }
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
+  void set_max_error(float max) { max_error_ = max; }
+  void set_min_delta(float min) { min_delta_ = min; }
   void set_minimum_output(float min) { minimum_output_ = min; }
   void set_maximum_output(float max) { maximum_output_ = max; }
   void set_heat_required_output(float heatreq_out) { heat_required_output_ = heatreq_out; }
@@ -87,6 +88,8 @@ class HeatingCurveClimate : public Climate, public Component {
   float minimum_output_{0.1};
   float maximum_output_{1};
   float heat_required_output_{0.1};
+  float min_delta_{2.0};
+  float max_error_{1.0};
   bool heat_required_{false};
   bool rounded_{false};
   bool alt_curve_{false};
