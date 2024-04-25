@@ -53,8 +53,8 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_KP, default=0): cv.float_,
                     cv.Optional(CONF_KI, default=0): cv.float_,
                     cv.Optional(CONF_ALTERNATE_CURVE, default=False): cv.boolean,
-                    cv.Optional(CONF_MAX_ERROR, default=1.0): cv.float_,
-                    cv.Optional(CONF_MIN_DELTA, default=2.0): cv.float_,
+                    cv.Optional(CONF_MAX_ERROR, default=1): cv.float_,
+                    cv.Optional(CONF_MIN_DELTA, default=2): cv.float_,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
@@ -116,8 +116,8 @@ async def to_code(config):
             cv.Required(CONF_SHIFT): cv.templatable(cv.float_),
             cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
             cv.Optional(CONF_KI, default=0.0): cv.templatable(cv.float_),
-            # cv.Optional(CONF_MAX_ERROR, default=1.0): cv.templatable(cv.float_),
-            # cv.Optional(CONF_MIN_DELTA, default=2.0): cv.templatable(cv.float_),
+            cv.Optional(CONF_MAX_ERROR, default=1.0): cv.templatable(cv.float_),
+            cv.Optional(CONF_MIN_DELTA, default=2.0): cv.templatable(cv.float_),
         }
     ),
 )
@@ -137,11 +137,11 @@ async def set_control_parameters(config, action_id, template_arg, args):
     shift_template_ = await cg.templatable(config[CONF_SHIFT], args, float)
     cg.add(var.set_shift(shift_template_))
 
-    # max_error_template_ = await cg.templatable(config[CONF_MAX_ERROR], args, float)
-    # cg.add(var.set_max_error(max_error_template_))
+    max_error_template_ = await cg.templatable(config[CONF_MAX_ERROR], args, float)
+    cg.add(var.set_max_error(max_error_template_))
 
-    # min_delta_template_ = await cg.templatable(config[CONF_MIN_DELTA], args, float)
-    # cg.add(var.set_min_delta(min_delta_template_))
+    min_delta_template_ = await cg.templatable(config[CONF_MIN_DELTA], args, float)
+    cg.add(var.set_min_delta(min_delta_template_))
 
     return var
 
