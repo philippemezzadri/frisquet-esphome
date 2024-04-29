@@ -128,13 +128,19 @@ void HeatingCurveClimate::update() {
 
   // shutdown boiler if outdoor temperature is too high or output below minimum value
   if (this->delta_ < this->min_delta_ || output < this->minimum_output_) {
-    ESP_LOGD(TAG, "Forcing IDLE");
+    ESP_LOGD(TAG, "Outdoor temperature above max limit, forcing IDLE");
     output = 0;
   }
 
   // shutdown boiler if ambiant temperature is too high
   if (this->error_ <= -this->max_error_) {
     ESP_LOGD(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
+    output = 0;
+  }
+
+  // Don't restart boiler is ambiant temperature is above target
+  if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
+    ESP_LOGD(TAG, "Ambiant temperature above target, already on IDLE, forcing IDLE");
     output = 0;
   }
 
@@ -164,16 +170,16 @@ void HeatingCurveClimate::write_output_(float value) {
   ClimateAction new_action;
   if (value > 0) {
     new_action = CLIMATE_ACTION_HEATING;
-    ESP_LOGI(TAG, "Climate action is HEATING");
   } else if (this->mode == CLIMATE_MODE_OFF) {
     new_action = CLIMATE_ACTION_OFF;
     this->water_temp_ = NAN;
-    ESP_LOGI(TAG, "Climate mode is OFF");
   } else {
     new_action = CLIMATE_ACTION_IDLE;
     this->water_temp_ = NAN;
-    ESP_LOGI(TAG, "Climate action is IDLE");
   }
+
+  ESP_LOGD(TAG, "Climate action was %s", LOG_STR_ARG(climate_action_to_string(this->action)));
+  ESP_LOGD(TAG, "Climate action is now %s", LOG_STR_ARG(climate_action_to_string(new_action)));
 
   if (new_action != this->action) {
     this->action = new_action;
