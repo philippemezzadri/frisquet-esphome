@@ -151,8 +151,8 @@ Configuration variables:
   - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Defaults to `false`.
   - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to `1.5`.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to `0`.
-  - **max_error** (*Optional*, float) : The regulation error above which the boiler stops (e.g. when the ambiant temperature is too high because of external heat inputs). Defaults to `1`.
-  - **min_delta** (*Optional*, float) : The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
+  - **max_error** (*Optional*, float): The regulation error above which the boiler stops (e.g. when the ambiant temperature is too high because of external heat inputs). Defaults to `1`.
+  - **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
   - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
   - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
 - **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
@@ -225,7 +225,13 @@ where :
 
 Setting a proportionnal factor `kp` can be useful to accelerate the convergence when the target temperature is changed. The value of `kp` should remain low to maintain the stability of the system and avoid overshoots.
 
-However, setting an integral factor `ki`can be tricky to use and depends on many factors such as the house thermal inertia. We do not recommend to use it unless you know what you are doing.
+However, setting an integral factor `ki` can be tricky to use and depends on many factors such as the house thermal inertia. We do not recommend to use it unless you know what you are doing.
+
+### Hysteresis
+
+In some instances, the boiler may go on idle mode because the ambiant temperature exceeds the maximum limit or if the outdoor temperature is too high. This is controlled by the `max_error`, `min_delta` and `minimum_output` settings.
+
+If the above conditions disappear, the boiler will be allowed to restart only if the ambiant temperature goes below the target.
 
 ### Setpoint calibration factors
 
