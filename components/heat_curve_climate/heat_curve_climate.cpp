@@ -126,9 +126,15 @@ void HeatingCurveClimate::update() {
   float output = this->temperature_to_output(new_temp);
   output = clamp(output, 0.0f, this->maximum_output_);
 
-  // shutdown boiler if outdoor temperature is too high or output below minimum value
-  if (this->delta_ < this->min_delta_ || output < this->minimum_output_) {
+  // shutdown boiler if outdoor temperature is too high
+  if (this->delta_ < this->min_delta_) {
     ESP_LOGD(TAG, "Outdoor temperature above max limit, forcing IDLE");
+    output = 0;
+  }
+
+  // shutdown boiler output below minimum value
+  if (output < this->minimum_output_) {
+    ESP_LOGD(TAG, "Calculated output below minimum value, forcing IDLE");
     output = 0;
   }
 
