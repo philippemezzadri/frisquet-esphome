@@ -53,6 +53,12 @@ Configuration variables:
     Defaults to ``1.5``.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. 
     Defaults to ``0``.
+  - **max_error** (*Optional*, float): The regulation error above which the boiler stops 
+    (e.g. when the ambiant temperature is too high because of external heat inputs). 
+    Defaults to ``1``.
+  - **min_delta** (*Optional*, float): The target/outdoor temperature difference below which 
+    the boiler stops. 
+    Defaults to ``2``.
   - **kp** (*Optional*, float): The factor for the proportional term added tothe heating curve. 
     May be useful for accelerating convergence to target temperature. 
     Defaults to ``0``.
@@ -98,7 +104,8 @@ where :
 In this example, heating curves are given for an ambient temperature (target) of 20°C with no shift. 
 The ``shift`` parameter allows you to move up and down the curves by a few degrees.
 
-``slope`` and ``shift`` strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. 
+``slope`` and ``shift`` strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary 
+to find the best settings. 
 
 The following standard values for the ``slope`` may be used as a guide:
 
@@ -147,9 +154,19 @@ where :
 - ``kp`` and ``ki`` are defined in the Climate ``control_parameters``.
 
 .. warning::
-    Setting a proportionnal factor `kp` can be useful to accelerate the convergence when the target temperature is changed. The value of `kp` should remain low to maintain the stability of the system and avoid overshoots.
+    Setting a proportionnal factor ``kp`` can be useful to accelerate the convergence when the target temperature is changed. 
+    The value of ``kp`` should remain low to maintain the stability of the system and avoid overshoots.
 
-    However, setting an integral factor `ki`can be tricky to use and depends on many factors such as the house thermal inertia. We do not recommend to use it unless you know what you are doing.
+    However, setting an integral factor ``ki`` can be tricky to use and depends on many factors such as the house thermal inertia. 
+    We do not recommend to use it unless you know what you are doing.
+
+Hysteresis
+----------
+
+In some instances, the boiler may go on idle mode because the ambiant temperature exceeds the maximum limit or 
+if the outdoor temperature is too high. This is controlled by the ``max_error``, ``min_delta`` and ``minimum_output`` settings.
+
+If the above conditions disappear, the boiler will be allowed to restart only if the ambiant temperature goes below the target.
 
 Temperature calibration factors
 -------------------------------
@@ -195,10 +212,11 @@ To get the Climate component working, you need a few additional components:
 ``heat_curve_climate`` Switch
 -----------------------------
 
-On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode. 
+On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode
+(in accordance with ``max_error``, ``min_delta`` and ``minimum_output`` settings). 
 This can be undesirable as heat may be required by radiators in other rooms of the house.
 
-To address this issue, the ``heat_curve_climate`` platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely.
+To address this issue, the Heating Curve Climate platform provides a switch that will force the boiler to run at a minimum power level instead of shutting off completely.
 
 This ensures that heat is still being supplied to the radiators and helps maintain a comfortable temperature throughout the house.
 
@@ -213,7 +231,7 @@ Configuration variables:
 
 - **name** (**Required**, string): The name of the switch.
 
-When the switch is on, the boiler will run at the minimum power defined by the ``heat_required_output`` parameter.
+When the switch is on, the boiler will never go below the minimum power defined by the ``heat_required_output`` parameter.
 
 ``heat_curve_climate`` Sensor
 -----------------------------
@@ -258,10 +276,9 @@ This can be used to manually tune the controller. Make sure to update the values
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
-            slope: 1.45
-            shift: 3
+            slope: 1.2
+            shift: 1
             kp: 0
-            ki: 0
 
 Configuration variables:
 ************************

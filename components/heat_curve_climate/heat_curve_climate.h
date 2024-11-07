@@ -30,6 +30,8 @@ class HeatingCurveClimate : public Climate, public Component {
   void set_shift(float shift) { shift_ = shift; }
   void set_kp(float kp) { kp_ = kp; }
   void set_ki(float ki) { ki_ = ki; }
+  void set_max_error(float max) { max_error_ = max; }
+  void set_min_delta(float min) { min_delta_ = min; }
   void set_minimum_output(float min) { minimum_output_ = min; }
   void set_maximum_output(float max) { maximum_output_ = max; }
   void set_heat_required_output(float heatreq_out) { heat_required_output_ = heatreq_out; }
@@ -86,6 +88,8 @@ class HeatingCurveClimate : public Climate, public Component {
   float minimum_output_{0.1};
   float maximum_output_{1};
   float heat_required_output_{0.1};
+  float min_delta_{2.0};
+  float max_error_{1.0};
   bool heat_required_{false};
   bool rounded_{false};
   bool alt_curve_{false};
@@ -119,11 +123,15 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
     auto shift = this->shift_.value(x...);
     auto kp = this->kp_.value(x...);
     auto ki = this->ki_.value(x...);
+    auto max_error = this->max_error_.value(x...);
+    auto min_delta = this->min_delta_.value(x...);
 
     this->parent_->set_slope(slope);
     this->parent_->set_shift(shift);
     this->parent_->set_kp(kp);
     this->parent_->set_ki(ki);
+    this->parent_->set_max_error(max_error);
+    this->parent_->set_min_delta(min_delta);
     this->parent_->dump_config();
     this->parent_->update();
   }
@@ -133,6 +141,8 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
   TEMPLATABLE_VALUE(float, shift)
   TEMPLATABLE_VALUE(float, kp)
   TEMPLATABLE_VALUE(float, ki)
+  TEMPLATABLE_VALUE(float, max_error)
+  TEMPLATABLE_VALUE(float, min_delta)
 
   HeatingCurveClimate *parent_;
 };
