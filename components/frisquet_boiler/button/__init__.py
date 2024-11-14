@@ -30,7 +30,7 @@ async def to_code(config):
     if test_config := config.get(CONF_TEST):
         b = await button.new_button(test_config)
         await cg.register_parented(b, config[CONF_FRISQUETBOILER_ID])
-        cg.add(parent.set_restart_button(b))
+        cg.add(parent.set_test_button(b))
     if pair_config := config.get(CONF_PAIR):
         b = await button.new_button(pair_config)
         await cg.register_parented(b, config[CONF_FRISQUETBOILER_ID])

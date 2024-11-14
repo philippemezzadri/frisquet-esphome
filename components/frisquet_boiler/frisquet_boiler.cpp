@@ -193,7 +193,7 @@ void FrisquetBoiler::send_test_message() {
 
     int checksum = 0;
     for (uint8_t i = 4; i <= 17; i++)
-      checksum -= this->message_[i];
+      checksum -= this->comm_test_message_[i];
 
     this->comm_test_message_[18] = (uint8_t) ((checksum) >> 8);    // highbyte
     this->comm_test_message_[19] = (uint8_t) ((checksum) & 0xff);  // lowbyte
