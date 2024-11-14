@@ -51,11 +51,12 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   float get_flow_temperature() { return flow_temperature_; }
   int get_setpoint() { return operating_setpoint_; }
 
+  void pair();
+  void send_test_message();
+
  protected:
   void digital_write(bool value) { this->pin_->digital_write(value); }
   void send_message();
-  void send_test_message();
-  void pair();
   void serialize_byte(uint8_t byteValue, uint8_t byteIndex);
   void write_bit(bool bitValue);
   void log_last_message();
