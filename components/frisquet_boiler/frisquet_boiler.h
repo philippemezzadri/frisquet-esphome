@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/output/float_output.h"
+#include "esphome/components/button/button.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
@@ -26,6 +27,9 @@ static const int DELAY_BETWEEN_MESSAGES{33};      // ms
 static const int LONG_PULSE{825};                 // micro seconds
 
 class FrisquetBoiler : public output::FloatOutput, public Component {
+  SUB_BUTTON(test)
+  SUB_BUTTON(pair)
+
  public:
   void setup() override;
   void loop() override;
@@ -50,6 +54,8 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
  protected:
   void digital_write(bool value) { this->pin_->digital_write(value); }
   void send_message();
+  void send_test_message();
+  void pair();
   void serialize_byte(uint8_t byteValue, uint8_t byteIndex);
   void write_bit(bool bitValue);
   void log_last_message();
@@ -67,6 +73,10 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   long last_order_{0};
   uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00,
                           0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
+
+  uint8_t comm_test_message_[22] = {0x00, 0x00, 0x00, 0x7E, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0xF0, 0xFF,
+                                    0xFF, 0x03, 0xB9, 0x20, 0x00, 0x02, 0x00, 0x00, 0x00, 0xFF, 0x00};
+
   uint8_t boiler_id_[2];
   float output_calibration_factor_{1.9};
   float output_calibration_offset_{-41};

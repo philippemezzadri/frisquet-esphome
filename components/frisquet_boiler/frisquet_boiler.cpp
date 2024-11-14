@@ -20,6 +20,8 @@ void FrisquetBoiler::set_boiler_id(const char *str) {
   esphome::parse_hex(str, this->boiler_id_, 2);
   this->message_[4] = this->boiler_id_[0];
   this->message_[5] = this->boiler_id_[1];
+  this->comm_test_message_[12] = this->boiler_id_[0];
+  this->comm_test_message_[13] = this->boiler_id_[1];
 }
 
 void FrisquetBoiler::write_state(float state) {
@@ -181,6 +183,35 @@ void FrisquetBoiler::calculate_flow_temperature() {
 
   this->internal_sensor_callback_.call();
 }
+void FrisquetBoiler::send_test_message() {
+  ESP_LOGI(TAG, "Sending test command to the boiler");
+
+  // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
+  for (uint8_t msg = 0; msg < 2; msg++) {
+    this->previous_state_ = HIGH;
+    this->comm_test_message_[9] = (msg == 0) ? 0xF0 : 0xF1;
+
+    int checksum = 0;
+    for (uint8_t i = 4; i <= 17; i++)
+      checksum -= this->message_[i];
+
+    this->comm_test_message_[18] = (uint8_t) ((checksum) >> 8);    // highbyte
+    this->comm_test_message_[19] = (uint8_t) ((checksum) & 0xff);  // lowbyte
+
+    for (uint8_t i = 1; i < 22; i++)
+      this->serialize_byte(this->comm_test_message_[i], i);
+
+    this->digital_write(LOW);
+    delay(DELAY_BETWEEN_MESSAGES);
+  }
+
+  // /!\ Final transition necessary to get the last message decoded properly;
+  this->digital_write(HIGH);
+  delayMicroseconds(2 * LONG_PULSE);
+  this->digital_write(LOW);
+}
+
+void FrisquetBoiler::pair() { ESP_LOGW(TAG, "Device pairing not implemented."); }
 
 }  // namespace frisquet_boiler
 }  // namespace esphome

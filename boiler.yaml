@@ -105,6 +105,13 @@ output:
     id: boiler_cmd
     boiler_id: 03B9
 
+button:
+  - platform: frisquet_boiler
+    test:
+      name: Test mode
+    pair:
+      name: Pairing mode
+
 switch:
   - platform: heat_curve_climate
     name: "Heat Required"
