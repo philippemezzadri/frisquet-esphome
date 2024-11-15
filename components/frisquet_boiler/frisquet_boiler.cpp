@@ -26,6 +26,10 @@ void FrisquetBoiler::set_mode(int mode) {
     this->test_switch_->state = false;
     this->test_switch_->publish_state(false);
   }
+
+  if (this->msg_counter_ > 0) {
+    this->log_last_message(this->comm_test_message_);
+  }
 }
 
 void FrisquetBoiler::set_boiler_id(const char *str) {
@@ -231,7 +235,6 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(LOW);
   delay(DELAY_BETWEEN_MESSAGES);
   this->msg_counter_++;
-  // this->log_last_message(this->comm_test_message_);
 }
 
 void FrisquetBoiler::send_pairing_message() {
