@@ -28,7 +28,7 @@ void FrisquetBoiler::set_mode(int mode) {
   }
 
   if (this->msg_counter_ > 0) {
-    this->log_last_message(this->comm_test_message_);
+    this->log_last_message(this->comm_test_message_, LONG_MESSAGE_SIZE);
   }
 }
 
@@ -111,14 +111,14 @@ void FrisquetBoiler::send_message() {
     this->message_[11] = this->operating_setpoint_;
 
     int checksum = 0;
-    for (uint8_t i = 4; i <= 12; i++)
+    for (uint8_t i = 4; i <= MESSAGE_SIZE - 4; i++)
       checksum -= this->message_[i];
 
     this->message_[13] = (uint8_t) ((checksum) >> 8);    // highbyte
     this->message_[14] = (uint8_t) ((checksum) & 0xff);  // lowbyte
 
-    for (uint8_t i = 1; i < 17; i++)
-      this->serialize_byte(this->message_[i], i, 14);
+    for (uint8_t i = 1; i <= MESSAGE_SIZE; i++)
+      this->serialize_byte(this->message_[i], i, MESSAGE_SIZE);
 
     this->digital_write(LOW);
     delay(DELAY_BETWEEN_MESSAGES);
@@ -128,7 +128,7 @@ void FrisquetBoiler::send_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
-  this->log_last_message(this->message_);
+  this->log_last_message(this->message_, MESSAGE_SIZE);
 }
 
 /**
@@ -144,7 +144,7 @@ void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_
 
     // bit stuffing only applicable to the data part of the message (bytes 4 to 16)
     // increment bitstuffing counter if bitValue == 1
-    if (byteIndex >= 4 && byteIndex <= msgSize && bitValue == 1)
+    if (byteIndex >= 4 && byteIndex <= msgSize - 2 && bitValue == 1)
       this->bitstuff_counter_++;
 
     // reset bitstuffing counter
@@ -182,11 +182,11 @@ void FrisquetBoiler::write_bit(bool bitValue) {
   delayMicroseconds(LONG_PULSE);
 }
 
-void FrisquetBoiler::log_last_message(uint8_t *msg) {
+void FrisquetBoiler::log_last_message(uint8_t *msg, uint8_t length) {
   char const *formatString = "%02X";
   char *buffer = (char *) malloc(100 * sizeof(char));
   char *endofBuffer = buffer;
-  int valueCount = 16;
+  int valueCount = length;
   int i;
   for (i = 0; i < valueCount; ++i) {
     endofBuffer += sprintf(endofBuffer, formatString, msg[i + 1]);
@@ -206,6 +206,7 @@ void FrisquetBoiler::calculate_flow_temperature() {
 
   this->internal_sensor_callback_.call();
 }
+
 void FrisquetBoiler::send_test_message() {
   ESP_LOGI(TAG, "Sending test command to the boiler");
 
@@ -216,14 +217,14 @@ void FrisquetBoiler::send_test_message() {
     this->comm_test_message_[10] = this->msg_counter_ & 0xff;
 
     int checksum = 0;
-    for (uint8_t i = 4; i <= 17; i++)
+    for (uint8_t i = 4; i <= LONG_MESSAGE_SIZE - 4; i++)
       checksum -= this->comm_test_message_[i];
 
     this->comm_test_message_[18] = (uint8_t) ((checksum) >> 8);    // highbyte
     this->comm_test_message_[19] = (uint8_t) ((checksum) & 0xff);  // lowbyte
 
-    for (uint8_t i = 1; i < 22; i++)
-      this->serialize_byte(this->comm_test_message_[i], i, 19);
+    for (uint8_t i = 1; i <= LONG_MESSAGE_SIZE; i++)
+      this->serialize_byte(this->comm_test_message_[i], i, LONG_MESSAGE_SIZE);
 
     this->digital_write(LOW);
     delay(DELAY_BETWEEN_MESSAGES);

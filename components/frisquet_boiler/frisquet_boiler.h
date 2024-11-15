@@ -30,6 +30,9 @@ static const int CONTROL_MODE{0};
 static const int TEST_MODE{1};
 static const int CONFIG_MODE{2};
 
+static const int MESSAGE_SIZE{16};
+static const int LONG_MESSAGE_SIZE{21};
+
 class FrisquetBoiler : public output::FloatOutput, public Component {
   SUB_SWITCH(test)
   SUB_SWITCH(pair)
@@ -62,7 +65,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void send_test_message();
   void serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize);
   void write_bit(bool bitValue);
-  void log_last_message(uint8_t *msg);
+  void log_last_message(uint8_t *msg, uint8_t length);
 
   CallbackManager<void()> internal_sensor_callback_;
 
