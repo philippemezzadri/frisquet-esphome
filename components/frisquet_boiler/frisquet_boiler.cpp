@@ -230,7 +230,7 @@ void FrisquetBoiler::send_test_message() {
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
   delay(DELAY_BETWEEN_MESSAGES);
-  this->log_last_message(this->comm_test_message_)
+  this->log_last_message(this->comm_test_message_);
 }
 
 void FrisquetBoiler::send_pairing_message() {
