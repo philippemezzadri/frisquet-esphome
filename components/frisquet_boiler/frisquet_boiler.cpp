@@ -16,6 +16,18 @@ void FrisquetBoiler::setup() {
   this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
 }
 
+void FrisquetBoiler::set_mode(int mode) {
+  this->mode_ = mode;
+  if (mode == TEST_MODE) {
+    this->msg_counter = 0;
+    this->pair_switch_->state = False;
+    this->pair_switch_->publish_state();
+  } else if (mode == CONFIG_MODE) {
+    this->test_switch_->state = False;
+    this->test_switch_->publish_state()
+  }
+}
+
 void FrisquetBoiler::set_boiler_id(const char *str) {
   esphome::parse_hex(str, this->boiler_id_, 2);
   this->message_[4] = this->boiler_id_[0];
@@ -112,7 +124,7 @@ void FrisquetBoiler::send_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
-  this->log_last_message();
+  this->log_last_message(this->message_);
 }
 
 /**
@@ -166,21 +178,20 @@ void FrisquetBoiler::write_bit(bool bitValue) {
   delayMicroseconds(LONG_PULSE);
 }
 
-void FrisquetBoiler::log_last_message() {
+void FrisquetBoiler::log_last_message(uint8_t *msg) {
   char const *formatString = "%02X";
   char *buffer = (char *) malloc(100 * sizeof(char));
   char *endofBuffer = buffer;
   int valueCount = 16;
   int i;
   for (i = 0; i < valueCount; ++i) {
-    endofBuffer += sprintf(endofBuffer, formatString, this->message_[i + 1]);
+    endofBuffer += sprintf(endofBuffer, formatString, msg[i + 1]);
     if (i < valueCount - 1)
       endofBuffer += sprintf(endofBuffer, "%c", ' ');
   }
 
   ESP_LOGD(TAG, "Last message frames: %s", buffer);
   free(buffer);
-  ESP_LOGD(TAG, "Boiler flow temperature: %.1f°C", this->flow_temperature_);
 }
 
 void FrisquetBoiler::calculate_flow_temperature() {
@@ -198,6 +209,7 @@ void FrisquetBoiler::send_test_message() {
   for (uint8_t msg = 0; msg < 3; msg++) {
     this->previous_state_ = HIGH;
     this->comm_test_message_[9] = 0xE0 + msg;
+    this->comm_test_message_[10] = this->msg_counter_ & 0xff;
 
     int checksum = 0;
     for (uint8_t i = 4; i <= 17; i++)
@@ -217,6 +229,8 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
+  delay(DELAY_BETWEEN_MESSAGES);
+  this->log_last_message(this->comm_test_message_)
 }
 
 void FrisquetBoiler::send_pairing_message() {
