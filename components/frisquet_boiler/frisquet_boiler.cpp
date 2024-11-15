@@ -102,7 +102,7 @@ void FrisquetBoiler::send_message() {
     this->message_[14] = (uint8_t) ((checksum) & 0xff);  // lowbyte
 
     for (uint8_t i = 1; i < 17; i++)
-      this->serialize_byte(this->message_[i], i);
+      this->serialize_byte(this->message_[i], i, 14);
 
     this->digital_write(LOW);
     delay(DELAY_BETWEEN_MESSAGES);
@@ -121,7 +121,7 @@ void FrisquetBoiler::send_message() {
  * @param byteValue Byte value to be serialized
  * @param byteIndex Order of the byte in the message, used for bit stuffing
  */
-void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize = 14) {
+void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize) {
   for (uint8_t n = 0; n < 8; n++) {
     int bitValue = ((byteValue >> n) & 0x1);  // bitread
     this->write_bit(bitValue);

@@ -60,7 +60,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void send_message();
   void send_pairing_message();
   void send_test_message();
-  void serialize_byte(uint8_t byteValue, uint8_t byteIndex);
+  void serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize);
   void write_bit(bool bitValue);
   void log_last_message();
 
