@@ -41,7 +41,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::IO; }
 
-  voide set_mode(int mode) { this->mode_ = mode; }
+  void set_mode(int mode) { this->mode_ = mode; }
   void set_operating_setpoint(int setpoint) { this->operating_setpoint_ = setpoint; }
   void set_pin(GPIOPin *pin) { pin_ = pin; }
   void set_operating_mode(int mode);

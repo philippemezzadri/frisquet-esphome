@@ -58,7 +58,7 @@ void FrisquetBoiler::loop() {
     }
   } else if (this->mode_ == TEST_MODE) {
     this->send_test_message();
-  } else if (this->mode == CONFIG_MODE) {
+  } else if (this->mode_ == CONFIG_MODE) {
     this->send_pairing_message();
   }
 }
@@ -121,7 +121,7 @@ void FrisquetBoiler::send_message() {
  * @param byteValue Byte value to be serialized
  * @param byteIndex Order of the byte in the message, used for bit stuffing
  */
-void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize = 14) {
+void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize) {
   for (uint8_t n = 0; n < 8; n++) {
     int bitValue = ((byteValue >> n) & 0x1);  // bitread
     this->write_bit(bitValue);
@@ -197,7 +197,7 @@ void FrisquetBoiler::send_test_message() {
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
     this->previous_state_ = HIGH;
-    this->comm_test_message_[9] = ? 0xE0 + msg;
+    this->comm_test_message_[9] = 0xE0 + msg;
 
     int checksum = 0;
     for (uint8_t i = 4; i <= 17; i++)
