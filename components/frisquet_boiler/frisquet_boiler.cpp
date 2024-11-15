@@ -20,8 +20,10 @@ void FrisquetBoiler::set_boiler_id(const char *str) {
   esphome::parse_hex(str, this->boiler_id_, 2);
   this->message_[4] = this->boiler_id_[0];
   this->message_[5] = this->boiler_id_[1];
-  this->comm_test_message_[12] = this->boiler_id_[0];
-  this->comm_test_message_[13] = this->boiler_id_[1];
+  this->comm_test_message_[4] = this->boiler_id_[0];
+  this->comm_test_message_[5] = this->boiler_id_[1];
+  this->comm_setup_message_[12] = this->boiler_id_[0];
+  this->comm_setup_message_[13] = this->boiler_id_[1];
 }
 
 void FrisquetBoiler::write_state(float state) {
@@ -45,13 +47,19 @@ void FrisquetBoiler::write_state(float state) {
 }
 
 void FrisquetBoiler::loop() {
-  long now = millis();
-  if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
-      ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
-    ESP_LOGD(TAG, "Repeating last command");
-    this->send_message();
-    this->last_cmd_ = now;
-    this->delay_cycle_cmd_ = DELAY_CYCLE_CMD;
+  if (this->mode_ == CONTROL_MODE) {
+    long now = millis();
+    if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
+        ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
+      ESP_LOGD(TAG, "Repeating last command");
+      this->send_message();
+      this->last_cmd_ = now;
+      this->delay_cycle_cmd_ = DELAY_CYCLE_CMD;
+    }
+  } else if (this->mode_ == TEST_MODE) {
+    this->send_test_message();
+  } else if (this->mode == CONFIG_MODE) {
+    this->send_pairing_message();
   }
 }
 
@@ -64,7 +72,7 @@ void FrisquetBoiler::dump_config() {
   LOG_FLOAT_OUTPUT(this);
 }
 
-void FrisquetBoiler::set_mode(int mode) {
+void FrisquetBoiler::set_operating_mode(int mode) {
   // new operating mode : 0 = eco / 3 = confort / 4 = hors gel
   if ((mode == 0) or (mode == 3) or (mode == 4)) {
     ESP_LOGD(TAG, "New mode: %i", mode);
@@ -113,14 +121,14 @@ void FrisquetBoiler::send_message() {
  * @param byteValue Byte value to be serialized
  * @param byteIndex Order of the byte in the message, used for bit stuffing
  */
-void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex) {
+void FrisquetBoiler::serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize = 14) {
   for (uint8_t n = 0; n < 8; n++) {
     int bitValue = ((byteValue >> n) & 0x1);  // bitread
     this->write_bit(bitValue);
 
     // bit stuffing only applicable to the data part of the message (bytes 4 to 16)
     // increment bitstuffing counter if bitValue == 1
-    if (byteIndex >= 4 && byteIndex <= 14 && bitValue == 1)
+    if (byteIndex >= 4 && byteIndex <= msgSize && bitValue == 1)
       this->bitstuff_counter_++;
 
     // reset bitstuffing counter
@@ -187,9 +195,9 @@ void FrisquetBoiler::send_test_message() {
   ESP_LOGI(TAG, "Sending test command to the boiler");
 
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
-  for (uint8_t msg = 0; msg < 2; msg++) {
+  for (uint8_t msg = 0; msg < 3; msg++) {
     this->previous_state_ = HIGH;
-    this->comm_test_message_[9] = (msg == 0) ? 0xF0 : 0xF1;
+    this->comm_test_message_[9] = ? 0xE0 + msg;
 
     int checksum = 0;
     for (uint8_t i = 4; i <= 17; i++)
@@ -199,7 +207,7 @@ void FrisquetBoiler::send_test_message() {
     this->comm_test_message_[19] = (uint8_t) ((checksum) & 0xff);  // lowbyte
 
     for (uint8_t i = 1; i < 22; i++)
-      this->serialize_byte(this->comm_test_message_[i], i);
+      this->serialize_byte(this->comm_test_message_[i], i, 19);
 
     this->digital_write(LOW);
     delay(DELAY_BETWEEN_MESSAGES);
@@ -211,7 +219,10 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(LOW);
 }
 
-void FrisquetBoiler::pair() { ESP_LOGW(TAG, "Device pairing not implemented."); }
+void FrisquetBoiler::send_pairing_message() {
+  ESP_LOGW(TAG, "Device pairing not implemented.");
+  delay(DELAY_BETWEEN_MESSAGES);
+}
 
 }  // namespace frisquet_boiler
 }  // namespace esphome
