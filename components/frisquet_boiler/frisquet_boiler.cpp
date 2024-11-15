@@ -234,13 +234,35 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
-  delay(DELAY_BETWEEN_MESSAGES);
   this->msg_counter_++;
 }
 
 void FrisquetBoiler::send_pairing_message() {
-  ESP_LOGW(TAG, "Device pairing not implemented.");
-  delay(DELAY_BETWEEN_MESSAGES);
+  ESP_LOGI(TAG, "Sending configuration command to the boiler");
+
+  // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
+  for (uint8_t msg = 0; msg < 3; msg++) {
+    this->previous_state_ = HIGH;
+    this->comm_setup_message_[9] = 0xF0 + msg;
+
+    int checksum = 0;
+    for (uint8_t i = 4; i <= LONG_MESSAGE_SIZE - 4; i++)
+      checksum -= this->comm_setup_message_[i];
+
+    this->comm_setup_message_[18] = (uint8_t) ((checksum) >> 8);    // highbyte
+    this->comm_setup_message_[19] = (uint8_t) ((checksum) & 0xff);  // lowbyte
+
+    for (uint8_t i = 1; i <= LONG_MESSAGE_SIZE; i++)
+      this->serialize_byte(this->comm_setup_message_[i], i, LONG_MESSAGE_SIZE);
+
+    this->digital_write(LOW);
+    delay(DELAY_BETWEEN_MESSAGES);
+  }
+
+  // /!\ Final transition necessary to get the last message decoded properly;
+  this->digital_write(HIGH);
+  delayMicroseconds(2 * LONG_PULSE);
+  this->digital_write(LOW);
 }
 
 }  // namespace frisquet_boiler
