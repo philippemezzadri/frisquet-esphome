@@ -21,10 +21,10 @@ void FrisquetBoiler::set_mode(int mode) {
   if (mode == TEST_MODE) {
     this->msg_counter_ = 0;
     this->pair_switch_->state = false;
-    this->pair_switch_->publish_state();
+    this->pair_switch_->publish_state(false);
   } else if (mode == CONFIG_MODE) {
     this->test_switch_->state = false;
-    this->test_switch_->publish_state()
+    this->test_switch_->publish_state(false)
   }
 }
 
