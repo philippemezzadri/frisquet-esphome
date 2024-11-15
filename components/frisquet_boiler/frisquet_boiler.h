@@ -62,7 +62,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void send_test_message();
   void serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize);
   void write_bit(bool bitValue);
-  void log_last_message();
+  void log_last_message(uint8_t *msg);
 
   CallbackManager<void()> internal_sensor_callback_;
 
