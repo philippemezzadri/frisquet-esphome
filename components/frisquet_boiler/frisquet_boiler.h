@@ -32,7 +32,7 @@ static const int CONFIG_MODE{2};
 
 class FrisquetBoiler : public output::FloatOutput, public Component {
   SUB_SWITCH(test)
-  SUB_SWITCH(send_pairing_message)
+  SUB_SWITCH(pair)
 
  public:
   void setup() override;
