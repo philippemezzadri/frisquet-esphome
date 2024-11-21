@@ -79,7 +79,14 @@ external_components:
 
 ## Frisquet Boiler Output
 
-The core component allowing communication with the boiler control board is a [Float Output](<https://esphome.io/components/output/>) component:
+The core component communicates with the boiler control board to send messages which contains a boiler identifier, heating mode and a setpoint water temperature as a ratio.
+
+It drives the boiler by emitting the same signal that the remote does via VHF. The original receiver only transforms the radio signal into 5V TTL logic.
+The signal protocol is differential Manchester with bit-stuffing applied (whenever 5 ones are sent a stuffing 0 is appended). There is also a checksum.
+
+You should ensure that your microcontroller will output a signal strong enough to drive the 5V logic. In many cases this will work, however you may use an optocoupler or a level shifter like [this simple transistor schematic](https://electronics.stackexchange.com/questions/107382/use-bjt-transistor-as-a-switch-without-inverting-the-signal/107388#107388)
+
+The frisquet_boiler is then a [Float Output](<https://esphome.io/components/output/>) component to send this signal to the boiler:
 
 ```yaml
 output:
@@ -100,18 +107,21 @@ Configuration variables:
 
 If `min_power`is set to a value that is not zero, it is important to set `zero_means_zero` to `true`. This can be safely ignored if `min_power` and `max_power` are kept at their default values.
 
-`calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the water flow temperature. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
-
 The output value received by the component is any rational value between `0` and `1`. Internaly, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
-- 10 : water pump starts, no heating
+- 10 : for some boilers, water pump starts with no heating, for others heating starts with any value > 0
 - 11 - 100 : water heating
 - 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
 
-**Important:** the boiler ID that must be indicated in the YAML configuration file is required to allow
-your boiler to receive the messages from the ESP. This ID can be retrieved by connecting the radio receiver signal wire to an Arduino.
-See [here](https://github.com/etimou/frisquet-arduino) for more details.
+`calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
+
+**Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required to allow
+your boiler to receive the messages from the ESP.
+There are many ways to find your ID:
+- by connecting the radio receiver signal wire to an Arduino. See the [frisquet-arduino project](https://github.com/etimou/frisquet-arduino) for more details.
+- by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433)
+- by opening your receiver and finding the number on the PCB (it is printed on the bottom left!)
 
 *Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output``value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
 
