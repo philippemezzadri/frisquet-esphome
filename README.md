@@ -1,7 +1,7 @@
 # Frisquet Boiler for ESPHome
 
-This ESPHome component allows communication between an ESPHome device
-(ESP8266 or ESP32) and a [Frisquet](<https://www.frisquet.com/en>) heating boiler (equipped with Eco Radio System remote thermostat).
+This ESPHome component allows to use an ESPHome device
+(ESP8266 or ESP32) to control a [Frisquet](<https://www.frisquet.com/en>) heating boiler, replacing the Eco Radio System remote thermostat.
 
 The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the Eco Radio System module. More recent boilers equipped with the Visio module are not compatible because Frisquet has since implemented encryption in its communication protocol.
 
@@ -52,9 +52,9 @@ Defined viewing direction for the connector pin out:
 
 ## Installation
 
-The Frisquet ESPHome component concists in two components:
+The Frisquet ESPHome component consists of two components:
 
-- `heat_curve_climate` a custom [Climate](<https://esphome.io/components/climate/index.html>) component that will control the boiler water setpoint based on external temperature measurement and ambiant temperature setpoint.
+- `heat_curve_climate` a custom [Climate](<https://esphome.io/components/climate/index.html>) component that will control the boiler water setpoint based on target, current (internal) and outside temperatures and a heating curve formula.
 - `friquet_boiler` a custom [Float Output](<https://esphome.io/components/output/>) component that will actually communicate with the Frisquet boiler.
 
 They can be installed using the [External Components](https://esphome.io/components/external_components) feature of ESPHome.
