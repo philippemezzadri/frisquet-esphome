@@ -9,6 +9,7 @@ namespace frisquet_boiler {
 class TestSwitch : public switch_::Switch, public Parented<FrisquetBoiler> {
  public:
   TestSwitch() = default;
+  void dump_config() override;
 
  protected:
   void write_state(bool state) override;

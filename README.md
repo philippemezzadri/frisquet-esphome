@@ -280,6 +280,33 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 
 *Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
+## `frisquet_boiler` Switch
+
+The original Eco Radio System remote provides two setup modes : configuration and testing. You can action these modes by a long press on the up or down arrow buttons.
+
+Similar setup modes are available and control swiches can be added with the following code:
+
+```yaml
+switch:
+  - platform: frisquet_boiler
+    pair:
+      name: Configuration mode
+    test:
+      name: Test mode
+```
+
+### Configuration mode
+
+When in **configuration mode**, press and hold the "manual mode" button (hand-shaped icon) on the boiler's control panel for 5 seconds; the manual control indicator blinks, indicating that it is receiving the radio transmission. 
+
+Release and press the button with the hand-shaped icon for 2 seconds to confirm the transmission.
+
+This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if you have no remote control associated with the boiler.
+
+### Test mode
+
+When in **test mode**, on the boiler's control panel, all the indicators are off except for the thermometer, which scrolls like a "caterpillar": the transmission is working efficiently.
+
 ## `heat_curve_climate` Switch
 
 On some occasions, external temperature conditions or high values of the Proportional and Integral factors may cause the boiler to enter idle mode (in accordance with `max_error`, `min_delta` and `minimum_output` settings). This can be undesirable as heat may be required by radiators in other rooms of the house.
@@ -461,7 +488,6 @@ api:
             slope: !lambda 'return slope;'
             shift: !lambda 'return shift;'
             kp: !lambda 'return kp;'
-            ki: !lambda 'return ki;'
         - climate.heat_curve.reset_integral_term: boiler_climate
 ```
 
