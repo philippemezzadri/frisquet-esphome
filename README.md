@@ -127,8 +127,11 @@ There are many ways to find your ID:
 
 ## Heating Curve Climate
 
-In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the output. The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide
-smooth control and does not anticipate weather evolution.
+In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the Frisquet Boiler Output.
+
+It uses the target, ambiant and outside temperatures and a heating curve formula to calculate a target water temperature, and then calibrates it to the output value.
+
+The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide smooth control and does not anticipate weather evolution.
 
 It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outdoor temperature.
 
@@ -251,8 +254,8 @@ The boiler `SETPOINT` (integer in the `[0 - 100]` range) and the water flow temp
 
 The actual value sent to the Output component is: `RESULT`= `SETPOINT` / 100
 
-`output_factor` and `output_offset` are defined in the Climate `output_parameters`.
-The following values seem to work well on **Frisquet Hydromotrix** and **Hydroconfort** boilers:
+`output_factor` and `output_offset` are defined in the Climate `output_parameters`. They should match the `calibration_factor` and `calibration_offset` values of the boiler component if you are using both.
+The following values are those of the **Frisquet Hydromotrix** and **Hydroconfort** boilers:
 
 ```yaml
 output_parameters:
