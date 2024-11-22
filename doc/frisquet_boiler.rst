@@ -15,6 +15,13 @@ The solution developed is applicable to all Frisquet boilers marketed until 2012
 Eco Radio System module (ERS). More recent boilers equipped with the Visio module are not compatible 
 because Frisquet has since implemented encryption in its communication protocol.
 
+This component communicates with the boiler control board to send messages which contains a boiler 
+identifier, heating mode and a setpoint water temperature as a ratio.
+
+It drives the boiler by emitting the same signal that the remote does via VHF. The original receiver 
+only transforms the radio signal into 5V TTL logic. The signal protocol is differential Manchester 
+with bit-stuffing applied (whenever 5 ones are sent a stuffing 0 is appended). There is also a checksum.
+
 .. note:: 
     The communication protocol used by Frisquet is the same as the one used by the Vaillant for its 
     CalorMatic 340f remote controller. This has not been tested but this ESPHome component should 
@@ -57,6 +64,12 @@ Defined viewing direction for the connector pin out:
     It has been observed that the current supplied by the boiler main board is not sufficient to power the ESP32. 
     Therefore, the boiler 5V (red wire) should not be connected to the ESP device.
 
+.. warning::
+
+    You should ensure that your microcontroller will output a signal strong enough to drive the 5V logic. 
+    In many cases this will work, however you may use an optocoupler or a level shifter like 
+    `this simple transistor schematic <https://electronics.stackexchange.com/questions/107382/use-bjt-transistor-as-a-switch-without-inverting-the-signal/107388#107388>`__
+
 .. code-block:: yaml
 
     # Example configuration entry
@@ -89,7 +102,7 @@ Internally, the output value is multiplied by 100 and rounded to an integer valu
 only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
-- 10 : water pump starts, no heating
+- 10 : for some boilers, water pump starts with no heating, for others heating starts with any value > 0
 - 11 - 100 : water heating
 - 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
 
@@ -100,6 +113,14 @@ Boiler ID
 from the ESPome device. This ID can be retrieved by connecting the radio receiver signal wire to an Arduino or an ESP device.
 See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
 
+
+**Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required 
+to allow your boiler to receive the messages from the ESPHome device. There are many ways to find your ID:
+
+- by connecting the radio receiver signal wire to an Arduino. See the `frisquet-arduino project <https://github.com/etimou/frisquet-arduino>`__ for more details.
+- by listening with an `RTL-SDR <https://github.com/osmocom/rtl-sdr/>`__ compatible receiver and the `rtl_433 project <https://github.com/merbanan/rtl_433>`__
+- by opening your receiver and finding the number on the PCB (it is printed on the bottom left!)
+
 .. warning::
 
     This is an **output component** and will not be visible from the frontend. Output components are intermediary
@@ -107,7 +128,10 @@ See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
 
     It is recommended to combine the **Frisquet Boiler Output** with the :doc:`Heating Curve Climate </components/heat_curve_climate>`. 
     This :doc:`/components/climate/index` will offer temperature control using an outdoor temperature sensor. 
-    If needed, it is also possible to use any kind of Climate component, such as the :doc:`/components/climate/pid`.
+    
+    If needed, it is also possible to use any kind of Climate component. The :doc:`/components/climate/pid` could be used but 
+    it does not provide smooth control and does not anticipate weather evolution.
+
 
 .. note::
 
