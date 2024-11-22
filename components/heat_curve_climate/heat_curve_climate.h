@@ -85,7 +85,7 @@ class HeatingCurveClimate : public Climate, public Component {
   float outdoor_temp_{NAN};
   float output_calibration_factor_{1};
   float output_calibration_offset_{0};
-  float minimum_output_{0.1};
+  float minimum_output_{0};
   float maximum_output_{1};
   float heat_required_output_{0.1};
   float min_delta_{2.0};
