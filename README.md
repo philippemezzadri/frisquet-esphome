@@ -1,13 +1,12 @@
 # Frisquet Boiler for ESPHome
 
-This ESPHome component allows to use an ESPHome device
-(ESP8266 or ESP32) to control a [Frisquet](<https://www.frisquet.com/en>) heating boiler, replacing the Eco Radio System remote thermostat.
+This ESPHome component allows to use an ESPHome device (ESP8266 or ESP32) to control a [Frisquet](<https://www.frisquet.com/en>) heating boiler, replacing the Eco Radio System remote thermostat.
 
 The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the Eco Radio System module. More recent boilers equipped with the Visio module are not compatible because Frisquet has since implemented encryption in its communication protocol.
 
 The **Frisquet Boiler** component appears as a [Float Output](<https://esphome.io/components/output/>) device.
 
-It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid).
+It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html).
 
 ## Breaking change in version 1.5
 
@@ -100,7 +99,7 @@ Configuration variables:
 
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The id to use for this output component.
 - **pin** (**Required**, [Pin](<https://esphome.io/guides/configuration-types.html#config-pin>)): The pin number connected to the boiler.
-- **boiler_id** (**Required**, string): The identifier of your boiler (see below).
+- **boiler_id** (**Required**, string): The identifier of your boiler (see [below](<#boiler-id>)).
 - **calibration_factor** (*Optional*, float): Calibration factor of the boiler. Defaults to `1.9`.
 - **calibration_offset** (*Optional*, float): Calibration offset of the boiler. Defaults to `-41`.
 - All other options from [Float Output](<https://esphome.io/components/output/>).
@@ -116,15 +115,19 @@ The output value received by the component is any rational value between `0` and
 
 `calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
 
+*Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
+
+### Boiler ID
+
 **Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required to allow
 your boiler to receive the messages from the ESP.
 There are many ways to find your ID:
 
-- by connecting the radio receiver signal wire to an Arduino. See the [frisquet-arduino project](https://github.com/etimou/frisquet-arduino) for more details.
-- by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433)
-- by opening your receiver and finding the number on the PCB (it is printed on the bottom left!)
+- by connecting the radio receiver signal wire to an Arduino. See the [frisquet-arduino project](https://github.com/etimou/frisquet-arduino) for more details;
+- by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433);
+- by opening your receiver and finding the number on the PCB (it is printed on the bottom left!).
 
-*Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output``value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
+It is also possible to assign any ID to the boiler by using the configuration mode (see [below](<#frisquet_boiler-switch>)).
 
 ## Heating Curve Climate
 
@@ -132,7 +135,7 @@ In addition, a [Climate](<https://esphome.io/components/climate/index.html>) com
 
 It uses the target, ambiant and outside temperatures and a heating curve formula to calculate a target water temperature, and then calibrates it to the output value.
 
-The [PID Climate](https://esphome.io/components/climate/pid.html?highlight=pid) could be used but it does not provide smooth control and does not anticipate weather evolution.
+The [PID Climate](https://esphome.io/components/climate/pid.html) could be used but it does not provide smooth control and does not anticipate weather evolution.
 
 It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outdoor temperature.
 
@@ -171,7 +174,7 @@ Configuration variables:
   - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
 - **output_parameters** (*Optional*): Output parameters of the controller (see [below](<#setpoint-calibration-factors>)).
   - **rounded** (*Optional*, boolean): Forces rounding of the output value to two digits. Defaults to `false`.
-  - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to `0.1`.
+  - **minimum_output** (*Optional*, float): Output value below which output value is set to zero. Defaults to `0`.
   - **maximum_output** (*Optional*, float): Output value above which output value won't go (cap). Defaults to `1`.
   - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to `0.1`.
   - **output_factor** (*Optional*, float): Calibration factor of the output. Defaults to `1`.
@@ -294,11 +297,11 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 
 *Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
-## `frisquet_boiler` Switch
+## `frisquet_boiler` Switches
 
-The original Eco Radio System remote provides two setup modes : configuration and testing. You can action these modes by a long press on the up or down arrow buttons.
+The original Eco Radio System remote provides two setup modes : **configuration** and **testing**. You can enter these modes by a long press on the up or down arrow buttons.
 
-Similar setup modes are available and control swiches can be added with the following code:
+Similar setup modes are available with the `frisquet_boiler`component. Control swiches to enter those modes can be added with the following lines of code:
 
 ```yaml
 switch:
@@ -311,11 +314,13 @@ switch:
 
 ### Configuration mode
 
-When in **configuration mode**, press and hold the "manual mode" button (hand-shaped icon) on the boiler's control panel for 5 seconds; the manual control indicator blinks, indicating that it is receiving the radio transmission. 
+When in **configuration mode**, press and hold the *manual mode* button (hand-shaped icon) on the boiler's control panel for 5 seconds; the manual control indicator blinks, indicating that it is receiving the radio transmission.
 
 Release and press the button with the hand-shaped icon for 2 seconds to confirm the transmission.
 
-This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if you have no remote control associated with the boiler.
+You can then quit the configuration mode.
+
+This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if no remote control was previously associated with the boiler.
 
 ### Test mode
 
@@ -392,7 +397,7 @@ Those sensors may be useful to set up your heating curve `control_parameters`.
 
 ## `climate.heat_curve.set_control_parameters` Action
 
-This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
+This [action](<https://esphome.io/automations/actions#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
 
 ```yaml
 on_...:
@@ -414,7 +419,7 @@ Configuration variables:
 
 ## `climate.pid.reset_integral_term` Action
 
-This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
+This [action](<https://esphome.io/automations/actions#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
 
 ```yaml
 on_...:
@@ -428,7 +433,7 @@ Configuration variables:
 
 ## `boiler.set_mode` Action
 
-This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets the boiler operating mode.
+This [action](<https://esphome.io/automations/actions#actions>) sets the boiler operating mode.
 This parameter is actually included in the frames sent to the boiler but I haven't seen any significant effect of the setting.
 
 ```yaml
@@ -448,7 +453,7 @@ Configuration variables:
 
 The `frisquet_boiler` Output component also inherits actions from [Float Output](<https://esphome.io/components/output/>) and in particular [`output.set_level`](<https://esphome.io/components/output/#output-set-level-action>).
 
-This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
+This [action](<https://esphome.io/automations/action#actions>) sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
 
 ```yaml
 on_...:
@@ -469,7 +474,7 @@ The Heating Curve Climate component automatically appears in Home Assistant as a
 
 Also, when using the [native API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with [user-defined services](<https://esphome.io/components/api.html#api-services>). When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
 
-This way it is possible to call the [actions](<https://esphome.io/automations/actions?highlight=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
+This way it is possible to call the [actions](<https://esphome.io/automations/actions=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
 
 ```yaml
 # Example configuration entry

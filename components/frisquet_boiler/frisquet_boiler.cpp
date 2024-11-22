@@ -46,8 +46,8 @@ void FrisquetBoiler::write_state(float state) {
   int new_demand = round(state * 100);
 
   // Cmd = 15 is known as not working
-  if (new_demand == 15)
-    new_demand = 16;
+  // if (new_demand == 15)
+  //   new_demand = 16;
 
   this->last_order_ = millis();
 

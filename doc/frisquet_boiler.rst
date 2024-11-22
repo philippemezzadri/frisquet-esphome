@@ -180,7 +180,7 @@ Two setup mode switches can be added to control the Configuration and Test modes
 Configuration mode
 ******************
 
-When in **configuration mode**, press and hold the "manual mode" button (hand-shaped icon) on the boiler's 
+When in **configuration mode**, press and hold the *manual mode* button (hand-shaped icon) on the boiler's 
 control panel for 5 seconds; the manual control indicator blinks, indicating that it is receiving the 
 radio transmission. 
 
@@ -188,6 +188,9 @@ Release and press the button with the hand-shaped icon for 2 seconds to confirm 
 
 This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if you have 
 no remote control associated with the boiler.
+
+This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if no remote 
+control was previously associated with the boiler.
 
 Test mode
 *********

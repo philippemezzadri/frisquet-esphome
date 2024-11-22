@@ -62,7 +62,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
-                    cv.Optional(CONF_MINIMUM_OUTPUT, default=0.1): cv.float_,
+                    cv.Optional(CONF_MINIMUM_OUTPUT, default=0.0): cv.float_,
                     cv.Optional(CONF_MAXIMUM_OUTPUT, default=1.0): cv.float_,
                     cv.Optional(CONF_HEATREQ_OUTPUT, default=0.1): cv.float_,
                 }
