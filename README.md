@@ -15,7 +15,7 @@ Some parameters names and behaviour have changed in version 1.5. The parameters 
 
 Whilst `slope` provides the same functionnality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and substract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
 
-The same changes are applicable to the component [actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) and component [sensors](<#heat_curve_climate-sensor>).
+The same changes are applicable to the component [actions](<https://esphome.io/automations/actions?highlight=automation#actions>) and component [sensors](<#heat_curve_climate-sensor>).
 
 ## References
 
@@ -193,7 +193,7 @@ where :
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
-`slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
+`slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings.
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
 
 The following standard values for the `slope` may be used as a guide:
@@ -391,7 +391,7 @@ Those sensors may be useful to set up your heating curve `control_parameters`.
 
 ## `climate.heat_curve.set_control_parameters` Action
 
-This [action](<https://esphome.io/guides/automations.html?highlight=automation#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
+This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
 
 ```yaml
 on_...:
@@ -413,7 +413,7 @@ Configuration variables:
 
 ## `climate.pid.reset_integral_term` Action
 
-This [action](<https://esphome.io/guides/automations.html?highlight=automation#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
+This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
 
 ```yaml
 on_...:
@@ -427,7 +427,7 @@ Configuration variables:
 
 ## `boiler.set_mode` Action
 
-This action sets the boiler operating mode.
+This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets the boiler operating mode.
 This parameter is actually included in the frames sent to the boiler but I haven't seen any significant effect of the setting.
 
 ```yaml
@@ -447,7 +447,7 @@ Configuration variables:
 
 The `frisquet_boiler` Output component also inherits actions from [Float Output](<https://esphome.io/components/output/>) and in particular [`output.set_level`](<https://esphome.io/components/output/#output-set-level-action>).
 
-This action sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
+This [action](<https://esphome.io/automations/actions?highlight=automation#actions>) sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
 
 ```yaml
 on_...:
@@ -468,13 +468,13 @@ The Heating Curve Climate component automatically appears in Home Assistant as a
 
 Also, when using the [native API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with [user-defined services](<https://esphome.io/components/api.html#api-services>). When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
 
-This way it is possible to call the [Actions](<https://esphome.io/guides/automations.html?highlight=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
+This way it is possible to call the [actions](<https://esphome.io/automations/actions?highlight=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
 
 ```yaml
 # Example configuration entry
 api:
-  services:
-    - service: set_boiler_setpoint
+  actions:
+    - action: set_boiler_setpoint
       variables:
         setpoint: int
       then:
@@ -482,7 +482,7 @@ api:
             id: boiler_cmd
             level: !lambda 'return setpoint / 100.0;'
 
-    - service: set_boiler_mode
+    - action: set_boiler_mode
       variables:
         mode: int
       then:
@@ -490,7 +490,7 @@ api:
             id: boiler_cmd
             mode: !lambda 'return mode;'
 
-    - service: set_control_parameters
+    - action: set_control_parameters
       variables:
         slope: float
         shift: float
@@ -504,12 +504,12 @@ api:
         - climate.heat_curve.reset_integral_term: boiler_climate
 ```
 
-Those lines in the YAML file will expose three [services](https://www.home-assistant.io/docs/scripts/service-calls/) in Home Assistant that can be called with the following lines (provided that the ESP device name is `myFrisquetBoiler`):
+Those lines in the YAML file will expose three [actions](https://www.home-assistant.io/docs/scripts/perform-actions/) in Home Assistant that can be called with the following lines (provided that the ESP device name is `myFrisquetBoiler`):
 
 ### Set climate control parameters
 
 ```yaml
-service: esphome.myFrisquetBoiler_set_control_parameters
+action: esphome.myFrisquetBoiler_set_control_parameters
 data:
   slope: 1.2
   shift: 3
@@ -519,7 +519,7 @@ data:
 ### Set boiler setpoint Service
 
 ```yaml
-service: esphome.myFrisquetBoiler_set_boiler_setpoint
+action: esphome.myFrisquetBoiler_set_boiler_setpoint
 data:
   level: 50
 ```
@@ -527,7 +527,7 @@ data:
 ### Set boiler mode Service
 
 ```yaml
-service: esphome.myFrisquetBoiler_set_boiler_mode
+action: esphome.myFrisquetBoiler_set_boiler_mode
 data:
   mode: 3
 ```
