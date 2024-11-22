@@ -7,6 +7,10 @@ Heating Curve Climate
     :description: Instructions for setting up Heating Curve climate controllers with ESPHome.
 
 The ``heating_curve_climate``component provides temperature control based on a heating curve and the outdoor temperature.
+
+It uses the target, ambiant and outside temperatures and a heating curve formula to calculate a target water temperature, 
+and then calibrates it to the output value.
+
 It has been developped to be used with the :doc:`/components/output/frisquet_boiler` component but can be used with any kind 
 of heating :doc:`/components/output/index`.
 

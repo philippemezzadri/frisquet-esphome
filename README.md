@@ -119,6 +119,7 @@ The output value received by the component is any rational value between `0` and
 **Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required to allow
 your boiler to receive the messages from the ESP.
 There are many ways to find your ID:
+
 - by connecting the radio receiver signal wire to an Arduino. See the [frisquet-arduino project](https://github.com/etimou/frisquet-arduino) for more details.
 - by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433)
 - by opening your receiver and finding the number on the PCB (it is printed on the bottom left!)
