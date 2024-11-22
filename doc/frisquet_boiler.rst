@@ -138,6 +138,40 @@ Configuration variables:
   - ``FLOWTEMP`` - The resulting water temperature resulting from ``SETPOINT``.
 
 
+``frisquet_boiler`` Switches
+-----------------------------
+
+Two setup mode switches can be added to control the Configuration and Test modes of the boiler.
+
+.. code-block:: yaml
+
+    switch:
+      - platform: frisquet_boiler
+        pair:
+          name: Configuration mode
+        test:
+          name: Test mode
+
+
+Configuration mode
+******************
+
+When in **configuration mode**, press and hold the "manual mode" button (hand-shaped icon) on the boiler's 
+control panel for 5 seconds; the manual control indicator blinks, indicating that it is receiving the 
+radio transmission. 
+
+Release and press the button with the hand-shaped icon for 2 seconds to confirm the transmission.
+
+This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if you have 
+no remote control associated with the boiler.
+
+Test mode
+*********
+
+When in **test mode**, on the boiler's control panel, all the indicators are off except for the thermometer, 
+which scrolls like a "caterpillar": the transmission is working efficiently.
+
+
 ``boiler.set_mode`` Action
 --------------------------
 

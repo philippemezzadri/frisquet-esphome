@@ -19,83 +19,77 @@ input_number:
     max: 10
     step: 0.5
     mode: box
-  boiler_ki:
-    name: Boiler Ki
-    min: 0
-    max: 1
-    step: 0.001
-    mode: box
 
 automation:
-  - alias: Boiler Anti-freeze Mode
+  
+  - alias: Boiler Mode
+    id: "d87edaba-fb6e-4639-ad52-9376c7b33e63"
     description: ""
-    trigger:
-      - platform: numeric_state
+    mode: single
+    triggers:
+      - trigger: state
         entity_id: climate.chaudiere_frisquet
         attribute: temperature
-        below: "7.2"
-    condition: []
-    action:
-      - service: esphome.boiler_set_boiler_mode
-        data:
-          mode: 4
-    mode: single
-  - alias: Boiler Eco Mode
-    description: ""
-    trigger:
-      - platform: numeric_state
-        entity_id: climate.chaudiere_frisquet
-        attribute: temperature
-        above: "7.2"
-        below: "17.2"
-    condition: []
-    action:
-      - service: esphome.boiler_set_boiler_mode
-        data:
-          mode: 0
-    mode: single
-  - alias: Boiler Confort Mode
-    description: ""
-    trigger:
-      - platform: numeric_state
-        entity_id: climate.chaudiere_frisquet
-        attribute: temperature
-        above: "17"
-    condition: []
-    action:
-      - service: esphome.boiler_set_boiler_mode
-        data:
-          mode: 3
-    mode: single
+    conditions: []
+    actions:
+      - choose:
+          - conditions:
+              - condition: numeric_state
+                entity_id: climate.chaudiere_frisquet
+                attribute: temperature
+                below: "7.2"
+            sequence:
+              - action: esphome.boiler_set_boiler_mode
+                data:
+                  mode: 4
+          - conditions:
+              - condition: numeric_state
+                entity_id: climate.chaudiere_frisquet
+                attribute: temperature
+                above: "7.2"
+                below: "17.2"
+            sequence:
+              - action: esphome.boiler_set_boiler_mode
+                data:
+                  mode: 0
+          - conditions:
+              - condition: numeric_state
+                entity_id: climate.chaudiere_frisquet
+                attribute: temperature
+                above: "17"
+            sequence:
+              - action: esphome.boiler_set_boiler_mode
+                data:
+                  mode: 3
 
   - alias: Boiler Set Control Parameters
+    id: "dadadd7b-5ac0-47cb-b3ff-439f90f1e15b"
     description: Set control parameters
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id:
           - input_number.boiler_slope
           - input_number.boiler_shift
           - input_number.boiler_kp
-          - input_number.boiler_ki
-    condition: []
-    action:
-      - service: esphome.boiler_set_control_parameters
+    conditions: []
+    actions:
+      - action: esphome.boiler_set_control_parameters
         data:
           slope: "{{ states('input_number.boiler_slope') | float}}"
           shift: "{{ states('input_number.boiler_shift') | float }}"
           kp: "{{ states('input_number.boiler_kp') | float }}"
-          ki: "{{ states('input_number.boiler_ki') | float }}"
     mode: restart
 
   - alias: Boiler Restore Control Parameters
+    id: "1663cafe-62e2-4eed-8819-d94035c5e48b"
     description: Restore control parameters after a reboot
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         entity_id: sensor.chaudiere_frisquet_uptime
         below: 60
-    condition: []
-    action:
-      - service: esphome.boiler_set_control_parameters
+    conditions: []
+    actions:
+      - action: esphome.boiler_set_control_parameters
         data:
           slope: "{{ states('input_number.boiler_slope') | float}}"
           shift: "{{ states('input_number.boiler_shift') | float }}"

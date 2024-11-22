@@ -7,19 +7,18 @@ from esphome.const import (
     ICON_THERMOMETER,
     CONF_TYPE,
 )
-from ..output import frisquet_boiler, FrisquetBoiler
+from ..output import CONF_FRISQUETBOILER_ID, frisquet_boiler_ns, FrisquetBoiler
 
-FrisquetBoilerSensor = frisquet_boiler.class_(
+FrisquetBoilerSensor = frisquet_boiler_ns.class_(
     "FrisquetBoilerSensor", sensor.Sensor, cg.Component
 )
-FrisquetBoilerSensorType = frisquet_boiler.enum("FrisquetBoilerSensorType")
+FrisquetBoilerSensorType = frisquet_boiler_ns.enum("FrisquetBoilerSensorType")
 
 FRISQUET_BOILER_SENSOR_TYPES = {
     "SETPOINT": FrisquetBoilerSensorType.BOILER_SENSOR_TYPE_SETPOINT,
     "FLOWTEMP": FrisquetBoilerSensorType.BOILER_SENSOR_TYPE_FLOWTEMP,
 }
 
-CONF_BOILER_ID = "friquet_boiler_id"
 CONFIG_SCHEMA = (
     sensor.sensor_schema(
         FrisquetBoilerSensor,
@@ -30,7 +29,7 @@ CONFIG_SCHEMA = (
     )
     .extend(
         {
-            cv.GenerateID(CONF_BOILER_ID): cv.use_id(FrisquetBoiler),
+            cv.GenerateID(CONF_FRISQUETBOILER_ID): cv.use_id(FrisquetBoiler),
             cv.Required(CONF_TYPE): cv.enum(FRISQUET_BOILER_SENSOR_TYPES, upper=True),
         }
     )
@@ -39,7 +38,7 @@ CONFIG_SCHEMA = (
 
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_BOILER_ID])
+    parent = await cg.get_variable(config[CONF_FRISQUETBOILER_ID])
     var = await sensor.new_sensor(config)
     await cg.register_component(var, config)
 

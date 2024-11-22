@@ -12,16 +12,14 @@ enum FrisquetBoilerSensorType {
   BOILER_SENSOR_TYPE_FLOWTEMP,
 };
 
-class FrisquetBoilerSensor : public sensor::Sensor, public Component {
+class FrisquetBoilerSensor : public sensor::Sensor, public Component, public Parented<FrisquetBoiler> {
  public:
   void setup() override;
-  void set_parent(FrisquetBoiler *parent) { parent_ = parent; }
   void set_type(FrisquetBoilerSensorType type) { type_ = type; }
   void dump_config() override;
 
  protected:
   void update_from_parent_();
-  FrisquetBoiler *parent_;
   FrisquetBoilerSensorType type_;
 };
 

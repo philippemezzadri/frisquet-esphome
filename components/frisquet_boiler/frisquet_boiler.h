@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/output/float_output.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
@@ -25,7 +26,17 @@ static const int DELAY_TIMEOUT_CMD_MQTT{900000};  // 15min Max delay without msg
 static const int DELAY_BETWEEN_MESSAGES{33};      // ms
 static const int LONG_PULSE{825};                 // micro seconds
 
+static const int CONTROL_MODE{0};
+static const int TEST_MODE{1};
+static const int CONFIG_MODE{2};
+
+static const int MESSAGE_SIZE{16};
+static const int LONG_MESSAGE_SIZE{21};
+
 class FrisquetBoiler : public output::FloatOutput, public Component {
+  SUB_SWITCH(test)
+  SUB_SWITCH(pair)
+
  public:
   void setup() override;
   void loop() override;
@@ -33,10 +44,10 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::IO; }
 
-  void set_operating_mode(int mode) { this->operating_mode_ = mode; }
+  void set_mode(int mode);
   void set_operating_setpoint(int setpoint) { this->operating_setpoint_ = setpoint; }
   void set_pin(GPIOPin *pin) { pin_ = pin; }
-  void set_mode(int mode);
+  void set_operating_mode(int mode);
   void set_boiler_id(const char *str);
   void set_output_calibration_factor(float factor) { output_calibration_factor_ = factor; }
   void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
@@ -50,23 +61,35 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
  protected:
   void digital_write(bool value) { this->pin_->digital_write(value); }
   void send_message();
-  void serialize_byte(uint8_t byteValue, uint8_t byteIndex);
+  void send_pairing_message();
+  void send_test_message();
+  void serialize_byte(uint8_t byteValue, uint8_t byteIndex, uint8_t msgSize);
   void write_bit(bool bitValue);
-  void log_last_message();
+  void log_last_message(uint8_t *msg, uint8_t length);
 
   CallbackManager<void()> internal_sensor_callback_;
 
   GPIOPin *pin_;
+  int mode_{CONTROL_MODE};
   int operating_mode_{3};
   int operating_setpoint_{0};
   int previous_state_{LOW};
   int bitstuff_counter_{0};
+  int msg_counter_{0};
   int delay_cycle_cmd_;  //  This variable contains the delay for the next command to the boiler (if no order is
                          //  received)
   long last_cmd_{0};
   long last_order_{0};
+
   uint8_t message_[17] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0x20, 0x00,
                           0x00, 0x00, 0x00, 0x00, 0xFD, 0x00, 0xFF, 0x00};
+
+  uint8_t comm_test_message_[22] = {0x00, 0x00, 0x00, 0x7E, 0x03, 0xB9, 0x00, 0xFF, 0x00, 0xE0, 0x08,
+                                    0x01, 0x00, 0xFF, 0xFF, 0xFF, 0x7D, 0xDF, 0x00, 0x00, 0xFF, 0x00};
+
+  uint8_t comm_setup_message_[22] = {0x00, 0x00, 0x00, 0x7E, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0xF0, 0xFF,
+                                     0xFF, 0x03, 0xB9, 0x20, 0x00, 0x02, 0x00, 0x00, 0x00, 0xFF, 0x00};
+
   uint8_t boiler_id_[2];
   float output_calibration_factor_{1.9};
   float output_calibration_offset_{-41};
@@ -79,7 +102,7 @@ template<typename... Ts> class SetModeAction : public Action<Ts...> {
 
   TEMPLATABLE_VALUE(int, mode)
 
-  void play(Ts... x) override { this->output_->set_mode(this->mode_.value(x...)); }
+  void play(Ts... x) override { this->output_->set_operating_mode(this->mode_.value(x...)); }
 
  protected:
   FrisquetBoiler *output_;

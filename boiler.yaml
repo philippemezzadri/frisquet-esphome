@@ -9,7 +9,7 @@ esphome:
   name: ${device}
 
 preferences:
-  flash_write_interval: 1h
+  flash_write_interval: 72h
 
 external_components:
   - source: github://philippemezzadri/frisquet-esphome
@@ -21,11 +21,11 @@ esp32:
 
 packages:
   common: !include common/common.yaml
+  logger: !include common/logger.yaml
   binary_sensors: !include common/binary_sensors.yaml
   sensors: !include common/sensors.yaml
   switches: !include common/switches.yaml
   text_sensors: !include common/text_sensors.yaml
-  debug: !include common/debug.yaml
 
 logger:
   baud_rate: 0
@@ -33,9 +33,11 @@ logger:
   logs:
     sensor: INFO
     text_sensor: INFO
+    one_wire: INFO
 
-dallas:
-  - pin: GPIO26
+one_wire:
+  - platform: gpio
+    pin: GPIO26
 
 sensor:
   - platform: homeassistant
@@ -44,6 +46,9 @@ sensor:
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
+      - exponential_moving_average:
+          alpha: 0.3
+          send_every: 1
       - heartbeat: 60s
         
   - platform: homeassistant
@@ -52,19 +57,27 @@ sensor:
     unit_of_measurement: "°C"
     filters:
       - filter_out: nan
+      - exponential_moving_average:
+          alpha: 0.3
+          send_every: 1
       - heartbeat: 60s
 
-  - platform: dallas
+  - platform: dallas_temp
     address: 0xA2032131AB675C28
     name: "Boiler flow temperature"
-
-  - platform: dallas
+    filters:
+      - filter_out: 85.0
+      
+  - platform: dallas_temp
     address: 0xAB03213190136128
     name: "Boiler return temperature"
+    filters:
+      - filter_out: 85.0
 
   - platform: frisquet_boiler
     name: "Boiler temperature setting"
     unit_of_measurement: "°C"
+    device_class: temperature
     type: FLOWTEMP
 
   - platform: frisquet_boiler
@@ -81,34 +94,44 @@ climate:
     outdoor_sensor: outdoor_temperature
     default_target_temperature: 19
     output: boiler_cmd
+
+    control_parameters:
+      alt_curve: false
+      slope: 1
+      shift: 0
+      max_error: 0.5
     
+    output_parameters:
+      minimum_output: 0.10
+      maximum_output: 0.55
+      heat_required_output: 0.10
+      output_factor: 1.9
+      output_offset: -41
+
     visual:
       min_temperature: 7
       max_temperature: 25
       temperature_step: 
         target_temperature: 0.5
         current_temperature: 0.1
-
-    control_parameters:
-      slope: 1.4
-      shift: 2
-      kp: 5
-
-    output_parameters:
-      minimum_output: 0.1
-      output_factor: 1.9
-      output_offset: -41
       
 output:
   - platform: frisquet_boiler
-    pin: 5
     id: boiler_cmd
     boiler_id: 03B9
+    pin:
+      number: 5
+      ignore_strapping_warning: true
 
 switch:
+  - platform: frisquet_boiler
+    test:
+      name: Test mode
+    pair:
+      name: Pairing mode
+
   - platform: heat_curve_climate
     name: "Heat Required"
-    restore_mode: RESTORE_DEFAULT_OFF
 
 api:
   services:
@@ -133,12 +156,10 @@ api:
         slope: float
         shift: float
         kp: float
-        ki: float
       then:
         - climate.heat_curve.set_control_parameters:
             id: boiler_climate
             slope: !lambda 'return slope;'
             shift: !lambda 'return shift;'
             kp: !lambda 'return kp;'
-            ki: !lambda 'return ki;'
         - climate.heat_curve.reset_integral_term: boiler_climate
