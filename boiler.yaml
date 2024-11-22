@@ -134,8 +134,8 @@ switch:
     name: "Heat Required"
 
 api:
-  services:
-    - service: set_boiler_setpoint
+  actions:
+    - action: set_boiler_setpoint
       variables:
         setpoint: int
       then:
@@ -143,7 +143,7 @@ api:
             id: boiler_cmd
             level: !lambda 'return setpoint / 100.0;'
 
-    - service: set_boiler_mode
+    - action: set_boiler_mode
       variables:
         mode: int
       then:
@@ -151,7 +151,7 @@ api:
             id: boiler_cmd
             mode: !lambda 'return mode;'
             
-    - service: set_control_parameters
+    - action: set_control_parameters
       variables:
         slope: float
         shift: float
