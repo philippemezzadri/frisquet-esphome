@@ -8,14 +8,12 @@ namespace esphome {
 namespace climate {
 namespace heat_curve {
 
-class HeatCurveClimateSwitch : public switch_::Switch, public Component {
+class HeatCurveClimateSwitch : public switch_::Switch, public Component, public Parented<HeatingCurveClimate> {
  public:
-  void set_parent(HeatingCurveClimate *parent) { parent_ = parent; }
   void dump_config() override;
 
  protected:
   void write_state(bool state) override;
-  HeatingCurveClimate *parent_;
 };
 
 }  // namespace heat_curve
