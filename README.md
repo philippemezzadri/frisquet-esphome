@@ -109,9 +109,7 @@ If `min_power`is set to a value that is not zero, it is important to set `zero_m
 The output value received by the component is any rational value between `0` and `1`. Internaly, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
-- 10 : for some boilers, water pump starts with no heating, for others heating starts with any value > 0
-- 11 - 100 : water heating
-- 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
+- 01 - 100 : water heating
 
 `calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
 
@@ -127,7 +125,7 @@ There are many ways to find your ID:
 - by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433);
 - by opening your receiver and finding the number on the PCB (it is printed on the bottom left!).
 
-It is also possible to assign any ID to the boiler by using the configuration mode (see [below](<#frisquet_boiler-switch>)).
+It is also possible to assign any ID to the boiler using configuration mode (see [below](<#frisquet_boiler-switch>)).
 
 ## Heating Curve Climate
 
@@ -301,7 +299,7 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 
 The original Eco Radio System remote provides two setup modes : **configuration** and **testing**. You can enter these modes by a long press on the up or down arrow buttons.
 
-Similar setup modes are available with the `frisquet_boiler`component. Control swiches to enter those modes can be added with the following lines of code:
+Those configuration modes are also available with the `frisquet_boiler`component. Control swiches to access these modes can be added with the following lines of code:
 
 ```yaml
 switch:

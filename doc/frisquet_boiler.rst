@@ -102,17 +102,10 @@ Internally, the output value is multiplied by 100 and rounded to an integer valu
 only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
-- 10 : for some boilers, water pump starts with no heating, for others heating starts with any value > 0
-- 11 - 100 : water heating
-- 15 : for some reason, the value is not accepted by the boiler. Internally, 15 is converted to 16 to avoid this case.
+- 01 - 100 : water heating
 
 Boiler ID
 ---------
-
-**Important:** the boiler ID that must be indicated in the configuration variables is required to allow your boiler to receive the messages 
-from the ESPome device. This ID can be retrieved by connecting the radio receiver signal wire to an Arduino or an ESP device.
-See `here <https://github.com/etimou/frisquet-arduino>`__ for more details.
-
 
 **Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required 
 to allow your boiler to receive the messages from the ESPHome device. There are many ways to find your ID:
@@ -120,6 +113,8 @@ to allow your boiler to receive the messages from the ESPHome device. There are 
 - by connecting the radio receiver signal wire to an Arduino. See the `frisquet-arduino project <https://github.com/etimou/frisquet-arduino>`__ for more details.
 - by listening with an `RTL-SDR <https://github.com/osmocom/rtl-sdr/>`__ compatible receiver and the `rtl_433 project <https://github.com/merbanan/rtl_433>`__
 - by opening your receiver and finding the number on the PCB (it is printed on the bottom left!)
+
+It is also possible to assign any ID to the boiler using configuration mode (see below).
 
 .. warning::
 
