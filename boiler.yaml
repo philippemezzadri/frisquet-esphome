@@ -102,7 +102,7 @@ climate:
       max_error: 0.5
     
     output_parameters:
-      minimum_output: 0.10
+      minimum_output: 0
       maximum_output: 0.55
       heat_required_output: 0.10
       output_factor: 1.9
@@ -124,14 +124,14 @@ output:
       ignore_strapping_warning: true
 
 switch:
-  - platform: frisquet_boiler
-    test:
-      name: Test mode
-    pair:
-      name: Pairing mode
-
   - platform: heat_curve_climate
     name: "Heat Required"
+
+  - platform: frisquet_boiler
+    test:
+      name: "Test mode"
+    pair:
+      name: "Pairing mode"
 
 api:
   actions:

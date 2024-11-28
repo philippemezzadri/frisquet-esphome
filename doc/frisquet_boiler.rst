@@ -96,6 +96,7 @@ This can be safely ignored if ``min_power`` and ``max_power`` are kept at their 
 
 ``calibration_factor`` and  ``calibration_offset`` are used by the internal sensor to calculate the water flow 
 temperature. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
+This is only used to return information to Home Assistant and has no impact on boiler control.
 
 The output value received by the component is any rational value between ``0`` and ``1``. 
 Internally, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler 
@@ -167,9 +168,9 @@ Two setup mode switches can be added to control the Configuration and Test modes
     switch:
       - platform: frisquet_boiler
         pair:
-          name: Configuration mode
+          name: "Configuration mode"
         test:
-          name: Test mode
+          name: "Test mode"
 
 
 Configuration mode

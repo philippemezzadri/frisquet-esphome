@@ -111,7 +111,7 @@ The output value received by the component is any rational value between `0` and
 - 0 : boiler is stopped
 - 01 - 100 : water heating
 
-`calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler.
+`calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler. This is only used to return information to Home Assistant and has no impact on boiler control.
 
 *Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
 
@@ -125,7 +125,7 @@ There are many ways to find your ID:
 - by listening with an [RTL-SDR](https://github.com/osmocom/rtl-sdr/) compatible receiver and the [rtl_433 project](https://github.com/merbanan/rtl_433);
 - by opening your receiver and finding the number on the PCB (it is printed on the bottom left!).
 
-It is also possible to assign any ID to the boiler using configuration mode (see [below](<#frisquet_boiler-switch>)).
+It is also possible to assign any ID to the boiler using configuration mode (see [below](<#frisquet_boiler-switches>)).
 
 ## Heating Curve Climate
 
@@ -195,7 +195,8 @@ where :
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
-`slope`and `shift`strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings.
+`slope` and `shift` strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://web.archive.org/web/20231110221524/https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
+
 In order to ease the fine tuning of those parameters, a service can be set in Home Assistant to change the parameters without restarting ESPHome ([see below](<#integration-with-home-assistant>)).
 
 The following standard values for the `slope` may be used as a guide:
@@ -305,9 +306,9 @@ Those configuration modes are also available with the `frisquet_boiler`component
 switch:
   - platform: frisquet_boiler
     pair:
-      name: Configuration mode
+      name: "Configuration mode"
     test:
-      name: Test mode
+      name: "Test mode"
 ```
 
 ### Configuration mode
