@@ -39,9 +39,9 @@ CONF_MAX_ERROR = "max_error"
 CONF_MIN_DELTA = "min_delta"
 
 CONFIG_SCHEMA = cv.All(
-    climate.CLIMATE_SCHEMA.extend(
+    climate.climate_schema(HeatingCurveClimate).extend(
         {
-            cv.GenerateID(): cv.declare_id(HeatingCurveClimate),
+            # cv.GenerateID(): cv.declare_id(HeatingCurveClimate),
             cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
