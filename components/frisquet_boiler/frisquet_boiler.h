@@ -102,7 +102,7 @@ template<typename... Ts> class SetModeAction : public Action<Ts...> {
 
   TEMPLATABLE_VALUE(int, mode)
 
-  void play(Ts... x) override { this->output_->set_operating_mode(this->mode_.value(x...)); }
+  void play(const Ts &...x) { this->output_->set_operating_mode(this->mode_.value(x...)); }
 
  protected:
   FrisquetBoiler *output_;
