@@ -118,7 +118,7 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
  public:
   SetControlParametersAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
-  void play(Ts... x) {
+  void play(const Ts &...x) {
     auto slope = this->slope_.value(x...);
     auto shift = this->shift_.value(x...);
     auto kp = this->kp_.value(x...);
@@ -151,7 +151,7 @@ template<typename... Ts> class PIDResetIntegralTermAction : public Action<Ts...>
  public:
   PIDResetIntegralTermAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
-  void play(Ts... x) { this->parent_->reset_integral_term(); }
+  void play(const Ts &...x) { this->parent_->reset_integral_term(); }
 
  protected:
   HeatingCurveClimate *parent_;
