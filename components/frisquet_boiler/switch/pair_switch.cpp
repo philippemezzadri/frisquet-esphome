@@ -1,5 +1,3 @@
-#ifdef USE_SWITCH
-
 #include "pair_switch.h"
 
 namespace esphome {
@@ -12,5 +10,3 @@ void PairSwitch::write_state(bool state) {
 
 }  // namespace frisquet_boiler
 }  // namespace esphome
-
-#endif
