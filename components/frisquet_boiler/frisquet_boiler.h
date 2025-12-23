@@ -1,10 +1,13 @@
 #pragma once
 
 #include "esphome/components/output/float_output.h"
-#include "esphome/components/switch/switch.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
+
+#ifdef USE_SWITCH
+#include "esphome/components/switch/switch.h"
+#endif
 
 // HIGH and LOW are defined in esp32-hal-gpio.h
 
@@ -34,8 +37,10 @@ static const int MESSAGE_SIZE{16};
 static const int LONG_MESSAGE_SIZE{21};
 
 class FrisquetBoiler : public output::FloatOutput, public Component {
+#ifdef USE_SWITCH
   SUB_SWITCH(test)
   SUB_SWITCH(pair)
+#endif
 
  public:
   void setup() override;
