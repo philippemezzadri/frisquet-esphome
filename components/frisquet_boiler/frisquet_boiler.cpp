@@ -17,19 +17,26 @@ void FrisquetBoiler::setup() {
 }
 
 void FrisquetBoiler::set_mode(int mode) {
+#ifdef USE_SWITCH
   this->mode_ = mode;
   if (mode == TEST_MODE) {
     this->msg_counter_ = 0;
-    this->pair_switch_->state = false;
-    this->pair_switch_->publish_state(false);
+    if (this->test_switch_ != nullptr) {
+      this->pair_switch_->state = false;
+      this->pair_switch_->publish_state(false);
+    }
+
   } else if (mode == CONFIG_MODE) {
-    this->test_switch_->state = false;
-    this->test_switch_->publish_state(false);
+    if (this->test_switch_ != nullptr) {
+      this->test_switch_->state = false;
+      this->test_switch_->publish_state(false);
+    }
   }
 
   if (this->msg_counter_ > 0) {
     this->log_last_message(this->comm_test_message_, LONG_MESSAGE_SIZE);
   }
+#endif
 }
 
 void FrisquetBoiler::set_boiler_id(const char *str) {
