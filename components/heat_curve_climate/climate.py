@@ -120,6 +120,7 @@ async def to_code(config):
             cv.Optional(CONF_MIN_DELTA, default=2.0): cv.templatable(cv.float_),
         }
     ),
+    synchronous=True,
 )
 async def set_control_parameters(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
@@ -154,6 +155,7 @@ async def set_control_parameters(config, action_id, template_arg, args):
             cv.Required(CONF_ID): cv.use_id(HeatingCurveClimate),
         }
     ),
+    synchronous=True,
 )
 async def pid_reset_integral_term(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])

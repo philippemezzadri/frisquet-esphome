@@ -53,6 +53,7 @@ async def to_code(config):
             cv.Required(CONF_MODE): cv.templatable(cv.positive_int),
         }
     ),
+    synchronous=True,
 )
 async def boiler_set_mode_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
