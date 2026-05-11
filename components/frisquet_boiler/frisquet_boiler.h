@@ -107,7 +107,7 @@ template<typename... Ts> class SetModeAction : public Action<Ts...> {
  public:
   SetModeAction(FrisquetBoiler *output) : output_(output) {}
 
-  TEMPLATABLE_VALUE(int, mode)
+  TEMPLATABLE_VALUE(int32_t, mode)
 
   void play(const Ts &...x) { this->output_->set_operating_mode(this->mode_.value(x...)); }
 
