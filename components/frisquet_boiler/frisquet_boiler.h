@@ -58,7 +58,9 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   void set_output_calibration_offset(float offset) { output_calibration_offset_ = offset; }
   void calculate_flow_temperature();
 
-  void add_sensor_callback(std::function<void()> &&callback) { internal_sensor_callback_.add(std::move(callback)); }
+  template<typename F> void add_sensor_callback(F &&callback) {
+    this->internal_sensor_callback_.add(std::forward<F>(callback));
+  }
 
   float get_flow_temperature() { return flow_temperature_; }
   int get_setpoint() { return operating_setpoint_; }
@@ -105,7 +107,7 @@ template<typename... Ts> class SetModeAction : public Action<Ts...> {
  public:
   SetModeAction(FrisquetBoiler *output) : output_(output) {}
 
-  TEMPLATABLE_VALUE(int, mode)
+  TEMPLATABLE_VALUE(int32_t, mode)
 
   void play(const Ts &...x) { this->output_->set_operating_mode(this->mode_.value(x...)); }
 

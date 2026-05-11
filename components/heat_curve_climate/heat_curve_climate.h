@@ -43,8 +43,8 @@ class HeatingCurveClimate : public Climate, public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
 
-  void add_temperature_computed_callback(std::function<void()> &&callback) {
-    internal_sensor_callback_.add(std::move(callback));
+  template<typename F> void add_temperature_computed_callback(F &&callback) {
+    this->internal_sensor_callback_.add(std::forward<F>(callback));
   }
 
   float get_output_value() const { return output_value_; }
