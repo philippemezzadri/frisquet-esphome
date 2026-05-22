@@ -7,7 +7,7 @@ from esphome.const import (
     ICON_THERMOMETER,
     CONF_TYPE,
 )
-from ..output import CONF_FRISQUETBOILER_ID, frisquet_boiler_ns, FrisquetBoiler
+from .. import frisquet_boiler_ns, CONF_FRISQUETBOILER_ID, FrisquetBoiler
 
 FrisquetBoilerSensor = frisquet_boiler_ns.class_(
     "FrisquetBoilerSensor", sensor.Sensor, cg.Component

@@ -6,15 +6,15 @@ from esphome.components import output
 from esphome.const import CONF_ID, CONF_PIN, CONF_MODE
 
 CONF_BOILER_ID = "boiler_id"
-CONF_FRISQUETBOILER_ID = "friquet_boiler_id"
+
 CONF_CALIBRATION_FACTOR = "calibration_factor"
 CONF_CALIBRATION_OFFSET = "calibration_offset"
 
-frisquet_boiler_ns = cg.esphome_ns.namespace("frisquet_boiler")
+from . import frisquet_boiler_ns, CONF_FRISQUETBOILER_ID
+
 FrisquetBoiler = frisquet_boiler_ns.class_(
     "FrisquetBoiler", output.FloatOutput, cg.Component
 )
-
 
 # Actions
 SetModeAction = frisquet_boiler_ns.class_("SetModeAction", automation.Action)

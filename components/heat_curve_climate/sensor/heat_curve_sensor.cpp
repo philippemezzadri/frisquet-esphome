@@ -16,37 +16,37 @@ void HeatCurveClimateSensor::setup() {
 void HeatCurveClimateSensor::update_from_parent_() {
   float value;
   switch (this->type_) {
-    case PID_SENSOR_TYPE_SETPOINT:
+    case HEAT_CURVE_SENSOR_TYPE_SETPOINT:
       value = this->parent_->get_output_value() * 100;
       break;
-    case PID_SENSOR_TYPE_RESULT:
+    case HEAT_CURVE_SENSOR_TYPE_RESULT:
       value = this->parent_->get_output_value();
       break;
-    case PID_SENSOR_TYPE_ERROR:
+    case HEAT_CURVE_SENSOR_TYPE_ERROR:
       value = this->parent_->get_error();
       break;
-    case PID_SENSOR_TYPE_DELTA:
+    case HEAT_CURVE_SENSOR_TYPE_DELTA:
       value = this->parent_->get_delta();
       break;
-    case PID_SENSOR_TYPE_WATERTEMP:
+    case HEAT_CURVE_SENSOR_TYPE_WATERTEMP:
       value = this->parent_->get_water_temp();
       break;
-    case PID_SENSOR_TYPE_PROPORTIONAL:
+    case HEAT_CURVE_SENSOR_TYPE_PROPORTIONAL:
       value = this->parent_->get_proportional_term();
       break;
-    case PID_SENSOR_TYPE_INTEGRAL:
+    case HEAT_CURVE_SENSOR_TYPE_INTEGRAL:
       value = this->parent_->get_integral_term();
       break;
-    case PID_SENSOR_TYPE_SLOPE:
+    case HEAT_CURVE_SENSOR_TYPE_SLOPE:
       value = this->parent_->get_slope();
       break;
-    case PID_SENSOR_TYPE_SHIFT:
+    case HEAT_CURVE_SENSOR_TYPE_SHIFT:
       value = this->parent_->get_shift();
       break;
-    case PID_SENSOR_TYPE_KP:
+    case HEAT_CURVE_SENSOR_TYPE_KP:
       value = this->parent_->get_kp();
       break;
-    case PID_SENSOR_TYPE_KI:
+    case HEAT_CURVE_SENSOR_TYPE_KI:
       value = this->parent_->get_ki();
       break;
     default:

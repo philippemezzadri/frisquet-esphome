@@ -2,7 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import switch
 
-from ..climate import heat_curve_ns, HeatingCurveClimate
+from .. import heat_curve_ns, HeatingCurveClimate
 
 HeatCurveClimateSwitch = heat_curve_ns.class_(
     "HeatCurveClimateSwitch", switch.Switch, cg.Component

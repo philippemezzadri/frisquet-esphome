@@ -4,10 +4,7 @@ from esphome import automation
 from esphome.components import climate, sensor, output
 from esphome.const import CONF_ID, CONF_SENSOR
 
-heat_curve_ns = cg.esphome_ns.namespace("heat_curve")
-HeatingCurveClimate = heat_curve_ns.class_(
-    "HeatingCurveClimate", climate.Climate, cg.Component
-)
+from . import heat_curve_ns, HeatingCurveClimate
 
 # Actions
 SetControlParametersAction = heat_curve_ns.class_(
@@ -49,7 +46,7 @@ CONF_OUTPUT_OFFSET = "output_offset"
 CONF_MINIMUM_OUTPUT = "minimum_output"
 CONF_MAXIMUM_OUTPUT = "maximum_output"
 CONF_HEATREQ_OUTPUT = "heat_required_output"
-CONF_ROUNDED_OUPUT = "rounded"
+CONF_ROUNDED_OUTPUT = "rounded"
 CONF_ALTERNATE_CURVE = "alt_curve"
 CONF_MAX_ERROR = "max_error"
 CONF_MIN_DELTA = "min_delta"
@@ -57,7 +54,6 @@ CONF_MIN_DELTA = "min_delta"
 CONFIG_SCHEMA = cv.All(
     climate.climate_schema(HeatingCurveClimate).extend(
         {
-            # cv.GenerateID(): cv.declare_id(HeatingCurveClimate),
             cv.Required(CONF_SENSOR): cv.use_id(sensor.Sensor),
             cv.Required(CONF_DEFAULT_TARGET_TEMPERATURE): cv.temperature,
             cv.Required(CONF_OUTDOOR_SENSOR): cv.use_id(sensor.Sensor),
@@ -75,7 +71,7 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
                 {
-                    cv.Optional(CONF_ROUNDED_OUPUT, default=False): cv.boolean,
+                    cv.Optional(CONF_ROUNDED_OUTPUT, default=False): cv.boolean,
                     cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
                     cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
                     cv.Optional(CONF_MINIMUM_OUTPUT, default=0.0): cv.float_,
@@ -112,7 +108,7 @@ async def to_code(config):
     cg.add(var.set_min_delta(p.get(CONF_MIN_DELTA, DEF_MIN_DELTA)))
 
     o = config.get(CONF_OUTPUT_PARAMETERS, {})
-    cg.add(var.set_rounded(o.get(CONF_ROUNDED_OUPUT, DEF_ROUNDED)))
+    cg.add(var.set_rounded(o.get(CONF_ROUNDED_OUTPUT, DEF_ROUNDED)))
     cg.add(
         var.set_output_calibration_factor(o.get(CONF_OUTPUT_FACTOR, DEF_OUTPUT_FACTOR))
     )
