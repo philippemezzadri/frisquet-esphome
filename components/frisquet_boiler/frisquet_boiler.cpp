@@ -88,7 +88,7 @@ void FrisquetBoiler::dump_config() {
                 "  Boiler ID: 0x%.2x%.2x\n"
                 "  Calibration factor: %.2f\n"
                 "  Calibration offset: %.2f",
-                his->boiler_id_[0], this->boiler_id_[1], this->output_calibration_factor_,
+                this->boiler_id_[0], this->boiler_id_[1], this->output_calibration_factor_,
                 this->output_calibration_factor_, this->output_calibration_offset_);
 
   LOG_PIN("  Pin: ", this->pin_);
