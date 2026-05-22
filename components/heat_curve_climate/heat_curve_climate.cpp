@@ -139,32 +139,25 @@ void HeatingCurveClimate::update() {
   float output = this->temperature_to_output(new_temp);
   output = clamp(output, 0.0f, this->maximum_output_);
 
-  // shutdown boiler if outdoor temperature is too high
   if (this->delta_ < this->min_delta_) {
+    // shutdown boiler if outdoor temperature is too high
     ESP_LOGI(TAG, "Outdoor temperature above max limit, forcing IDLE");
     output = 0;
-  }
-
-  // shutdown boiler output below minimum value
-  if (output < this->minimum_output_) {
+  } else if (output < this->minimum_output_) {
+    // shutdown boiler output below minimum value
     ESP_LOGI(TAG, "Calculated output below minimum value, forcing IDLE");
     output = 0;
-  }
-
-  // shutdown boiler if ambiant temperature is too high
-  if (this->error_ <= -this->max_error_) {
+  } else if (this->error_ <= -this->max_error_) {
+    // shutdown boiler if ambiant temperature is too high
     ESP_LOGI(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
     output = 0;
-  }
-
-  // Don't restart boiler is ambiant temperature is above target
-  if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
+  } else if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
+    // Don't restart boiler is ambiant temperature is above target
     ESP_LOGI(TAG, "Ambiant temperature above target, already on IDLE, forcing IDLE");
     output = 0;
   }
-
-  // if heat required by switch, minimum output is heat_required_output_
   if (this->heat_required_ && output < this->heat_required_output_) {
+    // if heat required by switch, minimum output is heat_required_output_
     ESP_LOGI(TAG, "Forcing minimum output (heat required)");
     output = this->heat_required_output_;
   }
@@ -282,7 +275,7 @@ float HeatingCurveClimate::get_heat_curve_temp() {
   }
 
   ESP_LOGD(TAG,
-           "  Delta T: %.1fK"
+           "  Delta T: %.1fK\n"
            "  Heating curve temperature: %.1f°C",
            this->delta_, flow_temp);
 
