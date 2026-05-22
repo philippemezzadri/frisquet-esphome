@@ -33,7 +33,7 @@ logger:
   logs:
     sensor: INFO
     text_sensor: INFO
-    one_wire: INFO
+    dallas.temp.sensor: INFO
 
 one_wire:
   - platform: gpio

@@ -17,6 +17,23 @@ PIDResetIntegralTermAction = heat_curve_ns.class_(
     "PIDResetIntegralTermAction", automation.Action
 )
 
+# Default values for control parameters
+DEF_SLOPE = 1.5
+DEF_SHIFT = 0.0
+DEF_KP = 0.0
+DEF_KI = 0.0
+DEF_ALT_CURVE = False
+DEF_MAX_ERROR = 1.0
+DEF_MIN_DELTA = 2.0
+
+# Default values for output parameters
+DEF_ROUNDED = False
+DEF_OUTPUT_FACTOR = 1.0
+DEF_OUTPUT_OFFSET = 0.0
+DEF_MIN_OUTPUT = 0.0
+DEF_MAX_OUTPUT = 1.0
+DEF_HEATREQ_OUTPUT = 0.1
+
 CONF_DEFAULT_TARGET_TEMPERATURE = "default_target_temperature"
 
 CONF_CONTROL_PARAMETERS = "control_parameters"
@@ -27,7 +44,6 @@ CONF_SLOPE = "slope"
 CONF_SHIFT = "shift"
 CONF_OUTPUT = "output"
 CONF_OUTDOOR_SENSOR = "outdoor_sensor"
-CONF_OUTPUT_PARAMETERS = "output_parameters"
 CONF_OUTPUT_FACTOR = "output_factor"
 CONF_OUTPUT_OFFSET = "output_offset"
 CONF_MINIMUM_OUTPUT = "minimum_output"
@@ -86,22 +102,26 @@ async def to_code(config):
     out = await cg.get_variable(config[CONF_OUTPUT])
     cg.add(var.set_output(out))
 
-    params = config[CONF_CONTROL_PARAMETERS]
-    cg.add(var.set_slope(params[CONF_SLOPE]))
-    cg.add(var.set_shift(params[CONF_SHIFT]))
-    cg.add(var.set_kp(params[CONF_KP]))
-    cg.add(var.set_ki(params[CONF_KI]))
-    cg.add(var.set_alt_curve(params[CONF_ALTERNATE_CURVE]))
-    cg.add(var.set_max_error(params[CONF_MAX_ERROR]))
-    cg.add(var.set_min_delta(params[CONF_MIN_DELTA]))
+    p = config.get(CONF_CONTROL_PARAMETERS, {})
+    cg.add(var.set_slope(p.get(CONF_SLOPE, DEF_SLOPE)))
+    cg.add(var.set_shift(p.get(CONF_SHIFT, DEF_SHIFT)))
+    cg.add(var.set_kp(p.get(CONF_KP, DEF_KP)))
+    cg.add(var.set_ki(p.get(CONF_KI, DEF_KI)))
+    cg.add(var.set_alt_curve(p.get(CONF_ALTERNATE_CURVE, DEF_ALT_CURVE)))
+    cg.add(var.set_max_error(p.get(CONF_MAX_ERROR, DEF_MAX_ERROR)))
+    cg.add(var.set_min_delta(p.get(CONF_MIN_DELTA, DEF_MIN_DELTA)))
 
-    output_params = config[CONF_OUTPUT_PARAMETERS]
-    cg.add(var.set_rounded(output_params[CONF_ROUNDED_OUPUT]))
-    cg.add(var.set_output_calibration_factor(output_params[CONF_OUTPUT_FACTOR]))
-    cg.add(var.set_output_calibration_offset(output_params[CONF_OUTPUT_OFFSET]))
-    cg.add(var.set_minimum_output(output_params[CONF_MINIMUM_OUTPUT]))
-    cg.add(var.set_maximum_output(output_params[CONF_MAXIMUM_OUTPUT]))
-    cg.add(var.set_heat_required_output(output_params[CONF_HEATREQ_OUTPUT]))
+    o = config.get(CONF_OUTPUT_PARAMETERS, {})
+    cg.add(var.set_rounded(o.get(CONF_ROUNDED_OUPUT, DEF_ROUNDED)))
+    cg.add(
+        var.set_output_calibration_factor(o.get(CONF_OUTPUT_FACTOR, DEF_OUTPUT_FACTOR))
+    )
+    cg.add(
+        var.set_output_calibration_offset(o.get(CONF_OUTPUT_OFFSET, DEF_OUTPUT_OFFSET))
+    )
+    cg.add(var.set_minimum_output(o.get(CONF_MINIMUM_OUTPUT, DEF_MIN_OUTPUT)))
+    cg.add(var.set_maximum_output(o.get(CONF_MAXIMUM_OUTPUT, DEF_MAX_OUTPUT)))
+    cg.add(var.set_heat_required_output(o.get(CONF_HEATREQ_OUTPUT, DEF_HEATREQ_OUTPUT)))
 
     cg.add(var.set_default_target_temperature(config[CONF_DEFAULT_TARGET_TEMPERATURE]))
 

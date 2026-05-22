@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${env:HOME}/Developer/Projects/Current/philippe.mezzadri/esphome/**",
+                "${env:HOME}/Developer/Libraries/ArduinoJson/src",
+                "${env:HOME}/.platformio/packages/**",
+                "${env:HOME}/Developer/Projects/Current/philippe.mezzadri/frisquet-esphome/**"
+            ],
+            "defines": [
+                "USE_ESP32",
+                "USE_ARDUINO",
+                "ESPHOME_LOG_LEVEL=ESPHOME_LOG_LEVEL_DEBUG"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "macos-clang-arm64"
+        }
+    ],
+    "version": 4
+}
