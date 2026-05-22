@@ -21,7 +21,7 @@ void FrisquetBoiler::set_mode(int mode) {
   this->mode_ = mode;
   if (mode == TEST_MODE) {
     this->msg_counter_ = 0;
-    if (this->test_switch_ != nullptr) {
+    if (this->pair_switch_ != nullptr) {
       this->pair_switch_->state = false;
       this->pair_switch_->publish_state(false);
     }
@@ -52,10 +52,6 @@ void FrisquetBoiler::set_boiler_id(const char *str) {
 void FrisquetBoiler::write_state(float state) {
   int new_demand = round(state * 100);
 
-  // Cmd = 15 is known as not working
-  // if (new_demand == 15)
-  //   new_demand = 16;
-
   this->last_order_ = millis();
 
   if (new_demand != this->operating_setpoint_) {
@@ -74,7 +70,7 @@ void FrisquetBoiler::loop() {
     long now = millis();
     if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
         ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
-      ESP_LOGD(TAG, "Repeating last command");
+      ESP_LOGI(TAG, "Repeating last message");
       this->send_message();
       this->last_cmd_ = now;
       this->delay_cycle_cmd_ = DELAY_CYCLE_CMD;
@@ -87,10 +83,14 @@ void FrisquetBoiler::loop() {
 }
 
 void FrisquetBoiler::dump_config() {
-  ESP_LOGCONFIG(TAG, "Frisquet Boiler Output");
-  ESP_LOGCONFIG(TAG, "  Boiler ID: 0x%.2x%.2x", this->boiler_id_[0], this->boiler_id_[1]);
-  ESP_LOGCONFIG(TAG, "  Calibration factor: %.2f", this->output_calibration_factor_);
-  ESP_LOGCONFIG(TAG, "  Calibration offset: %.2f", this->output_calibration_offset_);
+  ESP_LOGCONFIG(TAG,
+                "Frisquet Boiler Output\n"
+                "  Boiler ID: 0x%.2x%.2x\n"
+                "  Calibration factor: %.2f\n"
+                "  Calibration offset: %.2f",
+                his->boiler_id_[0], this->boiler_id_[1], this->output_calibration_factor_,
+                this->output_calibration_factor_, this->output_calibration_offset_);
+
   LOG_PIN("  Pin: ", this->pin_);
   LOG_FLOAT_OUTPUT(this);
 }
@@ -107,7 +107,7 @@ void FrisquetBoiler::set_operating_mode(int mode) {
 }
 
 void FrisquetBoiler::send_message() {
-  ESP_LOGI(TAG, "Sending command to the boiler : (%i, %i)", this->operating_mode_, this->operating_setpoint_);
+  ESP_LOGI(TAG, "Sending message: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
 
   // Emits a serie of 3 messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
@@ -201,7 +201,7 @@ void FrisquetBoiler::log_last_message(uint8_t *msg, uint8_t length) {
       endofBuffer += sprintf(endofBuffer, "%c", ' ');
   }
 
-  ESP_LOGD(TAG, "Last message frames: %s", buffer);
+  ESP_LOGV(TAG, "Last message frames: %s", buffer);
   free(buffer);
 }
 

@@ -68,27 +68,30 @@ ClimateTraits HeatingCurveClimate::traits() {
 
 void HeatingCurveClimate::dump_config() {
   LOG_CLIMATE("", "Heating Curve Climate", this);
-  ESP_LOGCONFIG(TAG, "  Control Parameters:");
-  ESP_LOGCONFIG(TAG, "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f", this->slope_, this->shift_, this->kp_,
-                this->ki_);
-  ESP_LOGCONFIG(TAG, "    max_error: %.1fK", this->max_error_);
-  ESP_LOGCONFIG(TAG, "    min_delta: %.1fK", this->min_delta_);
+  ESP_LOGCONFIG(TAG,
+                "  Control Parameters\n"
+                "    slope: %.2f, shift: %.2f, kp: %.2f, ki: %.5f\n"
+                "    max_error: %.1fK\n"
+                "    min_delta: %.1fK\n",
+                this->slope_, this->shift_, this->kp_, this->ki_, this->max_error_, this->min_delta_);
 
   if (this->alt_curve_) {
     ESP_LOGCONFIG(TAG, "    Using alternate heating curve.");
   }
 
-  ESP_LOGCONFIG(TAG, "  Output Parameters:");
+  ESP_LOGCONFIG(TAG,
+                "  Output Parameters\n"
+                "    maximum_output: %.2f\n"
+                "    minimum_output: %.2f\n"
+                "    heat_required_output: %.2f\n"
+                "    output_factor: %.2f\n"
+                "    output_offset: %.2f\n",
+                this->maximum_output_, this->minimum_output_, this->heat_required_output_,
+                this->output_calibration_factor_, this->output_calibration_offset_);
 
   if (this->rounded_) {
     ESP_LOGCONFIG(TAG, "    Rounding enabled.");
   }
-
-  ESP_LOGCONFIG(TAG, "    maximum_output: %.2f", this->maximum_output_);
-  ESP_LOGCONFIG(TAG, "    minimum_output: %.2f", this->minimum_output_);
-  ESP_LOGCONFIG(TAG, "    heat_required_output: %.2f", this->heat_required_output_);
-  ESP_LOGCONFIG(TAG, "    output_factor: %.2f", this->output_calibration_factor_);
-  ESP_LOGCONFIG(TAG, "    output_offset: %.2f", this->output_calibration_offset_);
 
   this->dump_traits_(TAG);
 }
@@ -105,18 +108,29 @@ void HeatingCurveClimate::update() {
     return;
   }
 
+  ESP_LOGD(TAG,
+           "Calculation loop started\n"
+           "  Current temperature: %.1f°C\n"
+           "  Target temperature: %.1f°C\n"
+           "  Outdoor temperature: %.1f°C",
+           this->current_temperature, this->target_temperature, this->outdoor_temp_);
+
   this->dt_ = calculate_relative_time_();
   float new_temp = get_heat_curve_temp();
 
   // Proportional and Integral correction to accelerate convergence to target
   if (!std::isnan(this->current_temperature) && !std::isnan(this->target_temperature)) {
     this->error_ = this->target_temperature - this->current_temperature;
-    ESP_LOGD(TAG, "Error: %.1fK", this->error_);
-
     this->calculate_proportional_term_();
     this->calculate_integral_term_();
     new_temp += this->proportional_term_ + this->integral_term_;
-    ESP_LOGD(TAG, "Adjusted temperature: %.1f°C", new_temp);
+
+    ESP_LOGD(TAG,
+             "  Error: %.1f\n"
+             "  Proportional term: %.2fK\n"
+             "  Integral term: %.3fK\n"
+             "  Adjusted temperature: %.1f°C",
+             this->error_, this->proportional_term_, this->integral_term_, new_temp);
   }
 
   this->water_temp_ = new_temp;
@@ -127,35 +141,35 @@ void HeatingCurveClimate::update() {
 
   // shutdown boiler if outdoor temperature is too high
   if (this->delta_ < this->min_delta_) {
-    ESP_LOGD(TAG, "Outdoor temperature above max limit, forcing IDLE");
+    ESP_LOGI(TAG, "Outdoor temperature above max limit, forcing IDLE");
     output = 0;
   }
 
   // shutdown boiler output below minimum value
   if (output < this->minimum_output_) {
-    ESP_LOGD(TAG, "Calculated output below minimum value, forcing IDLE");
+    ESP_LOGI(TAG, "Calculated output below minimum value, forcing IDLE");
     output = 0;
   }
 
   // shutdown boiler if ambiant temperature is too high
   if (this->error_ <= -this->max_error_) {
-    ESP_LOGD(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
+    ESP_LOGI(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
     output = 0;
   }
 
   // Don't restart boiler is ambiant temperature is above target
   if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
-    ESP_LOGD(TAG, "Ambiant temperature above target, already on IDLE, forcing IDLE");
+    ESP_LOGI(TAG, "Ambiant temperature above target, already on IDLE, forcing IDLE");
     output = 0;
   }
 
   // if heat required by switch, minimum output is heat_required_output_
   if (this->heat_required_ && output < this->heat_required_output_) {
-    ESP_LOGD(TAG, "Forcing heat required minimum output");
+    ESP_LOGI(TAG, "Forcing minimum output (heat required)");
     output = this->heat_required_output_;
   }
 
-  ESP_LOGD(TAG, "Output: %.1f%%", output * 100);
+  ESP_LOGD(TAG, "Calculated output: %.1f%%", output * 100);
 
   if (this->mode == CLIMATE_MODE_OFF) {
     this->write_output_(0.0);
@@ -183,8 +197,8 @@ void HeatingCurveClimate::write_output_(float value) {
     this->water_temp_ = NAN;
   }
 
-  ESP_LOGD(TAG, "Climate action was %s", LOG_STR_ARG(climate_action_to_string(this->action)));
-  ESP_LOGD(TAG, "Climate action is now %s", LOG_STR_ARG(climate_action_to_string(new_action)));
+  ESP_LOGI(TAG, "Climate action was %s and is now %s", LOG_STR_ARG(climate_action_to_string(this->action)),
+           LOG_STR_ARG(climate_action_to_string(new_action)));
 
   if (new_action != this->action) {
     this->action = new_action;
@@ -224,8 +238,6 @@ void HeatingCurveClimate::calculate_proportional_term_() {
     float pdm_offset = (threshold - (KP_MULTIPLIER * threshold)) * kp_;
     this->proportional_term_ += pdm_offset;
   }
-
-  ESP_LOGD(TAG, "Proportionnal term: %.2fK", this->proportional_term_);
 }
 
 void HeatingCurveClimate::calculate_integral_term_() {
@@ -234,18 +246,16 @@ void HeatingCurveClimate::calculate_integral_term_() {
     float new_integral = this->error_ * this->dt_ * this->ki_;
 
     // Preventing integral wind up
-    if (this->output_value_ <= (this->minimum_output_ / 100.0) && new_integral < 0) {
+    if (this->output_value_ <= this->minimum_output_ && new_integral < 0) {
       return;
     }
-    if (this->output_value_ >= (this->maximum_output_ / 100.0) && new_integral > 0) {
+    if (this->output_value_ >= this->maximum_output_ && new_integral > 0) {
       return;
     }
 
     if (!in_deadband()) {
       this->integral_term_ += new_integral;
     }
-
-    ESP_LOGD(TAG, "Integral term: %.3fK", this->integral_term_);
   }
 }
 
@@ -260,11 +270,10 @@ float HeatingCurveClimate::temperature_to_output(float temp) {
 
 float HeatingCurveClimate::get_heat_curve_temp() {
   this->delta_ = this->target_temperature - this->outdoor_temp_;
-  ESP_LOGD(TAG, "Delta T: %.1fK", this->delta_);
 
   float flow_temp;
   if (this->alt_curve_) {
-    ESP_LOGD(TAG, "Using alternate heating curve");
+    // ESP_LOGD(TAG, " Using alternate heating curve");
     float delta = -this->delta_;
     flow_temp = this->target_temperature + this->shift_ -
                 this->slope_ * delta * (1.4347 + 0.021 * delta + 247.9 * 0.000001 * delta * delta);
@@ -272,7 +281,11 @@ float HeatingCurveClimate::get_heat_curve_temp() {
     flow_temp = this->delta_ * this->slope_ + this->target_temperature + this->shift_;
   }
 
-  ESP_LOGD(TAG, "Heating curve temperature: %.1f°C", flow_temp);
+  ESP_LOGD(TAG,
+           "  Delta T: %.1fK"
+           "  Heating curve temperature: %.1f°C",
+           this->delta_, flow_temp);
+
   return flow_temp;
 }
 
