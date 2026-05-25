@@ -8,6 +8,12 @@ namespace heat_curve {
 static const char *const TAG = "heating_curve.climate";
 
 void HeatingCurveClimate::setup() {
+  if (this->output_calibration_factor_ == 0.0f) {
+    ESP_LOGE(TAG, "setup: output_calibration_factor cannot be zero, disabling component");
+    this->mark_failed();
+    return;
+  }
+
   // on state callback for current temperature
   if (this->current_sensor_) {
     this->current_sensor_->add_on_state_callback([this](float state) {
@@ -250,10 +256,6 @@ void HeatingCurveClimate::calculate_integral_term_() {
       this->integral_term_ += new_integral;
     }
   }
-}
-
-float HeatingCurveClimate::output_to_temperature(float output) {
-  return (100.0 * output - this->output_calibration_offset_) / this->output_calibration_factor_;
 }
 
 float HeatingCurveClimate::temperature_to_output(float temp) {

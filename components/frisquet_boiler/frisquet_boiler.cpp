@@ -212,6 +212,12 @@ void FrisquetBoiler::log_last_message(uint8_t *msg, uint8_t length) {
 }
 
 void FrisquetBoiler::calculate_flow_temperature() {
+  if (this->output_calibration_factor_ == 0.0f) {
+    ESP_LOGE(TAG, "calculate_flow_temperature: calibration_factor is zero, check configuration");
+    this->flow_temperature_ = NAN;
+    return;
+  }
+
   this->flow_temperature_ =
       this->operating_setpoint_ > 0
           ? (this->operating_setpoint_ - this->output_calibration_offset_) / this->output_calibration_factor_

@@ -57,7 +57,6 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_shift() { return shift_; }
   float get_kp() { return kp_; }
   float get_ki() { return ki_; }
-  float output_to_temperature(float output);
   float temperature_to_output(float temp);
   float get_heat_curve_temp();
 
