@@ -180,6 +180,15 @@ are linked by the following formula:
 
 ``SETPOINT`` = ``WATERTEMP`` * ``output_factor`` + ``output_offset``
 
+.. warning::
+
+    If using ``heat_curve_climate`` together with :doc:`/components/output/frisquet_boiler`, the 
+    ``output_factor`` / ``output_offset`` parameters of this component and the 
+    ``calibration_factor`` / ``calibration_offset`` parameters of the boiler output 
+    **must be set to identical values**. A mismatch will not cause an error but 
+    will result in an incorrect flow temperature reading in the ``frisquet_boiler`` 
+    sensor.
+
 The actual value sent to the Output component is: ``RESULT``= ``SETPOINT`` / 100
 
 ``output_factor`` and ``output_offset`` are defined in the Climate ``output_parameters``.
@@ -288,11 +297,11 @@ Configuration variables:
 ************************
 
 - **id** (**Required**, :ref:`config-id`): ID of the Heating Curve Climate.
-- **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
-- **offset** (**Required**, float): The offset term of the heating curve.
-- **kp** (*Optional*, float): The factor for the proportional term of the heating curve. 
+- **slope** (**Required**, float): The proportional term (slope) of the heating curve.
+- **shift** (**Required**, float): The parallel shift term of the heating curve.
+- **kp** (*Optional*, float): The factor for the proportional term of the controller.
   Defaults to ``0``.
-- **ki** (*Optional*, float): The factor for the integral term of the heating curve. 
+- **ki** (*Optional*, float): The factor for the integral term of the controller.
   Defaults to ``0``.
 
 ``climate.pid.reset_integral_term`` Action

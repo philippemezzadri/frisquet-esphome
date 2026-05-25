@@ -107,6 +107,11 @@ void FrisquetBoiler::set_operating_mode(int mode) {
 }
 
 void FrisquetBoiler::send_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. This is acceptable as messages are sent at most
+  // every 20s (DELAY_REPEAT_CMD) and typically every 4 minutes (DELAY_CYCLE_CMD).
+
   ESP_LOGI(TAG, "Sending message: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
 
   // Emits a serie of 3 messages to the ERS (Eco Radio System) input of the boiler
@@ -190,22 +195,34 @@ void FrisquetBoiler::write_bit(bool bitValue) {
 }
 
 void FrisquetBoiler::log_last_message(uint8_t *msg, uint8_t length) {
-  char const *formatString = "%02X";
-  char *buffer = (char *) malloc(100 * sizeof(char));
-  char *endofBuffer = buffer;
-  int valueCount = length;
-  int i;
-  for (i = 0; i < valueCount; ++i) {
-    endofBuffer += sprintf(endofBuffer, formatString, msg[i + 1]);
-    if (i < valueCount - 1)
-      endofBuffer += sprintf(endofBuffer, "%c", ' ');
+  if (length > LONG_MESSAGE_SIZE) {
+    ESP_LOGE(TAG, "log_last_message: length %d exceeds LONG_MESSAGE_SIZE %d", length, LONG_MESSAGE_SIZE);
+    return;
+  }
+
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+
+  char buffer[LONG_MESSAGE_SIZE * 3 + 1];
+  char *ptr = buffer;
+
+  for (uint8_t i = 0; i < length; i++) {
+    ptr += sprintf(ptr, "%02X", msg[i + 1]);
+    if (i < length - 1)
+      ptr += sprintf(ptr, " ");
   }
 
   ESP_LOGV(TAG, "Last message frames: %s", buffer);
-  free(buffer);
+
+#endif
 }
 
 void FrisquetBoiler::calculate_flow_temperature() {
+  if (this->output_calibration_factor_ == 0.0f) {
+    ESP_LOGE(TAG, "calculate_flow_temperature: calibration_factor is zero, check configuration");
+    this->flow_temperature_ = NAN;
+    return;
+  }
+
   this->flow_temperature_ =
       this->operating_setpoint_ > 0
           ? (this->operating_setpoint_ - this->output_calibration_offset_) / this->output_calibration_factor_
@@ -215,6 +232,10 @@ void FrisquetBoiler::calculate_flow_temperature() {
 }
 
 void FrisquetBoiler::send_test_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. Test mode is triggered manually and infrequently.
+
   ESP_LOGI(TAG, "Sending test command to the boiler");
 
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
@@ -245,6 +266,10 @@ void FrisquetBoiler::send_test_message() {
 }
 
 void FrisquetBoiler::send_pairing_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. Pairing mode is triggered manually and infrequently.
+
   ESP_LOGI(TAG, "Sending configuration command to the boiler");
 
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler

@@ -2,7 +2,7 @@ import esphome.codegen as cg
 from esphome.components import switch
 import esphome.config_validation as cv
 from esphome.const import ENTITY_CATEGORY_CONFIG
-from ..output import CONF_FRISQUETBOILER_ID, frisquet_boiler_ns, FrisquetBoiler
+from .. import frisquet_boiler_ns, CONF_FRISQUETBOILER_ID, FrisquetBoiler
 
 CONF_TEST = "test"
 CONF_PAIR = "pair"

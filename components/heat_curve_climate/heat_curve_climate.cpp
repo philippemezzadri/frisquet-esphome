@@ -8,6 +8,12 @@ namespace heat_curve {
 static const char *const TAG = "heating_curve.climate";
 
 void HeatingCurveClimate::setup() {
+  if (this->output_calibration_factor_ == 0.0f) {
+    ESP_LOGE(TAG, "setup: output_calibration_factor cannot be zero, disabling component");
+    this->mark_failed();
+    return;
+  }
+
   // on state callback for current temperature
   if (this->current_sensor_) {
     this->current_sensor_->add_on_state_callback([this](float state) {
@@ -139,32 +145,25 @@ void HeatingCurveClimate::update() {
   float output = this->temperature_to_output(new_temp);
   output = clamp(output, 0.0f, this->maximum_output_);
 
-  // shutdown boiler if outdoor temperature is too high
   if (this->delta_ < this->min_delta_) {
+    // shutdown boiler if outdoor temperature is too high
     ESP_LOGI(TAG, "Outdoor temperature above max limit, forcing IDLE");
     output = 0;
-  }
-
-  // shutdown boiler output below minimum value
-  if (output < this->minimum_output_) {
+  } else if (output < this->minimum_output_) {
+    // shutdown boiler output below minimum value
     ESP_LOGI(TAG, "Calculated output below minimum value, forcing IDLE");
     output = 0;
-  }
-
-  // shutdown boiler if ambiant temperature is too high
-  if (this->error_ <= -this->max_error_) {
+  } else if (this->error_ <= -this->max_error_) {
+    // shutdown boiler if ambiant temperature is too high
     ESP_LOGI(TAG, "Ambiant temperature exceeds max limit, forcing IDLE");
     output = 0;
-  }
-
-  // Don't restart boiler is ambiant temperature is above target
-  if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
+  } else if (this->action == CLIMATE_ACTION_IDLE && this->error_ < 0) {
+    // Don't restart boiler is ambiant temperature is above target
     ESP_LOGI(TAG, "Ambiant temperature above target, already on IDLE, forcing IDLE");
     output = 0;
   }
-
-  // if heat required by switch, minimum output is heat_required_output_
   if (this->heat_required_ && output < this->heat_required_output_) {
+    // if heat required by switch, minimum output is heat_required_output_
     ESP_LOGI(TAG, "Forcing minimum output (heat required)");
     output = this->heat_required_output_;
   }
@@ -192,6 +191,7 @@ void HeatingCurveClimate::write_output_(float value) {
   } else if (this->mode == CLIMATE_MODE_OFF) {
     new_action = CLIMATE_ACTION_OFF;
     this->water_temp_ = NAN;
+    this->reset_integral_term();
   } else {
     new_action = CLIMATE_ACTION_IDLE;
     this->water_temp_ = NAN;
@@ -259,10 +259,6 @@ void HeatingCurveClimate::calculate_integral_term_() {
   }
 }
 
-float HeatingCurveClimate::output_to_temperature(float output) {
-  return (100.0 * output - this->output_calibration_offset_) / this->output_calibration_factor_;
-}
-
 float HeatingCurveClimate::temperature_to_output(float temp) {
   float output = temp * this->output_calibration_factor_ + this->output_calibration_offset_;
   return this->rounded_ ? round(output) / 100.0 : output / 100.0;
@@ -282,7 +278,7 @@ float HeatingCurveClimate::get_heat_curve_temp() {
   }
 
   ESP_LOGD(TAG,
-           "  Delta T: %.1fK"
+           "  Delta T: %.1fK\n"
            "  Heating curve temperature: %.1f°C",
            this->delta_, flow_temp);
 

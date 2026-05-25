@@ -6,7 +6,7 @@ from esphome.const import (
     ICON_GAUGE,
     CONF_TYPE,
 )
-from ..climate import heat_curve_ns, HeatingCurveClimate
+from .. import heat_curve_ns, HeatingCurveClimate
 
 HeatCurveClimateSensor = heat_curve_ns.class_(
     "HeatCurveClimateSensor", sensor.Sensor, cg.Component
@@ -14,17 +14,17 @@ HeatCurveClimateSensor = heat_curve_ns.class_(
 HeatCurveClimateSensorType = heat_curve_ns.enum("HeatCurveClimateSensorType")
 
 HEATCURVE_CLIMATE_SENSOR_TYPES = {
-    "RESULT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_RESULT,
-    "SETPOINT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SETPOINT,
-    "ERROR": HeatCurveClimateSensorType.PID_SENSOR_TYPE_ERROR,
-    "DELTA": HeatCurveClimateSensorType.PID_SENSOR_TYPE_DELTA,
-    "WATERTEMP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_WATERTEMP,
-    "PROPORTIONAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_PROPORTIONAL,
-    "INTEGRAL": HeatCurveClimateSensorType.PID_SENSOR_TYPE_INTEGRAL,
-    "SLOPE": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SLOPE,
-    "SHIFT": HeatCurveClimateSensorType.PID_SENSOR_TYPE_SHIFT,
-    "KP": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KP,
-    "KI": HeatCurveClimateSensorType.PID_SENSOR_TYPE_KI,
+    "RESULT": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_RESULT,
+    "SETPOINT": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_SETPOINT,
+    "ERROR": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_ERROR,
+    "DELTA": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_DELTA,
+    "WATERTEMP": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_WATERTEMP,
+    "PROPORTIONAL": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_PROPORTIONAL,
+    "INTEGRAL": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_INTEGRAL,
+    "SLOPE": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_SLOPE,
+    "SHIFT": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_SHIFT,
+    "KP": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_KP,
+    "KI": HeatCurveClimateSensorType.HEAT_CURVE_SENSOR_TYPE_KI,
 }
 
 CONF_CLIMATE_ID = "climate_id"

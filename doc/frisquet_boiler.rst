@@ -105,6 +105,14 @@ only accepts orders as integers between 0 and 100:
 - 0 : boiler is stopped
 - 01 - 100 : water heating
 
+.. warning::
+
+    If using ``frisquet_boiler`` together with :doc:`/components/output/heat_curve_climate`, the 
+    ``calibration_factor`` / ``calibration_offset`` parameters of this component 
+    and the ``output_factor`` / ``output_offset`` parameters of the climate component 
+    **must be set to identical values**. A mismatch will not cause an error but 
+    will result in an incorrect flow temperature reading in the sensor.
+
 Boiler ID
 ---------
 
@@ -160,6 +168,18 @@ Configuration variables:
 
 ``frisquet_boiler`` Switches
 -----------------------------
+
+.. note::
+
+    The ``frisquet_boiler`` component manages two distinct mode spaces:
+
+    - **Operating mode** (``0`` = eco, ``3`` = comfort, ``4`` = away): included in 
+      the frames sent to the boiler. Controlled via the ``boiler.set_mode`` action.
+    - **Component mode** (``CONTROL``, ``TEST``, ``CONFIG``): controls the behaviour 
+      of the ESPHome component itself. Controlled via the switches below.
+
+    The actual effect of the operating mode on boiler behaviour is not fully 
+    documented by Frisquet and may vary by boiler model.
 
 Two setup mode switches can be added to control the Configuration and Test modes of the boiler.
 
