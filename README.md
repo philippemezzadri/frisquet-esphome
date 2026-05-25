@@ -266,6 +266,13 @@ output_parameters:
   output_offset: -41
 ```
 
+> ⚠️ If using `heat_curve_climate` together with `frisquet_boiler`, the
+> `output_factor` / `output_offset` parameters of the climate component and the
+> `calibration_factor` / `calibration_offset` parameters of the boiler output
+> **must be set to identical values**. A mismatch will not cause an error but
+> will result in an incorrect flow temperature reading in the `frisquet_boiler`
+> sensor.
+
 ## Temperature Sensors
 
 To get the Climate component working, two temperature sensors are required. They can be retrieved using [`homeassistant`](<https://esphome.io/components/sensor/homeassistant.html>) sensors:
@@ -297,6 +304,15 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 *Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
 ## `frisquet_boiler` Switches
+
+The `frisquet_boiler` component manages two distinct mode spaces that should not
+be confused:
+
+- **Operating mode** (`0`=eco, `3`=comfort, `4`=away): included in the frames sent
+  to the boiler to set its heating mode. Controlled via the `boiler.set_mode` action.
+- **Component mode** (`CONTROL`, `TEST`, `CONFIG`): controls the behaviour of the
+  ESPHome component itself — normal operation, test signal, or pairing signal.
+  Controlled via the switches below.
 
 The original Eco Radio System remote provides two setup modes : **configuration** and **testing**. You can enter these modes by a long press on the up or down arrow buttons.
 
@@ -411,8 +427,8 @@ on_...:
 Configuration variables:
 
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
-- **heat_factor** (**Required**, float): The proportional term (slope) of the heating curve.
-- **offset** (**Required**, float): The offset term of the heating curve.
+- **slope** (**Required**, float): The proportional term (slope) of the heating curve.
+- **shift** (**Required**, float): The offset term of the heating curve.
 - **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to 0.
 - **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to 0.
 
@@ -433,7 +449,9 @@ Configuration variables:
 ## `boiler.set_mode` Action
 
 This [action](<https://esphome.io/automations/actions#actions>) sets the boiler operating mode.
-This parameter is actually included in the frames sent to the boiler but I haven't seen any significant effect of the setting.
+This parameter is actually included in the frames sent to the boiler by the Satellite so we reproduce this behaviour in this component.
+
+Note: the actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
 
 ```yaml
 on_...:
@@ -447,6 +465,8 @@ Configuration variables:
 
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Frisquet Boiler Output.
 - **mode** (**Required**, int): operating mode (0 = eco / 3 = confort / 4 = away)
+
+
 
 ## `output.set_level` Action
 
