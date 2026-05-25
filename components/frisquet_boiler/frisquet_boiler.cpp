@@ -190,19 +190,25 @@ void FrisquetBoiler::write_bit(bool bitValue) {
 }
 
 void FrisquetBoiler::log_last_message(uint8_t *msg, uint8_t length) {
-  char const *formatString = "%02X";
-  char *buffer = (char *) malloc(100 * sizeof(char));
-  char *endofBuffer = buffer;
-  int valueCount = length;
-  int i;
-  for (i = 0; i < valueCount; ++i) {
-    endofBuffer += sprintf(endofBuffer, formatString, msg[i + 1]);
-    if (i < valueCount - 1)
-      endofBuffer += sprintf(endofBuffer, "%c", ' ');
+  if (length > LONG_MESSAGE_SIZE) {
+    ESP_LOGE(TAG, "log_last_message: length %d exceeds LONG_MESSAGE_SIZE %d", length, LONG_MESSAGE_SIZE);
+    return;
+  }
+
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+
+  char buffer[LONG_MESSAGE_SIZE * 3 + 1];
+  char *ptr = buffer;
+
+  for (uint8_t i = 0; i < length; i++) {
+    ptr += sprintf(ptr, "%02X", msg[i + 1]);
+    if (i < length - 1)
+      ptr += sprintf(ptr, " ");
   }
 
   ESP_LOGV(TAG, "Last message frames: %s", buffer);
-  free(buffer);
+
+#endif
 }
 
 void FrisquetBoiler::calculate_flow_temperature() {
