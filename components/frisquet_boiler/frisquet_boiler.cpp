@@ -107,6 +107,11 @@ void FrisquetBoiler::set_operating_mode(int mode) {
 }
 
 void FrisquetBoiler::send_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. This is acceptable as messages are sent at most
+  // every 20s (DELAY_REPEAT_CMD) and typically every 4 minutes (DELAY_CYCLE_CMD).
+
   ESP_LOGI(TAG, "Sending message: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
 
   // Emits a serie of 3 messages to the ERS (Eco Radio System) input of the boiler
@@ -227,6 +232,10 @@ void FrisquetBoiler::calculate_flow_temperature() {
 }
 
 void FrisquetBoiler::send_test_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. Test mode is triggered manually and infrequently.
+
   ESP_LOGI(TAG, "Sending test command to the boiler");
 
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
@@ -257,6 +266,10 @@ void FrisquetBoiler::send_test_message() {
 }
 
 void FrisquetBoiler::send_pairing_message() {
+  // NOTE: This method blocks the main loop for ~100ms (3 messages × 33ms).
+  // delay() calls are mandatory to generate the differential Manchester signal
+  // at the correct timing. Pairing mode is triggered manually and infrequently.
+
   ESP_LOGI(TAG, "Sending configuration command to the boiler");
 
   // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler

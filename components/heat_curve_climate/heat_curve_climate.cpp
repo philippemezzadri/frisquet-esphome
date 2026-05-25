@@ -191,6 +191,7 @@ void HeatingCurveClimate::write_output_(float value) {
   } else if (this->mode == CLIMATE_MODE_OFF) {
     new_action = CLIMATE_ACTION_OFF;
     this->water_temp_ = NAN;
+    this->reset_integral_term();
   } else {
     new_action = CLIMATE_ACTION_IDLE;
     this->water_temp_ = NAN;
