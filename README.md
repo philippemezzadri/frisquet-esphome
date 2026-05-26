@@ -28,6 +28,14 @@ and from the discussions held in this thread:
 
 - [Régulation d'une chaudière Frisquet ECO radio System](<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4>) (French)
 
+The following resources may also be useful:
+
+- [rtl_433 project](https://github.com/merbanan/rtl_433) — used to capture and decode the boiler ID
+- [Réglage et optimisation de la courbe de chauffe](https://web.archive.org/web/20231110221524/https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French) — practical guide to adjusting slope and shift
+- [Adjusting the heating curve correctly](https://www.viessmann.com.au/en/knowledge/tips-and-tutorials/set-heating-curve.html) — Viessmann step-by-step guide with standard slope values
+- [Hydronic Balancing: Heating Curve Settings](https://www.buildingservicestutor.com/hydronic-balancing-heating-curve-settings/) — detailed guide on slope and shift adjustment methodology
+- [Weather Compensation and Flow Temperature Optimisation](https://www.heatgeek.com/articles/how-to-maximise-your-heat-pump-or-boiler-efficiency) — Heat Geek practical guide
+
 ## Wiring
 
 The ESPHome replaces the original Eco Radio System HF receiver and is conneted to the boiler main board through a micro-fit 4 socket.

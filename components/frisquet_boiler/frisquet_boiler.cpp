@@ -11,9 +11,6 @@ void FrisquetBoiler::setup() {
   // Setup GPIO pin
   this->pin_->setup();
   this->digital_write(LOW);
-
-  // Init cycle delay for first message
-  this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
 }
 
 void FrisquetBoiler::set_mode(int mode) {
@@ -68,6 +65,10 @@ void FrisquetBoiler::write_state(float state) {
 void FrisquetBoiler::loop() {
   if (this->mode_ == CONTROL_MODE) {
     long now = millis();
+
+    if (this->last_order_ == 0)
+      return;
+
     if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
         ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
       ESP_LOGI(TAG, "Repeating last message");
