@@ -16,22 +16,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # required to access full git history
+          fetch-depth: 0
+
+      - name: Install git-cliff
+        run: |
+          curl -sSfL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
+            | tar -xz git-cliff
+          sudo mv git-cliff /usr/local/bin/
 
       - name: Generate Changelog
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: cliff.toml
-          args: --verbose
-        env:
-          OUTPUT: CHANGELOG.md
-          GITHUB_REPO: ${{ github.repository }}
+        run: git-cliff --config cliff.toml --output CHANGELOG.md
 
       - name: Commit and push Changelog
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
-          # Only commit if CHANGELOG.md has changed
           git diff --staged --quiet || git commit -m "docs: update CHANGELOG for ${{ github.ref_name }}"
           git push origin HEAD:main
