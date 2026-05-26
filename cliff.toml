@@ -1,0 +1,67 @@
+# git-cliff configuration file
+# https://git-cliff.org/docs/configuration
+
+[changelog]
+# Template for the changelog header
+header = """
+# Changelog\n
+All notable changes to this project will be documented in this file.\n
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).\n
+---\n
+"""
+
+# Template for each release section (Tera templating)
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] — {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}\
+- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}\
+{% if commit.breaking %} ⚠️ **BREAKING CHANGE**{% endif %}
+{% endfor %}
+{% endfor %}\n
+"""
+
+# Remove leading and trailing whitespace from the template output
+trim = true
+
+# Changelog footer
+footer = ""
+
+[git]
+# Parse commits according to Conventional Commits specification
+conventional_commits = true
+
+# Filter commits that do not match the conventional commits spec
+filter_unconventional = true
+
+# Process each line of a commit as an individual commit
+split_commits = false
+
+# Regex to filter commits to include in the changelog
+commit_parsers = [
+  { message = "^feat", group = "Added" },
+  { message = "^fix", group = "Fixed" },
+  { message = "^docs", group = "Documentation" },
+  { message = "^refactor", group = "Changed" },
+  { message = "^chore", group = "Maintenance" },
+  { message = "^perf", group = "Performance" },
+  { message = "^revert", group = "Reverted" },
+  # Ignore merge commits and CI/workspace commits
+  { message = "^Merge", skip = true },
+  { message = "^fix\\(workspace\\)", skip = true },
+]
+
+# Filter commits by their tags
+# Only include commits since the last tag
+tag_pattern = "v[0-9].*"
+
+# Sort commits inside sections by oldest first
+sort_commits = "oldest"
+
+# Protect breaking changes from being skipped
+protect_breaking_commits = true

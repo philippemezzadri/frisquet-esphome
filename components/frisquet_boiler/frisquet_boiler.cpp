@@ -11,9 +11,6 @@ void FrisquetBoiler::setup() {
   // Setup GPIO pin
   this->pin_->setup();
   this->digital_write(LOW);
-
-  // Init cycle delay for first message
-  this->delay_cycle_cmd_ = DELAY_CYCLE_CMD_INIT;
 }
 
 void FrisquetBoiler::set_mode(int mode) {
@@ -54,10 +51,11 @@ void FrisquetBoiler::write_state(float state) {
 
   this->last_order_ = millis();
 
-  if (new_demand != this->operating_setpoint_) {
+  if (new_demand != this->operating_setpoint_ || !this->initialized_) {
+    this->initialized_ = true;
     this->operating_setpoint_ = new_demand;
     ESP_LOGD(TAG, "New heating demand: %.3f", state);
-    ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
+    ESP_LOGV(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
     this->send_message();
     this->last_cmd_ = this->last_order_;
     this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
@@ -68,6 +66,10 @@ void FrisquetBoiler::write_state(float state) {
 void FrisquetBoiler::loop() {
   if (this->mode_ == CONTROL_MODE) {
     long now = millis();
+
+    if (this->last_order_ == 0)
+      return;
+
     if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
         ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
       ESP_LOGI(TAG, "Repeating last message");
@@ -114,9 +116,21 @@ void FrisquetBoiler::send_message() {
 
   ESP_LOGI(TAG, "Sending message: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
 
+  // Defensive check: values are controlled upstream but we verify here
+  // to prevent sending a malformed frame to the boiler.
+  if (this->operating_setpoint_ < 0 || this->operating_setpoint_ > 100) {
+    ESP_LOGE(TAG, "send_message: invalid setpoint %d, aborting", this->operating_setpoint_);
+    return;
+  }
+  if (this->operating_mode_ != 0 && this->operating_mode_ != 3 && this->operating_mode_ != 4) {
+    ESP_LOGE(TAG, "send_message: invalid operating mode %d, aborting", this->operating_mode_);
+    return;
+  }
+
   // Emits a serie of 3 messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
-    // /!\ I had to put previous_state_ at HIGH to get the message decoded properly.
+    // Signal must start HIGH for correct differential Manchester decoding
+    // by the boiler ERS receiver — see Kainhofer protocol reference.
     this->previous_state_ = HIGH;
     this->message_[9] = msg;
     this->message_[10] = (msg == 2) ? this->operating_mode_ : this->operating_mode_ + 0x80;
@@ -262,6 +276,8 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
+  // msg_counter_ wraps silently after 255 calls — this is intentional
+  // as it is only used as a frame counter in test mode.
   this->msg_counter_++;
 }
 
