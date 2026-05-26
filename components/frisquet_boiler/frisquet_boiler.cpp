@@ -115,9 +115,21 @@ void FrisquetBoiler::send_message() {
 
   ESP_LOGI(TAG, "Sending message: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
 
+  // Defensive check: values are controlled upstream but we verify here
+  // to prevent sending a malformed frame to the boiler.
+  if (this->operating_setpoint_ < 0 || this->operating_setpoint_ > 100) {
+    ESP_LOGE(TAG, "send_message: invalid setpoint %d, aborting", this->operating_setpoint_);
+    return;
+  }
+  if (this->operating_mode_ != 0 && this->operating_mode_ != 3 && this->operating_mode_ != 4) {
+    ESP_LOGE(TAG, "send_message: invalid operating mode %d, aborting", this->operating_mode_);
+    return;
+  }
+
   // Emits a serie of 3 messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
-    // /!\ I had to put previous_state_ at HIGH to get the message decoded properly.
+    // Signal must start HIGH for correct differential Manchester decoding
+    // by the boiler ERS receiver — see Kainhofer protocol reference.
     this->previous_state_ = HIGH;
     this->message_[9] = msg;
     this->message_[10] = (msg == 2) ? this->operating_mode_ : this->operating_mode_ + 0x80;
@@ -263,6 +275,8 @@ void FrisquetBoiler::send_test_message() {
   this->digital_write(HIGH);
   delayMicroseconds(2 * LONG_PULSE);
   this->digital_write(LOW);
+  // msg_counter_ wraps silently after 255 calls — this is intentional
+  // as it is only used as a frame counter in test mode.
   this->msg_counter_++;
 }
 
