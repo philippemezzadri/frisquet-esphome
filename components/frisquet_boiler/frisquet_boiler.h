@@ -76,6 +76,7 @@ class FrisquetBoiler : public output::FloatOutput, public Component {
   CallbackManager<void()> internal_sensor_callback_;
 
   GPIOPin *pin_;
+  bool initialized_{false};  // true after first write_state() call
   int mode_{CONTROL_MODE};
   int operating_mode_{3};
   int operating_setpoint_{0};

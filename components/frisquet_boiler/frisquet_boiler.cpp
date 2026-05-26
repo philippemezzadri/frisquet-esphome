@@ -51,10 +51,11 @@ void FrisquetBoiler::write_state(float state) {
 
   this->last_order_ = millis();
 
-  if (new_demand != this->operating_setpoint_) {
+  if (new_demand != this->operating_setpoint_ || !this->initialized_) {
+    this->initialized_ = true;
     this->operating_setpoint_ = new_demand;
     ESP_LOGD(TAG, "New heating demand: %.3f", state);
-    ESP_LOGD(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
+    ESP_LOGV(TAG, "New boiler setpoint: (%i, %i)", this->operating_mode_, this->operating_setpoint_);
     this->send_message();
     this->last_cmd_ = this->last_order_;
     this->delay_cycle_cmd_ = DELAY_REPEAT_CMD;
