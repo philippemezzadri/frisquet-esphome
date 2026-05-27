@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.13] — 2026-05-27
+
+### Added
+- **docs**: Add CONTRIBUTING.md to guide new contributors
+- **docs**: Add CONTRIBUTING.md to guide new contributors
+- **changelog**: Add changelog generation workflow and configuration
+
+
+### Documentation
+- Update CHANGELOG for v1.5.13
+
+
+### Fixed
+- **frisquet_boiler**: Improve command delay handling
+- **frisquet_boiler**: Add validation checks for operating mode and setpoint in send_message
+- **frisquet_boiler**: Add initialization check in write_state to ensure proper startup behaviour
+- **changelog**: Fix changelog generation steps
+- **changelog**: Update git-cliff download URL to specific version
+- **changelog**: Fix installation command in changelog workflow
+- **changelog**: Fix installation command in changelog workflow (2)
+- **changelog**: Fix installation command in changelog workflow (3)
+- **changelog**: Update changelog generation to include only the latest release section and improve commit filtering
+
+
 ---
 
 ## [v1.5.12] — 2026-05-25
