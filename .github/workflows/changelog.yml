@@ -28,8 +28,16 @@ jobs:
           sudo mv git-cliff /usr/local/bin/
           git-cliff --version
 
-      - name: Generate Changelog
-        run: git-cliff --config cliff.toml --output CHANGELOG.md
+      - name: Generate latest release section
+        run: |
+          # Generate only the latest release section (since last tag), without header
+          git-cliff --config cliff.toml --latest --strip all --output CHANGELOG_latest.md
+          # Prepend new section after the 6-line header of the existing CHANGELOG
+          head -n 6 CHANGELOG.md > CHANGELOG_new.md
+          cat CHANGELOG_latest.md >> CHANGELOG_new.md
+          tail -n +7 CHANGELOG.md >> CHANGELOG_new.md
+          mv CHANGELOG_new.md CHANGELOG.md
+          rm CHANGELOG_latest.md
 
       - name: Commit and push Changelog
         run: |

@@ -51,14 +51,16 @@ commit_parsers = [
   { message = "^chore", group = "Maintenance" },
   { message = "^perf", group = "Performance" },
   { message = "^revert", group = "Reverted" },
-  # Ignore merge commits and CI/workspace commits
+  # Ignore merge commits, CI/workspace commits and changelog maintenance commits
   { message = "^Merge", skip = true },
   { message = "^fix\\(workspace\\)", skip = true },
+  { message = "^fix\\(changelog\\)", skip = true },
+  { message = "^docs: update CHANGELOG", skip = true },
 ]
 
-# Filter commits by their tags
-# Only include commits since the last tag
-tag_pattern = "v[0-9].*"
+# Only match well-formed tags (v1.x.y) — older tags (V1.x, v.1.5.x)
+# are excluded as their history is already documented in the manual CHANGELOG
+tag_pattern = "v[0-9]+\\.[0-9]+.*"
 
 # Sort commits inside sections by oldest first
 sort_commits = "oldest"
