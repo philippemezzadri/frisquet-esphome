@@ -44,6 +44,12 @@ split_commits = false
 
 # Regex to filter commits to include in the changelog
 commit_parsers = [
+  # Ignore rules must come first to take precedence over grouping rules
+  { message = "^Merge", skip = true },
+  { scope = "workspace", skip = true },
+  { scope = "changelog", skip = true },
+  { message = "^docs: update CHANGELOG", skip = true },
+  # Grouping rules
   { message = "^feat", group = "Added" },
   { message = "^fix", group = "Fixed" },
   { message = "^docs", group = "Documentation" },
@@ -51,11 +57,6 @@ commit_parsers = [
   { message = "^chore", group = "Maintenance" },
   { message = "^perf", group = "Performance" },
   { message = "^revert", group = "Reverted" },
-  # Ignore merge commits, CI/workspace commits and changelog maintenance commits
-  { message = "^Merge", skip = true },
-  { message = "^fix\\(workspace\\)", skip = true },
-  { message = "^fix\\(changelog\\)", skip = true },
-  { message = "^docs: update CHANGELOG", skip = true },
 ]
 
 # Only match well-formed tags (v1.x.y) — older tags (V1.x, v.1.5.x)
