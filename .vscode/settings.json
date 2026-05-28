@@ -76,4 +76,8 @@
   "pylint.args": [
     " [\"--disable=C0114\"]"
   ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "text": "Always write commit messages in English. Never switch languages." },
+    { "text": "Use conventional commits format: type(scope): description" }
+  ]
 }

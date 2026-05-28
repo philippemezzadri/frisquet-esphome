@@ -55,7 +55,7 @@ Defined viewing direction for the connector pin out:
 - Receptable - *rear view*
 - Header - *front view*
 
-*Note*: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
+> ⚠️ It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
 
 ## Installation
 
@@ -121,7 +121,10 @@ The output value received by the component is any rational value between `0` and
 
 `calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler. This is only used to return information to Home Assistant and has no impact on boiler control.
 
-*Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
+> ⚠️ The ``frisquet_boiler`` component will send commands to the boiler right after an update of the
+> ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. 
+> To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not 
+> updated during 15 minutes. In such case, the boiler will put itself in safe mode.
 
 ### Boiler ID
 
@@ -199,7 +202,7 @@ where :
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `slope` and `shift` are defined in the Climate `control_parameters`.
 
-![heat curve example graph](images/heat_curve_graph.png)
+![heating curve example graph](images/heat_curve_graph.png)
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
@@ -309,7 +312,7 @@ sensor:
 
 If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
 
-*Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
+> ⚠️ Sensors should have a regular update interval as the heating curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
 ## `frisquet_boiler` Switches
 
@@ -459,7 +462,7 @@ Configuration variables:
 This [action](<https://esphome.io/automations/actions#actions>) sets the boiler operating mode.
 This parameter is actually included in the frames sent to the boiler by the Satellite so we reproduce this behaviour in this component.
 
-Note: the actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
+> ⚠️ The actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
 
 ```yaml
 on_...:
