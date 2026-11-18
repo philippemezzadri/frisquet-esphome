@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.14] — 2026-11-18
+
+### Continuous Integration
+- Add clang-format check and ESPHome config/compile job
+- Generate changelog before tagging and publish release notes
+
+### Documentation
+- Enhance README with warning notes and improve clarity
+- Fix action names and parameters in examples
+- Restore default values for set_control_parameters optional parameters
+- Remove obsolete RST documentation
+
+### Fixed
+- **frisquet_boiler**: Correct dump_config output, millis() types and boiler_id validation
+- **heat_curve_climate**: Keep current values for omitted action parameters
+- **yaml**: Move OTA password to secrets and fix HA automation example
+- **yaml**: Secure OTA with the API encryption key instead of a password
+
+### Reverted
+- **yaml**: Restore original comfort mode threshold in HA automation
+
 ## [1.5.13] — 2026-05-27
 
 ### Added
