@@ -1,5 +1,4 @@
 {
-  "esbonio.sphinx.confDir": "",
   "markdown-preview-github-styles.colorTheme": "light",
   "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 2, ColumnLimit: 0}",
   "editor.tabSize": 2,
