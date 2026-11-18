@@ -440,10 +440,14 @@ Configuration variables:
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
 - **slope** (**Required**, float): The proportional term (slope) of the heating curve.
 - **shift** (**Required**, float): The offset term of the heating curve.
-- **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to 0.
-- **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to 0.
+- **kp** (*Optional*, float): The factor for the proportional term of the controller.
+- **ki** (*Optional*, float): The factor for the integral term of the controller.
+- **max_error** (*Optional*, float): The regulation error above which the boiler stops.
+- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops.
 
-## `climate.pid.reset_integral_term` Action
+Optional parameters that are omitted keep their current value (they are no longer reset to a default).
+
+## `climate.heat_curve.reset_integral_term` Action
 
 This [action](<https://esphome.io/automations/actions#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
 
@@ -467,7 +471,7 @@ This parameter is actually included in the frames sent to the boiler by the Sate
 ```yaml
 on_...:
   then:
-    - output.set_mode:
+    - boiler.set_mode:
         id: boiler_cmd
         mode: 3
 ```
@@ -488,7 +492,7 @@ This [action](<https://esphome.io/automations/action#actions>) sets the float ou
 ```yaml
 on_...:
   then:
-    - boiler.set_level:
+    - output.set_level:
         id: boiler_cmd
         level: 50%
 ```
@@ -557,7 +561,7 @@ data:
 ```yaml
 action: esphome.myFrisquetBoiler_set_boiler_setpoint
 data:
-  level: 50
+  setpoint: 50
 ```
 
 ### Set boiler mode Service
@@ -573,6 +577,8 @@ Those are only examples. Any kind of service can be defined to suit your needs.
 ## Configuration files
 
 The [boiler.yaml](boiler.yaml) file includes all options described above. To use it, you need to customize all sensors IDs and names. If you are using Dallas temperature sensor, you need to enter their proper addresses. If not, you have to delete the corresponding lines.
+
+Secrets (Wi-Fi, API encryption key, OTA password) are read from a git-ignored `secrets.yaml` file. Use [secrets.example.yaml](secrets.example.yaml) as a template.
 
 The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
 

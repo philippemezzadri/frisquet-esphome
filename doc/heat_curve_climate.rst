@@ -300,14 +300,16 @@ Configuration variables:
 - **slope** (**Required**, float): The proportional term (slope) of the heating curve.
 - **shift** (**Required**, float): The parallel shift term of the heating curve.
 - **kp** (*Optional*, float): The factor for the proportional term of the controller.
-  Defaults to ``0``.
 - **ki** (*Optional*, float): The factor for the integral term of the controller.
-  Defaults to ``0``.
+- **max_error** (*Optional*, float): The regulation error above which the boiler stops.
+- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops.
 
-``climate.pid.reset_integral_term`` Action
-------------------------------------------
+Optional parameters that are omitted keep their current value.
 
-This actiob resets the integral term of the PID controller to 0. This might be necessary under certain 
+``climate.heat_curve.reset_integral_term`` Action
+-------------------------------------------------
+
+This action resets the integral term of the PID controller to 0. This might be necessary under certain 
 conditions to avoid the control loop to overshoot (or undershoot) a target.
 
 .. code-block:: yaml
