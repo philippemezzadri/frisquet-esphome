@@ -578,7 +578,7 @@ Those are only examples. Any kind of service can be defined to suit your needs.
 
 The [boiler.yaml](boiler.yaml) file includes all options described above. To use it, you need to customize all sensors IDs and names. If you are using Dallas temperature sensor, you need to enter their proper addresses. If not, you have to delete the corresponding lines.
 
-Secrets (Wi-Fi, API encryption key, OTA password) are read from a git-ignored `secrets.yaml` file. Use [secrets.example.yaml](secrets.example.yaml) as a template.
+Secrets (Wi-Fi, API encryption key) are read from a git-ignored `secrets.yaml` file. Use [secrets.example.yaml](secrets.example.yaml) as a template. OTA updates are secured with the API encryption key (`ota: encryption:`, ESPHome 2026.11 or later).
 
 The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
 

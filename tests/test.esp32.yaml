@@ -21,6 +21,9 @@ logger:
   level: VERY_VERBOSE
 
 api:
+  encryption:
+    # Dummy key for CI only, never use it on a real device
+    key: "8XDjuRpLDMqovnFfrtC9XSvPcf5bzj4X0JS8pBn6oz0="
   actions:
     - action: set_control_parameters
       variables:
@@ -40,6 +43,11 @@ api:
         - boiler.set_mode:
             id: boiler_cmd
             mode: !lambda "return mode;"
+
+# OTA secured with the API encryption key (ESPHome >= 2026.11)
+ota:
+  - platform: esphome
+    encryption:
 
 sensor:
   - platform: template
