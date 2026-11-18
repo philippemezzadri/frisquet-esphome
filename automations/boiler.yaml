@@ -94,7 +94,6 @@ automation:
           slope: "{{ states('input_number.boiler_slope') | float}}"
           shift: "{{ states('input_number.boiler_shift') | float }}"
           kp: "{{ states('input_number.boiler_kp') | float }}"
-          ki: "{{ states('input_number.boiler_ki') | float }}"
       - delay: "00:01:30"
     mode: single
     max_exceeded: silent

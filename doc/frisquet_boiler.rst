@@ -225,7 +225,7 @@ This parameter is actually included in the frames sent to the boiler but we have
 
    on_...:
      then:
-       - output.set_mode:
+       - boiler.set_mode:
            id: boiler_cmd
            mode: 3
 
@@ -248,7 +248,7 @@ not connected to a Climate component.
 
    on_...:
      then:
-       - boiler.set_level:
+       - output.set_level:
            id: boiler_cmd
            level: 50%
 

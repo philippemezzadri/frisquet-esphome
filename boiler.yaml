@@ -3,7 +3,6 @@ substitutions:
   name: "Frisquet Boiler"
   reboot_timeout: 14d
   update_interval: 60s
-  ota_password: "86d8d705bb585eaf7a68c592a025884c"
 
 esphome:
   name: ${device}

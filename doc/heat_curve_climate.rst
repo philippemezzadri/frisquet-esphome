@@ -303,11 +303,19 @@ Configuration variables:
   Defaults to ``0``.
 - **ki** (*Optional*, float): The factor for the integral term of the controller.
   Defaults to ``0``.
+- **max_error** (*Optional*, float): The regulation error above which the boiler stops.
+  Defaults to ``1``.
+- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which
+  the boiler stops. Defaults to ``2``.
 
-``climate.pid.reset_integral_term`` Action
-------------------------------------------
+If omitted, the current value is kept: the value from ``control_parameters`` in the YAML file,
+or the last value set at runtime (e.g. from Home Assistant). The default values above only
+apply when the parameter is set neither in the YAML file nor at runtime.
 
-This actiob resets the integral term of the PID controller to 0. This might be necessary under certain 
+``climate.heat_curve.reset_integral_term`` Action
+-------------------------------------------------
+
+This action resets the integral term of the PID controller to 0. This might be necessary under certain 
 conditions to avoid the control loop to overshoot (or undershoot) a target.
 
 .. code-block:: yaml

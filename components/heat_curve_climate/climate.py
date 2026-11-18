@@ -60,23 +60,23 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_OUTPUT): cv.use_id(output.FloatOutput),
             cv.Optional(CONF_CONTROL_PARAMETERS): cv.Schema(
                 {
-                    cv.Optional(CONF_SLOPE, default=1.5): cv.float_,
-                    cv.Optional(CONF_SHIFT, default=0): cv.float_,
-                    cv.Optional(CONF_KP, default=0): cv.float_,
-                    cv.Optional(CONF_KI, default=0): cv.float_,
-                    cv.Optional(CONF_ALTERNATE_CURVE, default=False): cv.boolean,
-                    cv.Optional(CONF_MAX_ERROR, default=1): cv.float_,
-                    cv.Optional(CONF_MIN_DELTA, default=2): cv.float_,
+                    cv.Optional(CONF_SLOPE, default=DEF_SLOPE): cv.float_,
+                    cv.Optional(CONF_SHIFT, default=DEF_SHIFT): cv.float_,
+                    cv.Optional(CONF_KP, default=DEF_KP): cv.float_,
+                    cv.Optional(CONF_KI, default=DEF_KI): cv.float_,
+                    cv.Optional(CONF_ALTERNATE_CURVE, default=DEF_ALT_CURVE): cv.boolean,
+                    cv.Optional(CONF_MAX_ERROR, default=DEF_MAX_ERROR): cv.float_,
+                    cv.Optional(CONF_MIN_DELTA, default=DEF_MIN_DELTA): cv.float_,
                 }
             ),
             cv.Optional(CONF_OUTPUT_PARAMETERS): cv.Schema(
                 {
-                    cv.Optional(CONF_ROUNDED_OUTPUT, default=False): cv.boolean,
-                    cv.Optional(CONF_OUTPUT_FACTOR, default=1): cv.float_,
-                    cv.Optional(CONF_OUTPUT_OFFSET, default=0): cv.float_,
-                    cv.Optional(CONF_MINIMUM_OUTPUT, default=0.0): cv.float_,
-                    cv.Optional(CONF_MAXIMUM_OUTPUT, default=1.0): cv.float_,
-                    cv.Optional(CONF_HEATREQ_OUTPUT, default=0.1): cv.float_,
+                    cv.Optional(CONF_ROUNDED_OUTPUT, default=DEF_ROUNDED): cv.boolean,
+                    cv.Optional(CONF_OUTPUT_FACTOR, default=DEF_OUTPUT_FACTOR): cv.float_,
+                    cv.Optional(CONF_OUTPUT_OFFSET, default=DEF_OUTPUT_OFFSET): cv.float_,
+                    cv.Optional(CONF_MINIMUM_OUTPUT, default=DEF_MIN_OUTPUT): cv.float_,
+                    cv.Optional(CONF_MAXIMUM_OUTPUT, default=DEF_MAX_OUTPUT): cv.float_,
+                    cv.Optional(CONF_HEATREQ_OUTPUT, default=DEF_HEATREQ_OUTPUT): cv.float_,
                 }
             ),
         }
@@ -130,10 +130,12 @@ async def to_code(config):
             cv.Required(CONF_ID): cv.use_id(HeatingCurveClimate),
             cv.Required(CONF_SLOPE): cv.templatable(cv.float_),
             cv.Required(CONF_SHIFT): cv.templatable(cv.float_),
-            cv.Optional(CONF_KP, default=0.0): cv.templatable(cv.float_),
-            cv.Optional(CONF_KI, default=0.0): cv.templatable(cv.float_),
-            cv.Optional(CONF_MAX_ERROR, default=1.0): cv.templatable(cv.float_),
-            cv.Optional(CONF_MIN_DELTA, default=2.0): cv.templatable(cv.float_),
+            # Optional parameters are only applied when provided: omitting one
+            # keeps the current value instead of resetting it to a default.
+            cv.Optional(CONF_KP): cv.templatable(cv.float_),
+            cv.Optional(CONF_KI): cv.templatable(cv.float_),
+            cv.Optional(CONF_MAX_ERROR): cv.templatable(cv.float_),
+            cv.Optional(CONF_MIN_DELTA): cv.templatable(cv.float_),
         }
     ),
     synchronous=True,
@@ -142,23 +144,21 @@ async def set_control_parameters(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, paren)
 
-    kp_template_ = await cg.templatable(config[CONF_KP], args, float)
-    cg.add(var.set_kp(kp_template_))
-
-    ki_template_ = await cg.templatable(config[CONF_KI], args, float)
-    cg.add(var.set_ki(ki_template_))
-
     slope_template_ = await cg.templatable(config[CONF_SLOPE], args, float)
     cg.add(var.set_slope(slope_template_))
 
     shift_template_ = await cg.templatable(config[CONF_SHIFT], args, float)
     cg.add(var.set_shift(shift_template_))
 
-    max_error_template_ = await cg.templatable(config[CONF_MAX_ERROR], args, float)
-    cg.add(var.set_max_error(max_error_template_))
-
-    min_delta_template_ = await cg.templatable(config[CONF_MIN_DELTA], args, float)
-    cg.add(var.set_min_delta(min_delta_template_))
+    for key, setter in (
+        (CONF_KP, var.set_kp),
+        (CONF_KI, var.set_ki),
+        (CONF_MAX_ERROR, var.set_max_error),
+        (CONF_MIN_DELTA, var.set_min_delta),
+    ):
+        if key in config:
+            template_ = await cg.templatable(config[key], args, float)
+            cg.add(setter(template_))
 
     return var
 

@@ -5,7 +5,7 @@
 
 namespace esphome {
 namespace frisquet_boiler {
-static const char *TAG = "frisquet.output";
+static const char *const TAG = "frisquet.output";
 
 void FrisquetBoiler::setup() {
   // Setup GPIO pin
@@ -65,13 +65,13 @@ void FrisquetBoiler::write_state(float state) {
 
 void FrisquetBoiler::loop() {
   if (this->mode_ == CONTROL_MODE) {
-    long now = millis();
+    uint32_t now = millis();
 
     if (this->last_order_ == 0)
       return;
 
     if ((now - this->last_cmd_ > this->delay_cycle_cmd_) &&
-        ((now - this->last_order_ < DELAY_TIMEOUT_CMD_MQTT) || (DELAY_TIMEOUT_CMD_MQTT == 0))) {
+        ((now - this->last_order_ < DELAY_TIMEOUT_CMD) || (DELAY_TIMEOUT_CMD == 0))) {
       ESP_LOGI(TAG, "Repeating last message");
       this->send_message();
       this->last_cmd_ = now;
@@ -91,7 +91,7 @@ void FrisquetBoiler::dump_config() {
                 "  Calibration factor: %.2f\n"
                 "  Calibration offset: %.2f",
                 this->boiler_id_[0], this->boiler_id_[1], this->output_calibration_factor_,
-                this->output_calibration_factor_, this->output_calibration_offset_);
+                this->output_calibration_offset_);
 
   LOG_PIN("  Pin: ", this->pin_);
   LOG_FLOAT_OUTPUT(this);
@@ -252,7 +252,7 @@ void FrisquetBoiler::send_test_message() {
 
   ESP_LOGI(TAG, "Sending test command to the boiler");
 
-  // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
+  // Emits a serie of 3 test messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
     this->previous_state_ = HIGH;
     this->comm_test_message_[9] = 0xE0 + msg;
@@ -288,7 +288,7 @@ void FrisquetBoiler::send_pairing_message() {
 
   ESP_LOGI(TAG, "Sending configuration command to the boiler");
 
-  // Emits a serie of 2 test messages to the ERS (Eco Radio System) input of the boiler
+  // Emits a serie of 3 pairing messages to the ERS (Eco Radio System) input of the boiler
   for (uint8_t msg = 0; msg < 3; msg++) {
     this->previous_state_ = HIGH;
     this->comm_setup_message_[9] = 0xF0 + msg;
