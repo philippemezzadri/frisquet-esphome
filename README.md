@@ -440,12 +440,12 @@ Configuration variables:
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
 - **slope** (**Required**, float): The proportional term (slope) of the heating curve.
 - **shift** (**Required**, float): The offset term of the heating curve.
-- **kp** (*Optional*, float): The factor for the proportional term of the controller.
-- **ki** (*Optional*, float): The factor for the integral term of the controller.
-- **max_error** (*Optional*, float): The regulation error above which the boiler stops.
-- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops.
+- **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to `0`.
+- **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to `0`.
+- **max_error** (*Optional*, float): The regulation error above which the boiler stops. Defaults to `1`.
+- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
 
-Optional parameters that are omitted keep their current value (they are no longer reset to a default).
+If omitted, the current value is kept: the value from `control_parameters` in the YAML file, or the last value set at runtime (e.g. from Home Assistant). The default values above only apply when the parameter is set neither in the YAML file nor at runtime.
 
 ## `climate.heat_curve.reset_integral_term` Action
 
