@@ -1,3 +1,5 @@
+import re
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
@@ -19,11 +21,22 @@ FrisquetBoiler = frisquet_boiler_ns.class_(
 # Actions
 SetModeAction = frisquet_boiler_ns.class_("SetModeAction", automation.Action)
 
+
+def validate_boiler_id(value):
+    """Boiler ID must be exactly 4 hexadecimal characters (e.g. 03B9)."""
+    value = cv.string(value)
+    if not re.fullmatch(r"[0-9A-Fa-f]{4}", value):
+        raise cv.Invalid(
+            f"boiler_id must be exactly 4 hexadecimal characters (e.g. 03B9), got '{value}'"
+        )
+    return value.upper()
+
+
 CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
     {
         cv.Required(CONF_ID): cv.declare_id(FrisquetBoiler),
         cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
-        cv.Required(CONF_BOILER_ID): cv.string,
+        cv.Required(CONF_BOILER_ID): validate_boiler_id,
         cv.Optional(CONF_CALIBRATION_FACTOR, default=1.9): cv.float_,
         cv.Optional(CONF_CALIBRATION_OFFSET, default=-41): cv.float_,
     }
