@@ -1,0 +1,105 @@
+# Minimal configuration used by CI to validate and compile the components.
+# It does not need Wi-Fi, Home Assistant or real sensors.
+esphome:
+  name: frisquet-ci
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+
+wifi:
+  ssid: "ci-ssid"
+  password: "ci-password"
+
+logger:
+  level: VERY_VERBOSE
+
+api:
+  actions:
+    - action: set_control_parameters
+      variables:
+        slope: float
+        shift: float
+      then:
+        # Optional parameters omitted on purpose: they must keep their values
+        - climate.heat_curve.set_control_parameters:
+            id: boiler_climate
+            slope: !lambda "return slope;"
+            shift: !lambda "return shift;"
+        - climate.heat_curve.reset_integral_term: boiler_climate
+    - action: set_boiler_mode
+      variables:
+        mode: int
+      then:
+        - boiler.set_mode:
+            id: boiler_cmd
+            mode: !lambda "return mode;"
+
+sensor:
+  - platform: template
+    id: current_temperature
+    lambda: "return 19.5;"
+    update_interval: 60s
+  - platform: template
+    id: outdoor_temperature
+    lambda: "return 5.0;"
+    update_interval: 60s
+
+  - platform: frisquet_boiler
+    name: "Boiler flow temperature setting"
+    type: FLOWTEMP
+  - platform: frisquet_boiler
+    name: "Boiler setting"
+    type: SETPOINT
+
+  - platform: heat_curve_climate
+    name: "Heat curve output"
+    type: RESULT
+  - platform: heat_curve_climate
+    name: "Heat curve water temperature"
+    type: WATERTEMP
+  - platform: heat_curve_climate
+    name: "Heat curve integral"
+    type: INTEGRAL
+
+output:
+  - platform: frisquet_boiler
+    id: boiler_cmd
+    boiler_id: 03B9
+    pin:
+      number: GPIO5
+      ignore_strapping_warning: true
+
+climate:
+  - platform: heat_curve_climate
+    id: boiler_climate
+    name: "Frisquet Boiler"
+    sensor: current_temperature
+    outdoor_sensor: outdoor_temperature
+    default_target_temperature: 19
+    output: boiler_cmd
+    control_parameters:
+      slope: 1.2
+      shift: 0
+      kp: 2
+      ki: 0.0001
+      max_error: 0.5
+    output_parameters:
+      maximum_output: 0.55
+      output_factor: 1.9
+      output_offset: -41
+
+switch:
+  - platform: heat_curve_climate
+    name: "Heat required"
+  - platform: frisquet_boiler
+    test:
+      name: "Test mode"
+    pair:
+      name: "Pairing mode"

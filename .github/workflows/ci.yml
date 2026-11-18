@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned version so that formatting results are reproducible
+      - name: Install clang-format
+        run: pip install clang-format==18.1.8
+      - name: Check C++ formatting
+        run: |
+          find components -name '*.h' -o -name '*.cpp' \
+            | xargs clang-format --dry-run --Werror --style=file
+
+  esphome:
+    name: ESPHome (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [esp32]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ matrix.target }}-${{ hashFiles('tests/*.yaml') }}
+          restore-keys: pio-${{ matrix.target }}-
+
+      # Latest ESPHome on purpose: catches breaking changes from new releases early.
+      - name: Install ESPHome
+        run: pip install esphome
+
+      - name: Validate configuration
+        run: esphome config tests/test.${{ matrix.target }}.yaml
+
+      - name: Compile firmware
+        run: esphome compile tests/test.${{ matrix.target }}.yaml
