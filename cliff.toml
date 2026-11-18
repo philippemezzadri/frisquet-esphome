@@ -46,8 +46,9 @@ split_commits = false
 commit_parsers = [
   # Ignore rules must come first to take precedence over grouping rules
   { message = "^Merge", skip = true },
-  { scope = "workspace", skip = true },
-  { scope = "changelog", skip = true },
+  # Match on the commit scope ("scope = ..." alone would rewrite the scope, not filter on it)
+  { field = "scope", pattern = "^workspace$", skip = true },
+  { field = "scope", pattern = "^changelog$", skip = true },
   { message = "^docs: update CHANGELOG", skip = true },
   # Grouping rules
   { message = "^feat", group = "Added" },
@@ -57,6 +58,7 @@ commit_parsers = [
   { message = "^chore", group = "Maintenance" },
   { message = "^perf", group = "Performance" },
   { message = "^revert", group = "Reverted" },
+  { message = "^ci", group = "Continuous Integration" },
 ]
 
 # Only match well-formed tags (v1.x.y) — older tags (V1.x, v.1.5.x)

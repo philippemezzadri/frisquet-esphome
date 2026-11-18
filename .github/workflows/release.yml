@@ -1,0 +1,35 @@
+name: Release
+
+# When a version tag is pushed, create (or update) the GitHub release with the
+# matching CHANGELOG.md section as release notes. The section must already be
+# in the tagged commit: run the "Prepare release" workflow before tagging.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG
+        run: scripts/release_notes.sh "$GITHUB_REF_NAME" > release_notes.md
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --notes-file release_notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag \
+              --title "$GITHUB_REF_NAME" --notes-file release_notes.md
+          fi
