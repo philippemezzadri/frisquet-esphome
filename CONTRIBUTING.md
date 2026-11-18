@@ -119,11 +119,9 @@ If you do not have access to a compatible boiler, please clearly state this in y
 
 If your change affects the behaviour or configuration of a component, please update the relevant documentation:
 
-- `README.md` — primary user-facing documentation
-- `doc/frisquet_boiler.rst` — RST documentation (maintained for future ESPHome integration)
-- `doc/heat_curve_climate.rst` — RST documentation (maintained for future ESPHome integration)
+- `README.md` — the single source of user-facing documentation
 
-RST documentation follows [ESPHome documentation conventions](https://developers.esphome.io/contributing/documentation/).
+Documentation in the ESPHome format (`.mdx`) will be produced from the README if and when the components are submitted for integration into ESPHome.
 
 ---
 
