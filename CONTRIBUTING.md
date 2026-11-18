@@ -58,6 +58,7 @@ Types:
 - `docs` — documentation only
 - `refactor` — code change that neither fixes a bug nor adds a feature
 - `chore` — maintenance (dependencies, tooling, etc.)
+- `ci` — continuous integration and release workflows
 
 Scopes: `frisquet_boiler`, `heat_curve_climate`, `docs`, `yaml`
 
@@ -119,11 +120,9 @@ If you do not have access to a compatible boiler, please clearly state this in y
 
 If your change affects the behaviour or configuration of a component, please update the relevant documentation:
 
-- `README.md` — primary user-facing documentation
-- `doc/frisquet_boiler.rst` — RST documentation (maintained for future ESPHome integration)
-- `doc/heat_curve_climate.rst` — RST documentation (maintained for future ESPHome integration)
+- `README.md` — the single source of user-facing documentation
 
-RST documentation follows [ESPHome documentation conventions](https://developers.esphome.io/contributing/documentation/).
+Documentation in the ESPHome format (`.mdx`) will be produced from the README if and when the components are submitted for integration into ESPHome.
 
 ---
 
@@ -141,6 +140,18 @@ RST documentation follows [ESPHome documentation conventions](https://developers
    - A clear summary of the changes and their motivation
    - Any relevant context (ESPHome version tested, boiler model if applicable)
    - Whether the change has been tested on hardware
+
+---
+
+## Release Process (maintainers)
+
+`CHANGELOG.md` is generated from commit messages with [git-cliff](https://git-cliff.org) (see `cliff.toml`), so the commit convention above matters.
+
+1. Run the **Prepare release** workflow (Actions > Prepare release > Run workflow) with the new version, e.g. `1.5.14`. It adds the changelog section and opens a pull request to `dev`. Review it, edit if needed, and merge it.
+2. Merge `dev` into `main`.
+3. Create the tag `vX.Y.Z` on `main` and push it. The **Release** workflow then creates the GitHub release, using the changelog section as release notes.
+
+The changelog section can also be generated locally with `scripts/update_changelog.sh X.Y.Z` (requires `git-cliff`).
 
 ---
 

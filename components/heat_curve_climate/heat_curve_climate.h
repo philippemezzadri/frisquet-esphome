@@ -21,7 +21,7 @@ class HeatingCurveClimate : public Climate, public Component {
   void update();
 
   void set_sensor(sensor::Sensor *sensor) { current_sensor_ = sensor; }
-  void set_outdoor_sensor(sensor::Sensor *sensor) { outoor_sensor_ = sensor; }
+  void set_outdoor_sensor(sensor::Sensor *sensor) { outdoor_sensor_ = sensor; }
   void set_heat_required(bool value);
   void set_rounded(bool rounded) { rounded_ = rounded; }
   void set_alt_curve(bool alt) { alt_curve_ = alt; }
@@ -97,7 +97,7 @@ class HeatingCurveClimate : public Climate, public Component {
 
   // Sensors
   sensor::Sensor *current_sensor_{nullptr};
-  sensor::Sensor *outoor_sensor_{nullptr};
+  sensor::Sensor *outdoor_sensor_{nullptr};
   output::FloatOutput *output_{nullptr};
 
   CallbackManager<void()> internal_sensor_callback_;
@@ -118,19 +118,17 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
   SetControlParametersAction(HeatingCurveClimate *parent) : parent_(parent) {}
 
   void play(const Ts &...x) {
-    auto slope = this->slope_.value(x...);
-    auto shift = this->shift_.value(x...);
-    auto kp = this->kp_.value(x...);
-    auto ki = this->ki_.value(x...);
-    auto max_error = this->max_error_.value(x...);
-    auto min_delta = this->min_delta_.value(x...);
-
-    this->parent_->set_slope(slope);
-    this->parent_->set_shift(shift);
-    this->parent_->set_kp(kp);
-    this->parent_->set_ki(ki);
-    this->parent_->set_max_error(max_error);
-    this->parent_->set_min_delta(min_delta);
+    this->parent_->set_slope(this->slope_.value(x...));
+    this->parent_->set_shift(this->shift_.value(x...));
+    // Optional parameters: only overwrite the current value when provided
+    if (this->kp_.has_value())
+      this->parent_->set_kp(this->kp_.value(x...));
+    if (this->ki_.has_value())
+      this->parent_->set_ki(this->ki_.value(x...));
+    if (this->max_error_.has_value())
+      this->parent_->set_max_error(this->max_error_.value(x...));
+    if (this->min_delta_.has_value())
+      this->parent_->set_min_delta(this->min_delta_.value(x...));
     this->parent_->dump_config();
     this->parent_->update();
   }

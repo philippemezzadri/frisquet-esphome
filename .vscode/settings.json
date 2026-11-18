@@ -1,5 +1,4 @@
 {
-  "esbonio.sphinx.confDir": "",
   "markdown-preview-github-styles.colorTheme": "light",
   "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 2, ColumnLimit: 0}",
   "editor.tabSize": 2,
@@ -76,4 +75,8 @@
   "pylint.args": [
     " [\"--disable=C0114\"]"
   ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "text": "Always write commit messages in English. Never switch languages." },
+    { "text": "Use conventional commits format: type(scope): description" }
+  ]
 }

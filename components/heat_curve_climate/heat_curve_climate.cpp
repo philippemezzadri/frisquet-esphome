@@ -28,13 +28,13 @@ void HeatingCurveClimate::setup() {
     this->current_temperature = NAN;
 
   // on state callback for outdoor temperature
-  if (this->outoor_sensor_) {
-    this->outoor_sensor_->add_on_state_callback([this](float state) {
+  if (this->outdoor_sensor_) {
+    this->outdoor_sensor_->add_on_state_callback([this](float state) {
       this->do_publish_ = roundf(state * 100) != roundf(this->outdoor_temp_ * 100);
       this->outdoor_temp_ = state;
       this->update();
     });
-    this->outdoor_temp_ = this->outoor_sensor_->state;
+    this->outdoor_temp_ = this->outdoor_sensor_->state;
   } else
     this->outdoor_temp_ = 15.0;  // Default outdoor temp if there is no sensor
 
@@ -176,8 +176,10 @@ void HeatingCurveClimate::update() {
     this->write_output_(output);
   }
 
-  if (this->do_publish_)
+  if (this->do_publish_) {
     this->publish_state();
+    this->do_publish_ = false;
+  }
 }
 
 void HeatingCurveClimate::write_output_(float value) {
@@ -197,10 +199,9 @@ void HeatingCurveClimate::write_output_(float value) {
     this->water_temp_ = NAN;
   }
 
-  ESP_LOGI(TAG, "Climate action was %s and is now %s", LOG_STR_ARG(climate_action_to_string(this->action)),
-           LOG_STR_ARG(climate_action_to_string(new_action)));
-
   if (new_action != this->action) {
+    ESP_LOGI(TAG, "Climate action changed from %s to %s", LOG_STR_ARG(climate_action_to_string(this->action)),
+             LOG_STR_ARG(climate_action_to_string(new_action)));
     this->action = new_action;
     this->do_publish_ = true;
   }

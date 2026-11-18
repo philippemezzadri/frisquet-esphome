@@ -55,7 +55,7 @@ Defined viewing direction for the connector pin out:
 - Receptable - *rear view*
 - Header - *front view*
 
-*Note*: It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
+> ⚠️ It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
 
 ## Installation
 
@@ -121,7 +121,10 @@ The output value received by the component is any rational value between `0` and
 
 `calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler. This is only used to return information to Home Assistant and has no impact on boiler control.
 
-*Note:* The ``frisquet_boiler`` component will send commands to the boiler right after an update of the ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not updated during 15 minutes. In such case, the boiler will put itself in safe mode.
+> ⚠️ The ``frisquet_boiler`` component will send commands to the boiler right after an update of the
+> ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. 
+> To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not 
+> updated during 15 minutes. In such case, the boiler will put itself in safe mode.
 
 ### Boiler ID
 
@@ -199,7 +202,7 @@ where :
 - `DELTA` is the temperature difference between the target and the outdoor,
 - `slope` and `shift` are defined in the Climate `control_parameters`.
 
-![heat curve example graph](images/heat_curve_graph.png)
+![heating curve example graph](images/heat_curve_graph.png)
 
 In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
 
@@ -309,7 +312,7 @@ sensor:
 
 If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
 
-*Note:* Sensors should have a regular update interval as the heat curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
+> ⚠️ Sensors should have a regular update interval as the heating curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
 ## `frisquet_boiler` Switches
 
@@ -437,10 +440,14 @@ Configuration variables:
 - **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
 - **slope** (**Required**, float): The proportional term (slope) of the heating curve.
 - **shift** (**Required**, float): The offset term of the heating curve.
-- **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to 0.
-- **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to 0.
+- **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to `0`.
+- **ki** (*Optional*, float): The factor for the integral term of the controller. Defaults to `0`.
+- **max_error** (*Optional*, float): The regulation error above which the boiler stops. Defaults to `1`.
+- **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
 
-## `climate.pid.reset_integral_term` Action
+If omitted, the current value is kept: the value from `control_parameters` in the YAML file, or the last value set at runtime (e.g. from Home Assistant). The default values above only apply when the parameter is set neither in the YAML file nor at runtime.
+
+## `climate.heat_curve.reset_integral_term` Action
 
 This [action](<https://esphome.io/automations/actions#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
 
@@ -459,12 +466,12 @@ Configuration variables:
 This [action](<https://esphome.io/automations/actions#actions>) sets the boiler operating mode.
 This parameter is actually included in the frames sent to the boiler by the Satellite so we reproduce this behaviour in this component.
 
-Note: the actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
+> ⚠️ The actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
 
 ```yaml
 on_...:
   then:
-    - output.set_mode:
+    - boiler.set_mode:
         id: boiler_cmd
         mode: 3
 ```
@@ -485,7 +492,7 @@ This [action](<https://esphome.io/automations/action#actions>) sets the float ou
 ```yaml
 on_...:
   then:
-    - boiler.set_level:
+    - output.set_level:
         id: boiler_cmd
         level: 50%
 ```
@@ -554,7 +561,7 @@ data:
 ```yaml
 action: esphome.myFrisquetBoiler_set_boiler_setpoint
 data:
-  level: 50
+  setpoint: 50
 ```
 
 ### Set boiler mode Service
@@ -570,6 +577,8 @@ Those are only examples. Any kind of service can be defined to suit your needs.
 ## Configuration files
 
 The [boiler.yaml](boiler.yaml) file includes all options described above. To use it, you need to customize all sensors IDs and names. If you are using Dallas temperature sensor, you need to enter their proper addresses. If not, you have to delete the corresponding lines.
+
+Secrets (Wi-Fi, API encryption key) are read from a git-ignored `secrets.yaml` file. Use [secrets.example.yaml](secrets.example.yaml) as a template. OTA updates are secured with the API encryption key (`ota: encryption:`, ESPHome 2026.11 or later).
 
 The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
 
