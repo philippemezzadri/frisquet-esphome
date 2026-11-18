@@ -56,7 +56,7 @@ automation:
               - condition: numeric_state
                 entity_id: climate.chaudiere_frisquet
                 attribute: temperature
-                above: "17.2"
+                above: "17"
             sequence:
               - action: esphome.boiler_set_boiler_mode
                 data:
