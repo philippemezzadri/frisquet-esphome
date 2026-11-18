@@ -56,7 +56,7 @@ automation:
               - condition: numeric_state
                 entity_id: climate.chaudiere_frisquet
                 attribute: temperature
-                above: "17"
+                above: "17.2"
             sequence:
               - action: esphome.boiler_set_boiler_mode
                 data:
@@ -94,7 +94,6 @@ automation:
           slope: "{{ states('input_number.boiler_slope') | float}}"
           shift: "{{ states('input_number.boiler_shift') | float }}"
           kp: "{{ states('input_number.boiler_kp') | float }}"
-          ki: "{{ states('input_number.boiler_ki') | float }}"
       - delay: "00:01:30"
     mode: single
     max_exceeded: silent
