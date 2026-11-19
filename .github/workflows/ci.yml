@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [esp32]
+        target: [esp32, esp8266]
     steps:
       - uses: actions/checkout@v4
 
