@@ -22,12 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: dev
           fetch-depth: 0 # full history and tags are needed by git-cliff
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
