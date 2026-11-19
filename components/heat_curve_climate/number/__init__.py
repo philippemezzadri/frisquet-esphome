@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
 from esphome.const import (
+    CONF_ICON,
     CONF_MAX_VALUE,
     CONF_MIN_VALUE,
     CONF_MODE,
@@ -19,26 +20,47 @@ HeatCurveClimateNumber = heat_curve_ns.class_(
 )
 HeatCurveClimateNumberType = heat_curve_ns.enum("HeatCurveClimateNumberType")
 
-# type: (C++ enum, default min, default max, default step, default unit)
+# type: (C++ enum, default min, default max, default step, default unit, default icon)
 HEATCURVE_CLIMATE_NUMBER_TYPES = {
-    "SLOPE": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_SLOPE, 0.1, 5.0, 0.05, None),
-    "SHIFT": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_SHIFT, -10.0, 10.0, 0.1, "K"),
-    "KP": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_KP, 0.0, 20.0, 0.1, None),
-    "KI": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_KI, 0.0, 0.01, 0.00001, None),
-    "MAX_ERROR": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_MAX_ERROR, 0.1, 5.0, 0.1, "K"),
-    "MIN_DELTA": (HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_MIN_DELTA, 0.0, 10.0, 0.1, "K"),
+    "SLOPE": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_SLOPE,
+        0.1, 5.0, 0.05, None, "mdi:slope-uphill",
+    ),
+    "SHIFT": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_SHIFT,
+        -10.0, 10.0, 0.1, "K", "mdi:swap-vertical",
+    ),
+    "KP": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_KP,
+        0.0, 20.0, 0.1, None, "mdi:alpha-p-circle-outline",
+    ),
+    "KI": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_KI,
+        0.0, 0.01, 0.00001, None, "mdi:alpha-i-circle-outline",
+    ),
+    "MAX_ERROR": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_MAX_ERROR,
+        0.1, 5.0, 0.1, "K", "mdi:thermometer-alert",
+    ),
+    "MIN_DELTA": (
+        HeatCurveClimateNumberType.HEAT_CURVE_NUMBER_TYPE_MIN_DELTA,
+        0.0, 10.0, 0.1, "K", "mdi:delta",
+    ),
 }
 
 CONF_CLIMATE_ID = "climate_id"
 
 
 def apply_type_defaults(config):
-    _, min_value, max_value, step, unit = HEATCURVE_CLIMATE_NUMBER_TYPES[config[CONF_TYPE]]
+    _, min_value, max_value, step, unit, icon = HEATCURVE_CLIMATE_NUMBER_TYPES[
+        config[CONF_TYPE]
+    ]
     config.setdefault(CONF_MIN_VALUE, min_value)
     config.setdefault(CONF_MAX_VALUE, max_value)
     config.setdefault(CONF_STEP, step)
     if unit is not None:
         config.setdefault(CONF_UNIT_OF_MEASUREMENT, unit)
+    config.setdefault(CONF_ICON, icon)
     if config[CONF_MAX_VALUE] <= config[CONF_MIN_VALUE]:
         raise cv.Invalid("max_value must be greater than min_value")
     return config
@@ -57,8 +79,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_MAX_VALUE): cv.float_,
             cv.Optional(CONF_STEP): cv.positive_float,
             cv.Optional(CONF_RESTORE_VALUE, default=True): cv.boolean,
-            # Parameters need precise values: input box rather than slider
-            cv.Optional(CONF_MODE, default="BOX"): cv.enum(number.NUMBER_MODES, upper=True),
+            cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(
+                number.NUMBER_MODES, upper=True
+            ),
         }
     )
     .extend(cv.COMPONENT_SCHEMA),

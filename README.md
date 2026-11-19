@@ -441,20 +441,21 @@ Configuration variables:
 - **name** (**Required**, string): The name of the number.
 - **type** (**Required**, string): The control parameter to adjust. One of
 
-  | Type        | Parameter   | Default range | Default step | Unit |
-  | ----------- | ----------- | ------------- | ------------ | ---- |
-  | `SLOPE`     | `slope`     | 0.1 to 5      | 0.05         |      |
-  | `SHIFT`     | `shift`     | -10 to 10     | 0.1          | K    |
-  | `KP`        | `kp`        | 0 to 20       | 0.1          |      |
-  | `KI`        | `ki`        | 0 to 0.01     | 0.00001      |      |
-  | `MAX_ERROR` | `max_error` | 0.1 to 5      | 0.1          | K    |
-  | `MIN_DELTA` | `min_delta` | 0 to 10       | 0.1          | K    |
+  | Type        | Parameter   | Default range | Default step | Unit | Default icon                 |
+  | ----------- | ----------- | ------------- | ------------ | ---- | ---------------------------- |
+  | `SLOPE`     | `slope`     | 0.1 to 5      | 0.05         |      | `mdi:slope-uphill`           |
+  | `SHIFT`     | `shift`     | -10 to 10     | 0.1          | K    | `mdi:swap-vertical`          |
+  | `KP`        | `kp`        | 0 to 20       | 0.1          |      | `mdi:alpha-p-circle-outline` |
+  | `KI`        | `ki`        | 0 to 0.01     | 0.00001      |      | `mdi:alpha-i-circle-outline` |
+  | `MAX_ERROR` | `max_error` | 0.1 to 5      | 0.1          | K    | `mdi:thermometer-alert`      |
+  | `MIN_DELTA` | `min_delta` | 0 to 10       | 0.1          | K    | `mdi:delta`                  |
 
 - **restore_value** (*Optional*, boolean): Store the value in flash and restore it after a reboot. Defaults to `true`.
 - **min_value** (*Optional*, float): The minimum value. Defaults to the range above.
 - **max_value** (*Optional*, float): The maximum value. Defaults to the range above.
 - **step** (*Optional*, float): The granularity of the value. Defaults to the step above.
-- **mode** (*Optional*, string): How Home Assistant displays the number: `BOX`, `SLIDER` or `AUTO`. Defaults to `BOX`.
+- **mode** (*Optional*, string): How Home Assistant displays the number: `SLIDER`, `BOX` or `AUTO`. Defaults to `SLIDER`. `BOX` is easier for `KI`, whose range has many steps.
+- **icon** (*Optional*, icon): Manually set the icon. Defaults to the icon above.
 - All other options from [Number](<https://esphome.io/components/number/#base-number-configuration>).
 
 Behaviour:
