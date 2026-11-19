@@ -35,6 +35,22 @@ This project aims to eventually be integrated into the official [ESPHome](https:
      - source: components
    ```
 
+### Editor Setup (VS Code)
+
+The repository ships a portable VS Code configuration (`.vscode/`) with recommended extensions, formatting settings and C/C++ IntelliSense. No machine-specific path is stored in it.
+
+To get IntelliSense working with the ESPHome, ESP-IDF and framework headers, run once:
+
+```bash
+scripts/setup_vscode.sh
+```
+
+It compiles `tests/test.esp32.yaml` with your installed ESPHome (a few minutes the first time) and writes `.vscode/compile_commands.json` (git-ignored), pointing the build flags to the files in `components/`. Run it again after upgrading ESPHome. If `esphome` is not on your `PATH`, use `ESPHOME=/path/to/esphome scripts/setup_vscode.sh`.
+
+For Python (`__init__.py`, schema files), select in VS Code the Python interpreter where ESPHome is installed (*Python: Select Interpreter*).
+
+Personal preferences (themes, GitLens, etc.) belong in your VS Code user settings, not in `.vscode/settings.json`.
+
 ---
 
 ## Making Changes
