@@ -10,9 +10,8 @@ This project aims to eventually be integrated into the official [ESPHome](https:
 
 ### Prerequisites
 
-- [ESPHome](https://esphome.io/guides/installing_esphome) installed locally
-- [PlatformIO](https://platformio.org) for compilation
-- An ESP32 development board
+- [ESPHome](https://esphome.io/guides/installing_esphome) 2026.11 or later, installed locally (it installs its own build toolchains)
+- An ESP32 or ESP8266 development board
 - A Frisquet boiler equipped with the Eco Radio System (ERS) module, or access to one for testing
 
 ### Setting Up the Development Environment
