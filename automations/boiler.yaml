@@ -1,25 +1,8 @@
 # File to be located in home assistant 'config/packages' folder.
 #
-input_number:
-  boiler_slope:
-    name: Boiler Slope
-    min: 0
-    max: 3
-    step: 0.01
-    mode: box
-  boiler_shift:
-    name: Boiler Shift
-    min: 0
-    max: 30
-    step: 0.5
-    mode: box
-  boiler_kp:
-    name: Boiler Kp
-    min: 0
-    max: 10
-    step: 0.5
-    mode: box
-
+# The control parameters (slope, shift, kp...) are set with the
+# heat_curve_climate number entities of the ESP (see boiler.yaml).
+#
 automation:
   
   - alias: Boiler Mode
@@ -61,39 +44,3 @@ automation:
               - action: esphome.boiler_set_boiler_mode
                 data:
                   mode: 3
-
-  - alias: Boiler Set Control Parameters
-    id: "dadadd7b-5ac0-47cb-b3ff-439f90f1e15b"
-    description: Set control parameters
-    triggers:
-      - trigger: state
-        entity_id:
-          - input_number.boiler_slope
-          - input_number.boiler_shift
-          - input_number.boiler_kp
-    conditions: []
-    actions:
-      - action: esphome.boiler_set_control_parameters
-        data:
-          slope: "{{ states('input_number.boiler_slope') | float}}"
-          shift: "{{ states('input_number.boiler_shift') | float }}"
-          kp: "{{ states('input_number.boiler_kp') | float }}"
-    mode: restart
-
-  - alias: Boiler Restore Control Parameters
-    id: "1663cafe-62e2-4eed-8819-d94035c5e48b"
-    description: Restore control parameters after a reboot
-    triggers:
-      - trigger: numeric_state
-        entity_id: sensor.chaudiere_frisquet_uptime
-        below: 60
-    conditions: []
-    actions:
-      - action: esphome.boiler_set_control_parameters
-        data:
-          slope: "{{ states('input_number.boiler_slope') | float}}"
-          shift: "{{ states('input_number.boiler_shift') | float }}"
-          kp: "{{ states('input_number.boiler_kp') | float }}"
-      - delay: "00:01:30"
-    mode: single
-    max_exceeded: silent

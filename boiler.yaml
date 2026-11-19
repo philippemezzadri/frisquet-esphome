@@ -122,6 +122,26 @@ output:
       number: 5
       ignore_strapping_warning: true
 
+number:
+  - platform: heat_curve_climate
+    name: "Heating curve slope"
+    type: SLOPE
+  - platform: heat_curve_climate
+    name: "Heating curve shift"
+    type: SHIFT
+  - platform: heat_curve_climate
+    name: "Heating curve Kp"
+    type: KP
+  - platform: heat_curve_climate
+    name: "Heating curve Ki"
+    type: KI
+  - platform: heat_curve_climate
+    name: "Heating curve max error"
+    type: MAX_ERROR
+  - platform: heat_curve_climate
+    name: "Heating curve min delta"
+    type: MIN_DELTA
+
 switch:
   - platform: heat_curve_climate
     name: "Heat Required"
