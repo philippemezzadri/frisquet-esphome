@@ -454,7 +454,7 @@ Configuration variables:
 - **min_value** (*Optional*, float): The minimum value. Defaults to the range above.
 - **max_value** (*Optional*, float): The maximum value. Defaults to the range above.
 - **step** (*Optional*, float): The granularity of the value. Defaults to the step above.
-- **mode** (*Optional*, string): How Home Assistant displays the number: `SLIDER`, `BOX` or `AUTO`. Defaults to `SLIDER`. `BOX` is easier for `KI`, whose range has many steps.
+- **mode** (*Optional*, string): How Home Assistant displays the number: `SLIDER`, `BOX` or `AUTO`. Defaults to `BOX` for `KI`, whose range has too many steps for a slider, and to `SLIDER` for the other types.
 - **icon** (*Optional*, icon): Manually set the icon. Defaults to the icon above.
 - All other options from [Number](<https://esphome.io/components/number/#base-number-configuration>).
 

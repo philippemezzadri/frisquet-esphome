@@ -61,6 +61,10 @@ def apply_type_defaults(config):
     if unit is not None:
         config.setdefault(CONF_UNIT_OF_MEASUREMENT, unit)
     config.setdefault(CONF_ICON, icon)
+    if CONF_MODE not in config:
+        # KI has too many steps for a slider: use an input box
+        default_mode = "BOX" if config[CONF_TYPE] == "KI" else "SLIDER"
+        config[CONF_MODE] = cv.enum(number.NUMBER_MODES, upper=True)(default_mode)
     if config[CONF_MAX_VALUE] <= config[CONF_MIN_VALUE]:
         raise cv.Invalid("max_value must be greater than min_value")
     return config
@@ -79,9 +83,8 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_MAX_VALUE): cv.float_,
             cv.Optional(CONF_STEP): cv.positive_float,
             cv.Optional(CONF_RESTORE_VALUE, default=True): cv.boolean,
-            cv.Optional(CONF_MODE, default="SLIDER"): cv.enum(
-                number.NUMBER_MODES, upper=True
-            ),
+            # No schema default: it depends on the type (see apply_type_defaults)
+            cv.Optional(CONF_MODE): cv.enum(number.NUMBER_MODES, upper=True),
         }
     )
     .extend(cv.COMPONENT_SCHEMA),
