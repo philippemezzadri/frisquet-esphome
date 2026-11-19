@@ -422,9 +422,52 @@ Configuration variables:
 
 Those sensors may be useful to set up your heating curve `control_parameters`.
 
+## `heat_curve_climate` Number
+
+The **Heating Curve Climate** platform also provides an optional number platform to adjust the `control_parameters` from Home Assistant, without any helper or automation on the Home Assistant side. Each number appears as a configuration entity of the ESPHome device.
+
+```yaml
+number:
+  - platform: heat_curve_climate
+    name: "Heating Curve Slope"
+    type: SLOPE
+  - platform: heat_curve_climate
+    name: "Heating Curve Kp"
+    type: KP
+```
+
+Configuration variables:
+
+- **name** (**Required**, string): The name of the number.
+- **type** (**Required**, string): The control parameter to adjust. One of
+
+  | Type        | Parameter   | Default range | Default step | Unit | Default icon                 |
+  | ----------- | ----------- | ------------- | ------------ | ---- | ---------------------------- |
+  | `SLOPE`     | `slope`     | 0.1 to 5      | 0.05         |      | `mdi:slope-uphill`           |
+  | `SHIFT`     | `shift`     | -10 to 10     | 0.1          | K    | `mdi:swap-vertical`          |
+  | `KP`        | `kp`        | 0 to 20       | 0.1          |      | `mdi:alpha-p-circle-outline` |
+  | `KI`        | `ki`        | 0 to 0.01     | 0.00001      |      | `mdi:alpha-i-circle-outline` |
+  | `MAX_ERROR` | `max_error` | 0.1 to 5      | 0.1          | K    | `mdi:thermometer-alert`      |
+  | `MIN_DELTA` | `min_delta` | 0 to 10       | 0.1          | K    | `mdi:delta`                  |
+
+- **restore_value** (*Optional*, boolean): Store the value in flash and restore it after a reboot. Defaults to `true`.
+- **min_value** (*Optional*, float): The minimum value. Defaults to the range above.
+- **max_value** (*Optional*, float): The maximum value. Defaults to the range above.
+- **step** (*Optional*, float): The granularity of the value. Defaults to the step above.
+- **mode** (*Optional*, string): How Home Assistant displays the number: `SLIDER`, `BOX` or `AUTO`. Defaults to `BOX` for `KI`, whose range has too many steps for a slider, and to `SLIDER` for the other types.
+- **icon** (*Optional*, icon): Manually set the icon. Defaults to the icon above.
+- All other options from [Number](<https://esphome.io/components/number/#base-number-configuration>).
+
+Behaviour:
+
+- With `restore_value: true`, the value stored on the ESP **takes precedence** over `control_parameters` after a reboot. The YAML value is only used the first time, before any value has been stored. To go back to the YAML value, set it again from Home Assistant, or use `restore_value: false`.
+- Values are written to flash according to the [`flash_write_interval`](<https://esphome.io/components/esphome/#preferences-flash-write-interval>) preference (1 minute by default). With a longer interval, a value changed shortly before a reboot or a power cut may be lost.
+- Changing `slope`, `shift` or `kp` resets the integral term, as the accumulated value no longer matches the new settings. The output is recalculated immediately.
+- The numbers follow the changes made with the [`climate.heat_curve.set_control_parameters`](<#climateheat_curveset_control_parameters-action>) action, and store them as well.
+
 ## `climate.heat_curve.set_control_parameters` Action
 
-This [action](<https://esphome.io/automations/actions/#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
+This [action](<https://esphome.io/automations/actions/#actions>) sets new values for the control parameters. This can be used to manually tune the controller, or to change the parameters from an automation. Values set this way reset to the YAML file values on the next reboot, unless the corresponding [`heat_curve_climate` Number](<#heat_curve_climate-number>) is configured: it stores them and restores them after a reboot.
 
 ```yaml
 on_...:
@@ -581,9 +624,9 @@ The [boiler.yaml](boiler.yaml) file includes all options described above. To use
 
 Secrets (Wi-Fi, API encryption key) are read from a git-ignored `secrets.yaml` file. Use [secrets.example.yaml](secrets.example.yaml) as a template. OTA updates are secured with the API encryption key (`ota: encryption:`, ESPHome 2026.11 or later).
 
-The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
+The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes an automation that sets the boiler mode according to the target temperature. IDs and entity names should be changed before use to suit your own configuration.
 
-The proposed automations allow you to modify the `control_parameters` (`slope`, `shift` and `kp`) from the Home Assistant UI and to restore them anytime the ESP reboots.
+The `control_parameters` are adjusted from Home Assistant with the [`heat_curve_climate` Number](<#heat_curve_climate-number>) entities, declared in [boiler.yaml](boiler.yaml). They no longer need `input_number` helpers or a restore automation.
 
 One way of using this file is to copy it in a folder named `packages` of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
 
@@ -591,6 +634,14 @@ One way of using this file is to copy it in a folder named `packages` of your Ho
 homeassistant:
   packages: !include_dir_named packages
 ```
+
+## Upgrading to the number entities
+
+Earlier versions of [automations/boiler.yaml](automations/boiler.yaml) used `input_number` helpers and two automations (*Boiler Set Control Parameters* and *Boiler Restore Control Parameters*) to set and restore the `control_parameters`. When adding the [`heat_curve_climate` Number](<#heat_curve_climate-number>) entities:
+
+1. Set the numbers once to the values of your `input_number` helpers.
+2. Remove the two automations from Home Assistant: the restore automation would otherwise overwrite the stored values after each reboot.
+3. Remove the `input_number` helpers.
 
 ## Upgrading from versions before 1.5
 
