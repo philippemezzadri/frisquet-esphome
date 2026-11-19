@@ -18,7 +18,7 @@ jobs:
     name: clang-format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Pinned version so that formatting results are reproducible
       - name: Install clang-format
         run: pip install clang-format==18.1.8
@@ -35,14 +35,14 @@ jobs:
       matrix:
         target: [esp32, esp8266]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
       - name: Cache PlatformIO
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.platformio
           key: pio-${{ matrix.target }}-${{ hashFiles('tests/*.yaml') }}

@@ -1,20 +1,19 @@
 # Frisquet Boiler for ESPHome
 
-This ESPHome component allows to use an ESPHome device (ESP8266 or ESP32) to control a [Frisquet](<https://www.frisquet.com/en>) heating boiler, replacing the Eco Radio System remote thermostat.
+This ESPHome component allows you to use an ESPHome device (ESP8266 or ESP32) to control a [Frisquet](<https://www.frisquet.com/en>) heating boiler, replacing the Eco Radio System remote thermostat.
 
 The solution developed is applicable to all Frisquet boilers marketed until 2012 and fitted with the Eco Radio System module. More recent boilers equipped with the Visio module are not compatible because Frisquet has since implemented encryption in its communication protocol.
 
 The **Frisquet Boiler** component appears as a [Float Output](<https://esphome.io/components/output/>) device.
 
-It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/index.html>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use an other type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid.html).
+It is recommended to combine it with the **Heating Curve Climate** component also provided in this project. This [Climate](<https://esphome.io/components/climate/>) component will offer temperature control using an outdoor temperature sensor. If needed, it is also possible to use another type of Climate component, such as the [PID Climate](https://esphome.io/components/climate/pid/).
 
-## Breaking change in version 1.5
+## Requirements
 
-Some parameters names and behaviour have changed in version 1.5. The parameters `heat_factor` and `offset` of the `heat_curve_climate`component have been replaced by `slope` and `shift`. Those terms are more commonly used by boiler manufacturers.
-
-Whilst `slope` provides the same functionnality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and substract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
-
-The same changes are applicable to the component [actions](<https://esphome.io/automations/actions?highlight=automation#actions>) and component [sensors](<#heat_curve_climate-sensor>).
+- A Frisquet boiler marketed until 2012 and fitted with the Eco Radio System module (see above).
+- An ESP32 or ESP8266 board. The boiler main board has been observed not to supply enough current to power it, so plan a separate 5V power supply (see [Wiring](#wiring)).
+- Possibly a level shifter or an optocoupler, to drive the 5V logic input of the boiler (see [Frisquet Boiler Output](#frisquet-boiler-output)).
+- ESPHome 2026.11 or later to use the example [boiler.yaml](boiler.yaml) as is (OTA encryption). The components are compiled for ESP32 and ESP8266 with the latest ESPHome release on every change.
 
 ## References
 
@@ -26,7 +25,7 @@ This work is strongly inspired from:
 
 and from the discussions held in this thread:
 
-- [Régulation d'une chaudière Frisquet ECO radio System](<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486sid=d2f41ac68e5bab18fd412a192a21c2c4>) (French)
+- [Régulation d'une chaudière Frisquet ECO radio System](<https://easydomoticz.com/forum/viewtopic.php?f=17&t=1486>) (French)
 
 The following resources may also be useful:
 
@@ -34,16 +33,16 @@ The following resources may also be useful:
 - [Réglage et optimisation de la courbe de chauffe](https://web.archive.org/web/20231110221524/https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French) — practical guide to adjusting slope and shift
 - [Adjusting the heating curve correctly](https://www.viessmann.com.au/en/knowledge/tips-and-tutorials/set-heating-curve.html) — Viessmann step-by-step guide with standard slope values
 - [Hydronic Balancing: Heating Curve Settings](https://www.buildingservicestutor.com/hydronic-balancing-heating-curve-settings/) — detailed guide on slope and shift adjustment methodology
-- [Weather Compensation and Flow Temperature Optimisation](https://www.heatgeek.com/articles/how-to-maximise-your-heat-pump-or-boiler-efficiency) — Heat Geek practical guide
+- [Weather Compensation and Flow Temperature Optimisation](https://www.heatgeek.com/articles/3-steps-to-maximise-your-heat-pump-or-boiler-efficiency) — Heat Geek practical guide
 
 ## Wiring
 
-The ESPHome replaces the original Eco Radio System HF receiver and is conneted to the boiler main board through a micro-fit 4 socket.
+The ESPHome replaces the original Eco Radio System HF receiver and is connected to the boiler main board through a micro-fit 4 socket.
 
-| ESP32                 | Boiler Side         | Pin number |
+| ESP32 / ESP8266       | Boiler Side         | Pin number |
 | --------------------- | ------------------- |:----------:|
 | GND                   | black wire          | 1          |
-| Pin 21 (configurable) | yellow wire         | 2          |
+| GPIO (configurable)   | yellow wire         | 2          |
 | 5V                    | red wire (optional) | 3          |
 
 **Micro-fit 4 pin out:**
@@ -52,19 +51,19 @@ The ESPHome replaces the original Eco Radio System HF receiver and is conneted t
 
 Defined viewing direction for the connector pin out:
 
-- Receptable - *rear view*
+- Receptacle - *rear view*
 - Header - *front view*
 
-> ⚠️ It has been observed that the current supplied by the boiler main board is not sufficent to power the ESP32.
+> ⚠️ It has been observed that the current supplied by the boiler main board is not sufficient to power the ESP board.
 
 ## Installation
 
 The Frisquet ESPHome component consists of two components:
 
-- `heat_curve_climate` a custom [Climate](<https://esphome.io/components/climate/index.html>) component that will control the boiler water setpoint based on target, current (internal) and outside temperatures and a heating curve formula.
-- `friquet_boiler` a custom [Float Output](<https://esphome.io/components/output/>) component that will actually communicate with the Frisquet boiler.
+- `heat_curve_climate` a custom [Climate](<https://esphome.io/components/climate/>) component that will control the boiler water setpoint based on target, current (internal) and outside temperatures and a heating curve formula.
+- `frisquet_boiler` a custom [Float Output](<https://esphome.io/components/output/>) component that will actually communicate with the Frisquet boiler.
 
-They can be installed using the [External Components](https://esphome.io/components/external_components) feature of ESPHome.
+They can be installed using the [External Components](https://esphome.io/components/external_components/) feature of ESPHome.
 
 ### Local
 
@@ -86,7 +85,7 @@ external_components:
 
 ## Frisquet Boiler Output
 
-The core component communicates with the boiler control board to send messages which contains a boiler identifier, heating mode and a setpoint water temperature as a ratio.
+The core component communicates with the boiler control board to send messages which contain a boiler identifier, heating mode and a setpoint water temperature as a ratio.
 
 It drives the boiler by emitting the same signal that the remote does via VHF. The original receiver only transforms the radio signal into 5V TTL logic.
 The signal protocol is differential Manchester with bit-stuffing applied (whenever 5 ones are sent a stuffing 0 is appended). There is also a checksum.
@@ -99,36 +98,36 @@ The frisquet_boiler is then a [Float Output](<https://esphome.io/components/outp
 output:
   - platform: frisquet_boiler
     id: boiler_cmd
-    pin: 21
+    pin: 21  # any free GPIO, e.g. GPIO5 on ESP8266
     boiler_id: 03B9
 ```
 
 Configuration variables:
 
-- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The id to use for this output component.
-- **pin** (**Required**, [Pin](<https://esphome.io/guides/configuration-types.html#config-pin>)): The pin number connected to the boiler.
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): The id to use for this output component.
+- **pin** (**Required**, [Pin](<https://esphome.io/guides/configuration-types/#pin>)): The pin number connected to the boiler.
 - **boiler_id** (**Required**, string): The identifier of your boiler (see [below](<#boiler-id>)).
 - **calibration_factor** (*Optional*, float): Calibration factor of the boiler. Defaults to `1.9`.
 - **calibration_offset** (*Optional*, float): Calibration offset of the boiler. Defaults to `-41`.
 - All other options from [Float Output](<https://esphome.io/components/output/>).
 
-If `min_power`is set to a value that is not zero, it is important to set `zero_means_zero` to `true`. This can be safely ignored if `min_power` and `max_power` are kept at their default values.
+If `min_power` is set to a value that is not zero, it is important to set `zero_means_zero` to `true`. This can be safely ignored if `min_power` and `max_power` are kept at their default values.
 
-The output value received by the component is any rational value between `0` and `1`. Internaly, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100:
+The output value received by the component is any rational value between `0` and `1`. Internally, the output value is multiplied by 100 and rounded to an integer value because the Frisquet Boiler only accepts orders as integers between 0 and 100:
 
 - 0 : boiler is stopped
 - 01 - 100 : water heating
 
 `calibration_factor` and  `calibration_offset` are used by the internal sensor to calculate the equivalent water flow temperature out of the output value. The default values have been defined on a *Frisquet Hydroconfort Evolution* boiler. This is only used to return information to Home Assistant and has no impact on boiler control.
 
-> ⚠️ The ``frisquet_boiler`` component will send commands to the boiler right after an update of the
-> ``output`` value and then every 4 minutes. The component must receive regularly updates from the Climate component. 
-> To prevent overheating of the boiler, it will stop sending commands to the boiler if the ``output`` value is not 
+> ⚠️ The `frisquet_boiler` component will send commands to the boiler right after an update of the
+> `output` value and then every 4 minutes. The component must receive regularly updates from the Climate component. 
+> To prevent overheating of the boiler, it will stop sending commands to the boiler if the `output` value is not 
 > updated during 15 minutes. In such case, the boiler will put itself in safe mode.
 
 ### Boiler ID
 
-**Important:** the boiler ID that must be indicated in the YAML configuration file is a 4 hexa digit number required to allow
+**Important:** the boiler ID that must be indicated in the YAML configuration file is a 4-digit hexadecimal number required to allow
 your boiler to receive the messages from the ESP.
 There are many ways to find your ID:
 
@@ -140,11 +139,11 @@ It is also possible to assign any ID to the boiler using configuration mode (see
 
 ## Heating Curve Climate
 
-In addition, a [Climate](<https://esphome.io/components/climate/index.html>) component is necessary to control the Frisquet Boiler Output.
+In addition, a [Climate](<https://esphome.io/components/climate/>) component is necessary to control the Frisquet Boiler Output.
 
-It uses the target, ambiant and outside temperatures and a heating curve formula to calculate a target water temperature, and then calibrates it to the output value.
+It uses the target, ambient and outside temperatures and a heating curve formula to calculate a target water temperature, and then calibrates it to the output value.
 
-The [PID Climate](https://esphome.io/components/climate/pid.html) could be used but it does not provide smooth control and does not anticipate weather evolution.
+The [PID Climate](https://esphome.io/components/climate/pid/) could be used but it does not provide smooth control and does not anticipate weather evolution.
 
 It is otherwise recommended to use the **Heating Curve Climate** which adjusts the heating power according to the outdoor temperature.
 
@@ -169,15 +168,15 @@ climate:
 
 Configuration variables:
 
-- **sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the current temperature.
-- **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The sensor that is used to measure the outside temperature.
+- **sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): The sensor that is used to measure the current temperature.
+- **outdoor_sensor** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): The sensor that is used to measure the outside temperature.
 - **default_target_temperature** (**Required**, float): The default target temperature (setpoint) for the control algorithm. This can be dynamically set in the frontend later.
-- **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): The ID of a float output that increases the current temperature.
+- **output** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): The ID of a float output that increases the current temperature.
 - **control_parameters** (*Optional*): Control parameters of the controller (see [below](<#heating-curve-definition>)).
   - **alt_curve** (*Optional*, boolean): Set to `true` to use an alternate heating curve. Defaults to `false`.
   - **slope** (*Optional*, float): The proportional term (slope) of the heating curve. Defaults to `1.5`.
   - **shift** (*Optional*, float): The parallel shift term of the heating curve. Defaults to `0`.
-  - **max_error** (*Optional*, float): The regulation error above which the boiler stops (e.g. when the ambiant temperature is too high because of external heat inputs). Defaults to `1`.
+  - **max_error** (*Optional*, float): The regulation error above which the boiler stops (e.g. when the ambient temperature is too high because of external heat inputs). Defaults to `1`.
   - **min_delta** (*Optional*, float): The target/outdoor temperature difference below which the boiler stops. Defaults to `2`.
   - **kp** (*Optional*, float): The factor for the proportional term of the heating curve. May be useful for accelerating convergence to target temperature. Defaults to `0`.
   - **ki** (*Optional*, float): The factor for the integral term of the heating curve. May be useful if target temperature can't be reached. Use with caution when the house has a lot of thermal inertia. Defaults to `0`.
@@ -188,7 +187,7 @@ Configuration variables:
   - **heat_required_output** (*Optional*, float): Minimum output value to be considered when the [*Heat Required* switch](#heat_curve_climate-switch) is on.  Defaults to `0.1`.
   - **output_factor** (*Optional*, float): Calibration factor of the output. Defaults to `1`.
   - **output_offset** (*Optional*, float): Calibration offset of the output. Defaults to `0`.
-- All other options from [Climate](<https://esphome.io/components/climate/index.html#config-climate>)
+- All other options from [Climate](<https://esphome.io/components/climate/#config-climate>)
 
 ### Heating curve definition
 
@@ -204,7 +203,7 @@ where :
 
 ![heating curve example graph](images/heat_curve_graph.png)
 
-In this example, heating curves are given for an ambiant temperature (target) of 20°C with no shift. The `shift`parameter allows you to move up and down the curves by a few degrees.
+In this example, heating curves are given for an ambient temperature (target) of 20°C with no shift. The `shift` parameter allows you to move up and down the curves by a few degrees.
 
 `slope` and `shift` strongly depend on the heat insulation of the house. Therefore slight adjustments may be necessary to find the best settings. Guidelines to do so can be found [here](https://web.archive.org/web/20231110221524/https://blog.elyotherm.fr/2013/08/reglage-optimisation-courbe-de-chauffe.html) (French).
 
@@ -227,38 +226,40 @@ control_parameters:
 
 **Alternate heating curve:**
 
-If you struggle in finding the good `slope`and `shift`, you can try to set `alt_curve` to `true`. You can do it especially if you can't find settings that work for both cold winter and spring. The alternate heating curve is not linear like the standard curve but is polynomial and is designed to show a reduced slope for high delta between the outdoor and target temperatures.
+If you struggle in finding the good `slope` and `shift`, you can try to set `alt_curve` to `true`. You can do it especially if you can't find settings that work for both cold winter and spring. The alternate heating curve is not linear like the standard curve but is polynomial and is designed to show a reduced slope for high delta between the outdoor and target temperatures.
 
 ![Graph of alternate heating curve](images/alternate_heating_curve.png)
 
 In the above example, both curves have the same `slope` parameter.
 
-### Proportionnal and integral terms
+### Proportional and integral terms
 
-If needed, proportionnal and integral terms can be added to the heating curve:
+If needed, proportional and integral terms can be added to the heating curve:
 
 `WATERTEMP` =  `HEATING_CURVE_TEMP` + `ERROR`* `kp` + `INTEGRAL_TERM`
 
 where :
 
 - `WATERTEMP` is the temperature setpoint for the water circulating in the heating circuit.
-- `HEATING_CURVE_TEMP`is the heating curve temperature calculated above.
+- `HEATING_CURVE_TEMP` is the heating curve temperature calculated above.
 - `ERROR` is the calculated error (target - current)
 - `INTEGRAL_TERM` is the cumulative sum of `ki` \* `ERROR` \* `dt`
 - `dt` is the time difference in seconds between two calculations.
 - `kp` and `ki` are defined in the Climate `control_parameters`.
 
+Around the target temperature, a dead band of ±0.15K is applied to avoid reacting to sensor noise: within it, the proportional term is reduced to 20% and the integral term is not accumulated. The integral term also stops growing while the output is held at `minimum_output` or `maximum_output` (anti-windup).
+
 **Warning:**
 
-Setting a proportionnal factor `kp` can be useful to accelerate the convergence when the target temperature is changed. The value of `kp` should remain low to maintain the stability of the system and avoid overshoots.
+Setting a proportional factor `kp` can be useful to accelerate the convergence when the target temperature is changed. The value of `kp` should remain low to maintain the stability of the system and avoid overshoots.
 
 However, setting an integral factor `ki` can be tricky to use and depends on many factors such as the house thermal inertia. We do not recommend to use it unless you know what you are doing.
 
 ### Hysteresis
 
-In some instances, the boiler may go on idle mode because the ambiant temperature exceeds the maximum limit or if the outdoor temperature is too high. This is controlled by the `max_error`, `min_delta` and `minimum_output` settings.
+In some instances, the boiler may go on idle mode because the ambient temperature exceeds the maximum limit or if the outdoor temperature is too high. This is controlled by the `max_error`, `min_delta` and `minimum_output` settings.
 
-If the above conditions disappear, the boiler will be allowed to restart only if the ambiant temperature goes below the target.
+If the above conditions disappear, the boiler will be allowed to restart only if the ambient temperature goes below the target.
 
 ### Setpoint calibration factors
 
@@ -286,7 +287,7 @@ output_parameters:
 
 ## Temperature Sensors
 
-To get the Climate component working, two temperature sensors are required. They can be retrieved using [`homeassistant`](<https://esphome.io/components/sensor/homeassistant.html>) sensors:
+To get the Climate component working, two temperature sensors are required. They can be retrieved using [`homeassistant`](<https://esphome.io/components/sensor/homeassistant/>) sensors:
 
 ```yaml
 sensor:
@@ -310,7 +311,7 @@ sensor:
       - heartbeat: 60s
 ```
 
-If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe.html>) sensors.
+If you are not using Home Assistant, you can use any local temperature sensor connected to the ESP or retrieve other sensor data using [`mqtt_subscribe`](<https://esphome.io/components/sensor/mqtt_subscribe/>) sensors.
 
 > ⚠️ Sensors should have a regular update interval as the heating curve update frequency is tied to the update interval of the sensors. We recommend putting a filter on the sensors to filter out the noise to ensure better stability of the output.
 
@@ -319,7 +320,7 @@ If you are not using Home Assistant, you can use any local temperature sensor co
 The `frisquet_boiler` component manages two distinct mode spaces that should not
 be confused:
 
-- **Operating mode** (`0`=eco, `3`=comfort, `4`=away): included in the frames sent
+- **Operating mode** (`0`=eco, `3`=comfort, `4`=frost protection): included in the frames sent
   to the boiler to set its heating mode. Controlled via the `boiler.set_mode` action.
 - **Component mode** (`CONTROL`, `TEST`, `CONFIG`): controls the behaviour of the
   ESPHome component itself — normal operation, test signal, or pairing signal.
@@ -327,7 +328,7 @@ be confused:
 
 The original Eco Radio System remote provides two setup modes : **configuration** and **testing**. You can enter these modes by a long press on the up or down arrow buttons.
 
-Those configuration modes are also available with the `frisquet_boiler`component. Control swiches to access these modes can be added with the following lines of code:
+Those configuration modes are also available with the `frisquet_boiler` component. Control switches to access these modes can be added with the following lines of code:
 
 ```yaml
 switch:
@@ -346,7 +347,7 @@ Release and press the button with the hand-shaped icon for 2 seconds to confirm 
 
 You can then quit the configuration mode.
 
-This procedure allows to associate an arbitrary ID to your boiler. This can be helpful if no remote control was previously associated with the boiler.
+This procedure allows you to associate an arbitrary ID to your boiler. This can be helpful if no remote control was previously associated with the boiler.
 
 ### Test mode
 
@@ -414,16 +415,16 @@ Configuration variables:
   - `ERROR` - The calculated error (target - process_variable)
   - `PROPORTIONAL` - The proportional term of the controller (if `kp` is not 0).
   - `INTEGRAL` - The integral term of the controller (if `ki` is not 0).
-  - `SLOPE`- The current value of `slope`
-  - `SHIFT`- The current value of `shift`
-  - `KP`- The current value of `kp`
-  - `KI`- The current value of `ki`
+  - `SLOPE` - The current value of `slope`
+  - `SHIFT` - The current value of `shift`
+  - `KP` - The current value of `kp`
+  - `KI` - The current value of `ki`
 
 Those sensors may be useful to set up your heating curve `control_parameters`.
 
 ## `climate.heat_curve.set_control_parameters` Action
 
-This [action](<https://esphome.io/automations/actions#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
+This [action](<https://esphome.io/automations/actions/#actions>) sets new values for the control parameters. This can be used to manually tune the controller. Make sure to update the values you want on the YAML file! They will reset on the next reboot.
 
 ```yaml
 on_...:
@@ -437,7 +438,7 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate.
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): ID of the Heating Curve Climate.
 - **slope** (**Required**, float): The proportional term (slope) of the heating curve.
 - **shift** (**Required**, float): The offset term of the heating curve.
 - **kp** (*Optional*, float): The factor for the proportional term of the controller. Defaults to `0`.
@@ -449,7 +450,7 @@ If omitted, the current value is kept: the value from `control_parameters` in th
 
 ## `climate.heat_curve.reset_integral_term` Action
 
-This [action](<https://esphome.io/automations/actions#actions>) resets the integral term of the PID controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
+This [action](<https://esphome.io/automations/actions/#actions>) resets the integral term of the Heating Curve Climate controller to 0. This might be necessary under certain conditions to avoid the control loop to overshoot (or undershoot) a target.
 
 ```yaml
 on_...:
@@ -459,11 +460,11 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Heating Curve Climate being reset.
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): ID of the Heating Curve Climate being reset.
 
 ## `boiler.set_mode` Action
 
-This [action](<https://esphome.io/automations/actions#actions>) sets the boiler operating mode.
+This [action](<https://esphome.io/automations/actions/#actions>) sets the boiler operating mode.
 This parameter is actually included in the frames sent to the boiler by the Satellite so we reproduce this behaviour in this component.
 
 > ⚠️ The actual effect of the operating mode on boiler behaviour is not fully documented by Frisquet and may vary by boiler model. We haven't seen any significant effect of the setting.
@@ -478,16 +479,16 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Frisquet Boiler Output.
-- **mode** (**Required**, int): operating mode (0 = eco / 3 = confort / 4 = away)
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): ID of the Frisquet Boiler Output.
+- **mode** (**Required**, int): operating mode (0 = eco / 3 = comfort / 4 = frost protection)
 
 
 
 ## `output.set_level` Action
 
-The `frisquet_boiler` Output component also inherits actions from [Float Output](<https://esphome.io/components/output/>) and in particular [`output.set_level`](<https://esphome.io/components/output/#output-set-level-action>).
+The `frisquet_boiler` Output component also inherits actions from [Float Output](<https://esphome.io/components/output/>) and in particular [`output.set_level`](<https://esphome.io/components/output/#output-set_level-action>).
 
-This [action](<https://esphome.io/automations/action#actions>) sets the float output to the given level when executed. This can be usefull to set the boiler output if it is not connected to a Climate component.
+This [action](<https://esphome.io/automations/actions/#actions>) sets the float output to the given level when executed. This can be useful to set the boiler output if it is not connected to a Climate component.
 
 ```yaml
 on_...:
@@ -499,16 +500,16 @@ on_...:
 
 Configuration variables:
 
-- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types.html#config-id>)): ID of the Frisquet Boiler Output.
+- **id** (**Required**, [ID](<https://esphome.io/guides/configuration-types/#id>)): ID of the Frisquet Boiler Output.
 - **level** (**Required**, percentage): output level
 
 ## Integration with Home Assistant
 
 The Heating Curve Climate component automatically appears in Home Assistant as a [Climate](<https://www.home-assistant.io/integrations/climate/>) integration.
 
-Also, when using the [native API](<https://esphome.io/components/api.html>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with [user-defined services](<https://esphome.io/components/api.html#api-services>). When you declare services in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
+Also, when using the [native API](<https://esphome.io/components/api/>) with Home Assistant, it is also possible to get data from Home Assistant to ESPHome with [user-defined actions](<https://esphome.io/components/api/#user-defined-actions>). When you declare actions in your ESPHome YAML file, they will automatically show up in Home Assistant and you can call them directly.
 
-This way it is possible to call the [actions](<https://esphome.io/automations/actions=automation#actions>) provided by the Boiler Output and Heating Curve Climate components:
+This way it is possible to call the [actions](<https://esphome.io/automations/actions/#actions>) provided by the Boiler Output and Heating Curve Climate components:
 
 ```yaml
 # Example configuration entry
@@ -544,35 +545,35 @@ api:
         - climate.heat_curve.reset_integral_term: boiler_climate
 ```
 
-Those lines in the YAML file will expose three [actions](https://www.home-assistant.io/docs/scripts/perform-actions/) in Home Assistant that can be called with the following lines (provided that the ESP device name is `myFrisquetBoiler`):
+Those lines in the YAML file will expose three [actions](https://www.home-assistant.io/docs/automation/action/) in Home Assistant, named `esphome.<device name>_<action name>`. With the device name `boiler` used in [boiler.yaml](boiler.yaml), they can be called with the following lines:
 
 ### Set climate control parameters
 
 ```yaml
-action: esphome.myFrisquetBoiler_set_control_parameters
+action: esphome.boiler_set_control_parameters
 data:
   slope: 1.2
   shift: 3
   kp: 0
 ```
 
-### Set boiler setpoint Service
+### Set boiler setpoint
 
 ```yaml
-action: esphome.myFrisquetBoiler_set_boiler_setpoint
+action: esphome.boiler_set_boiler_setpoint
 data:
   setpoint: 50
 ```
 
-### Set boiler mode Service
+### Set boiler mode
 
 ```yaml
-action: esphome.myFrisquetBoiler_set_boiler_mode
+action: esphome.boiler_set_boiler_mode
 data:
   mode: 3
 ```
 
-Those are only examples. Any kind of service can be defined to suit your needs.
+Those are only examples. Any kind of action can be defined to suit your needs.
 
 ## Configuration files
 
@@ -582,11 +583,19 @@ Secrets (Wi-Fi, API encryption key) are read from a git-ignored `secrets.yaml` f
 
 The [automations/boiler.yaml](automations/boiler.yaml) file is to be used in Home Assistant. It includes `input_number` and `automation` definitions that allow you to easily manage the `control_parameters` of the ESP. IDs and entity names should be changed before use to suit your own configuration.
 
-The proposed automations allows you to modifiy the `output_parameters` from the Home Assistant UI and to restore them anytime the ESP reboots.
+The proposed automations allow you to modify the `control_parameters` (`slope`, `shift` and `kp`) from the Home Assistant UI and to restore them anytime the ESP reboots.
 
-One way of using this file is to copy it in a folder named `packages`of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
+One way of using this file is to copy it in a folder named `packages` of your Home Assistant `config` folder and then add the following in your `configuration.yaml` file:
 
 ```yaml
 homeassistant:
   packages: !include_dir_named packages
 ```
+
+## Upgrading from versions before 1.5
+
+Some parameters names and behaviour have changed in version 1.5. The parameters `heat_factor` and `offset` of the `heat_curve_climate` component have been replaced by `slope` and `shift`. Those terms are more commonly used by boiler manufacturers.
+
+Whilst `slope` provides the same functionality as `heat_factor`, `shift` is slightly different. One way to define `shift` is to take the `offset` value you were previously using and subtract your usual setpoint temperature (`shift` = `offset` - `setpoint`). Negative values are accepted.
+
+The same changes are applicable to the component [actions](<https://esphome.io/automations/actions/#actions>) and component [sensors](<#heat_curve_climate-sensor>).

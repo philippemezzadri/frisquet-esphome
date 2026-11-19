@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Extract release notes from CHANGELOG
         run: scripts/release_notes.sh "$GITHUB_REF_NAME" > release_notes.md
