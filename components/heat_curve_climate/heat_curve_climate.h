@@ -47,6 +47,12 @@ class HeatingCurveClimate : public Climate, public Component {
     this->internal_sensor_callback_.add(std::forward<F>(callback));
   }
 
+  /// Called when control parameters are changed by the set_control_parameters action
+  template<typename F> void add_on_control_parameters_callback(F &&callback) {
+    this->control_parameters_callback_.add(std::forward<F>(callback));
+  }
+  void notify_control_parameters() { this->control_parameters_callback_.call(); }
+
   float get_output_value() const { return output_value_; }
   float get_water_temp() { return water_temp_; }
   float get_proportional_term() { return proportional_term_; }
@@ -57,6 +63,8 @@ class HeatingCurveClimate : public Climate, public Component {
   float get_shift() { return shift_; }
   float get_kp() { return kp_; }
   float get_ki() { return ki_; }
+  float get_max_error() { return max_error_; }
+  float get_min_delta() { return min_delta_; }
   float temperature_to_output(float temp);
   float get_heat_curve_temp();
 
@@ -101,6 +109,7 @@ class HeatingCurveClimate : public Climate, public Component {
   output::FloatOutput *output_{nullptr};
 
   CallbackManager<void()> internal_sensor_callback_;
+  CallbackManager<void()> control_parameters_callback_;
   float default_target_temperature_;
   bool do_publish_ = false;
 
@@ -129,6 +138,7 @@ template<typename... Ts> class SetControlParametersAction : public Action<Ts...>
       this->parent_->set_max_error(this->max_error_.value(x...));
     if (this->min_delta_.has_value())
       this->parent_->set_min_delta(this->min_delta_.value(x...));
+    this->parent_->notify_control_parameters();
     this->parent_->dump_config();
     this->parent_->update();
   }
